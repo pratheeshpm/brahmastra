@@ -1,0 +1,613 @@
+{
+    object: 'list',
+    data: [
+    {
+    id: 'gpt-4o-audio-preview-2024-12-17',
+    object: 'model',
+    created: 1734034239,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-realtime-preview-2024-12-17',
+    object: 'model',
+    created: 1733945430,
+    owned_by: 'system'
+  },
+    {
+    id: 'dall-e-3',
+    object: 'model',
+    created: 1698785189,
+    owned_by: 'system'
+  },
+    {
+    id: 'dall-e-2',
+    object: 'model',
+    created: 1698798177,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-audio-preview-2024-10-01',
+    object: 'model',
+    created: 1727389042,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-realtime-preview-2024-10-01',
+    object: 'model',
+    created: 1727131766,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-transcribe',
+    object: 'model',
+    created: 1742068463,
+    owned_by: 'system'
+  },
+    { id: 'o1', object: 'model', created: 1734375816, owned_by: 'system' },
+    {
+    id: 'gpt-4o-mini-transcribe',
+    object: 'model',
+    created: 1742068596,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-realtime-preview',
+    object: 'model',
+    created: 1727659998,
+    owned_by: 'system'
+  },
+    {
+    id: 'babbage-002',
+    object: 'model',
+    created: 1692634615,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-tts',
+    object: 'model',
+    created: 1742403959,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-pro',
+    object: 'model',
+    created: 1742251791,
+    owned_by: 'system'
+  },
+    {
+    id: 'tts-1-hd-1106',
+    object: 'model',
+    created: 1699053533,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-2024-12-17',
+    object: 'model',
+    created: 1734326976,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-pro-2025-03-19',
+    object: 'model',
+    created: 1742251504,
+    owned_by: 'system'
+  },
+    {
+    id: 'text-embedding-3-large',
+    object: 'model',
+    created: 1705953180,
+    owned_by: 'system'
+  },
+    {
+    id: 'o3-mini',
+    object: 'model',
+    created: 1737146383,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4',
+    object: 'model',
+    created: 1687882411,
+    owned_by: 'openai'
+  },
+    {
+    id: 'o3-mini-2025-01-31',
+    object: 'model',
+    created: 1738010200,
+    owned_by: 'system'
+  },
+    {
+    id: 'text-embedding-ada-002',
+    object: 'model',
+    created: 1671217299,
+    owned_by: 'openai-internal'
+  },
+    {
+    id: 'omni-moderation-latest',
+    object: 'model',
+    created: 1731689265,
+    owned_by: 'system'
+  },
+    {
+    id: 'computer-use-preview',
+    object: 'model',
+    created: 1734655677,
+    owned_by: 'system'
+  },
+    {
+    id: 'computer-use-preview-2025-03-11',
+    object: 'model',
+    created: 1741377021,
+    owned_by: 'system'
+  },
+    {
+    id: 'tts-1-hd',
+    object: 'model',
+    created: 1699046015,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-audio-preview',
+    object: 'model',
+    created: 1734387424,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-audio-preview',
+    object: 'model',
+    created: 1727460443,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-preview-2024-09-12',
+    object: 'model',
+    created: 1725648865,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-realtime-preview',
+    object: 'model',
+    created: 1734387380,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-realtime-preview-2024-12-17',
+    object: 'model',
+    created: 1734112601,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-3.5-turbo-instruct-0914',
+    object: 'model',
+    created: 1694122472,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-search-preview',
+    object: 'model',
+    created: 1741391161,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4-turbo-preview',
+    object: 'model',
+    created: 1706037777,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4-0125-preview',
+    object: 'model',
+    created: 1706037612,
+    owned_by: 'system'
+  },
+    {
+    id: 'tts-1-1106',
+    object: 'model',
+    created: 1699053241,
+    owned_by: 'system'
+  },
+    {
+    id: 'davinci-002',
+    object: 'model',
+    created: 1692634301,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-3.5-turbo-1106',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-search-preview',
+    object: 'model',
+    created: 1741388720,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4-turbo',
+    object: 'model',
+    created: 1712361441,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-3.5-turbo-instruct',
+    object: 'model',
+    created: 1692901427,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-3.5-turbo',
+    object: 'model',
+    created: 1677610602,
+    owned_by: 'openai'
+  },
+    {
+    id: 'chatgpt-4o-latest',
+    object: 'model',
+    created: 1723515131,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-search-preview-2025-03-11',
+    object: 'model',
+    created: 1741390858,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-2024-11-20',
+    object: 'model',
+    created: 1739331543,
+    owned_by: 'system'
+  },
+    {
+    id: 'whisper-1',
+    object: 'model',
+    created: 1677532384,
+    owned_by: 'openai-internal'
+  },
+    {
+    id: 'gpt-3.5-turbo-0125',
+    object: 'model',
+    created: 1706048358,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-2024-05-13',
+    object: 'model',
+    created: 1715368132,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4-turbo-2024-04-09',
+    object: 'model',
+    created: 1712601677,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-3.5-turbo-16k-0613',
+    object: 'model',
+    created: 1685474247,
+    owned_by: 'openai'
+  },
+    {
+    id: 'gpt-3.5-turbo-16k',
+    object: 'model',
+    created: 1683758102,
+    owned_by: 'openai-internal'
+  },
+    {
+    id: 'gpt-4-1106-preview',
+    object: 'model',
+    created: 1698957206,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-preview',
+    object: 'model',
+    created: 1725648897,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4-0613',
+    object: 'model',
+    created: 1686588896,
+    owned_by: 'openai'
+  },
+    {
+    id: 'gpt-4.5-preview',
+    object: 'model',
+    created: 1740623059,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4.5-preview-2025-02-27',
+    object: 'model',
+    created: 1740623304,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-search-preview-2025-03-11',
+    object: 'model',
+    created: 1741388170,
+    owned_by: 'system'
+  },
+    {
+    id: 'tts-1',
+    object: 'model',
+    created: 1681940951,
+    owned_by: 'openai-internal'
+  },
+    {
+    id: 'omni-moderation-2024-09-26',
+    object: 'model',
+    created: 1732734466,
+    owned_by: 'system'
+  },
+    {
+    id: 'text-embedding-3-small',
+    object: 'model',
+    created: 1705948997,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o',
+    object: 'model',
+    created: 1715367049,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini',
+    object: 'model',
+    created: 1721172741,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-2024-08-06',
+    object: 'model',
+    created: 1722814719,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-2024-07-18',
+    object: 'model',
+    created: 1721172717,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-mini',
+    object: 'model',
+    created: 1725649008,
+    owned_by: 'system'
+  },
+    {
+    id: 'gpt-4o-mini-audio-preview-2024-12-17',
+    object: 'model',
+    created: 1734115920,
+    owned_by: 'system'
+  },
+    {
+    id: 'o1-mini-2024-09-12',
+    object: 'model',
+    created: 1725648979,
+    owned_by: 'system'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:allensolutiongenie:81BpO6To',
+    object: 'model',
+    created: 1695294486,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:allensolutiongenie:81GQg3Al',
+    object: 'model',
+    created: 1695312174,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:allensolutiongenie:81HGdmyl',
+    object: 'model',
+    created: 1695315395,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:allensolutiongenie:81Hbm8p5',
+    object: 'model',
+    created: 1695316707,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:mymodeltest:8bN7LONJ',
+    object: 'model',
+    created: 1703917691,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:mymodeltest:8alx5evk',
+    object: 'model',
+    created: 1703774828,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0613:allen:mymodeltest:8amUwjwR',
+    object: 'model',
+    created: 1703776926,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:finetune-phy:9pcOh2vC',
+    object: 'model',
+    created: 1722089355,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:finetune-phy:9pcOhY5W:ckpt-step-200',
+    object: 'model',
+    created: 1722089355,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:finetune-phy:9pcOg2ro:ckpt-step-100',
+    object: 'model',
+    created: 1722089355,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:finetune-test-ph:9pDBZiHX:ckpt-step-28',
+    object: 'model',
+    created: 1721992441,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:finetune-test-ph:9pDBZfzn:ckpt-step-56',
+    object: 'model',
+    created: 1721992441,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:finetune-test-ph:9pDBZNya',
+    object: 'model',
+    created: 1721992442,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-cat-test:A2Lxu9nf:ckpt-step-1034',
+    object: 'model',
+    created: 1725124455,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-cat-test:A2Lxv1mD:ckpt-step-1551',
+    object: 'model',
+    created: 1725124455,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-cat-test:A2LxvNF9',
+    object: 'model',
+    created: 1725124455,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-cat-2nd-ft:A2NvmFrO:ckpt-step-434',
+    object: 'model',
+    created: 1725132010,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-cat-2nd-ft:A2NvmSsW:ckpt-step-868',
+    object: 'model',
+    created: 1725132010,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-cat-2nd-ft:A2NvnWbI',
+    object: 'model',
+    created: 1725132011,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-categorizer-ft-final:A3IjSRPO',
+    object: 'model',
+    created: 1725350354,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-categorizer-ft-final:A3IjRzZd:ckpt-step-512',
+    object: 'model',
+    created: 1725350353,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-categorizer-ft-final:A3IjR9OS:ckpt-step-1024',
+    object: 'model',
+    created: 1725350354,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:final-sample-ft-test:ABnB6Lau:ckpt-step-1086',
+    object: 'model',
+    created: 1727374012,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:final-sample-ft-test:ABnB7s6L:ckpt-step-1629',
+    object: 'model',
+    created: 1727374013,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:final-sample-ft-test:ABnB7qPb',
+    object: 'model',
+    created: 1727374013,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-classifier-mini:ACWLJBen:ckpt-step-647',
+    object: 'model',
+    created: 1727547625,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-classifier-mini:ACWLJcAG:ckpt-step-1294',
+    object: 'model',
+    created: 1727547625,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-classifier-mini:ACWLJiKv',
+    object: 'model',
+    created: 1727547625,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-classifier-mini-ft:ACn2ncIE:ckpt-step-698',
+    object: 'model',
+    created: 1727611825,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-classifier-mini-ft:ACn2ne9i:ckpt-step-1396',
+    object: 'model',
+    created: 1727611825,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:acad-classifier-mini-ft:ACn2n4H4',
+    object: 'model',
+    created: 1727611826,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:stc:AJLMtLE6:ckpt-step-1581',
+    object: 'model',
+    created: 1729173735,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-4o-mini-2024-07-18:allen-career-institute-private-limited:stc:AJLMteni',
+    object: 'model',
+    created: 1729173736,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0125:allen-career-institute-private-limited:gpt-3-acad-classifier:AJbpub4x:ckpt-step-749',
+    object: 'model',
+    created: 1729237039,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0125:allen-career-institute-private-limited:gpt-3-acad-classifier:AJbpvrq5:ckpt-step-1498',
+    object: 'model',
+    created: 1729237039,
+    owned_by: 'allen-digital-2vjhrt'
+  },
+    {
+    id: 'ft:gpt-3.5-turbo-0125:allen-career-institute-private-limited:gpt-3-acad-classifier:AJbpvvzR',
+    object: 'model',
+    created: 1729237039,
+    owned_by: 'allen-digital-2vjhrt'
+  }
+  ]
+  }
+  
