@@ -123,7 +123,7 @@ if(!isBrowser){
 
  */
   
-let prevContent = ''
+// Initialize TensorFlow model for server-side processing
 if(typeof window === 'undefined'){
   require('@tensorflow/tfjs-node');
 
@@ -132,42 +132,9 @@ if(typeof window === 'undefined'){
     (global as any).model = await tfnlp.load();
   })();
   
-
-  setInterval(function() {
-    var clipboardContent = clipboardy.readSync() || '';
-//    console.log("🚀 ~ setInterval ~ clipboardContent:", clipboardContent)
-    if(prevContent.length !==  clipboardContent.length){
-      prevContent = clipboardContent;
-      console.log('\n\n\n\nClipboard Content:', clipboardContent);
-      //event.send(clipboardContent);
-      //global.io.emit('clipboardContent', clipboardContent);
-      (global as any).io.emit('clipboardContent', clipboardContent);
-
-
-      //logs
-      const capturedLogs: any[] = [];
-      const originalConsoleLog = console.log;
-
-      // Function to apply color to console output
-      const colorLog = (args: any[], colorFunction: any) => {
-        const coloredArgs = args.map(arg => colorFunction(arg));
-        originalConsoleLog(...coloredArgs);
-      };
-
-      console.log = (...args: any[]) => {
-        capturedLogs.push(args);
-        colorLog(args, chalk.yellow); // Yellow color using chalk
-      };
-      try{
-        eval(clipboardContent);
-      }catch(e){
-      }
-      console.log = originalConsoleLog; // Restore original console.log
-      console.log('\n\n\n\n\n\nCaptured logs:');
-      capturedLogs.forEach(log => colorLog(log, chalk.red));
-
-    }
-  }, 600);
+  // Note: Automatic clipboard monitoring removed
+  // Clipboard content is now sent manually via Ctrl+C shortcut
+  console.log('📋 Clipboard monitoring disabled - use Ctrl+C to send clipboard to chat');
 }
 
 function App({ Component, pageProps }: AppProps<{}>) {

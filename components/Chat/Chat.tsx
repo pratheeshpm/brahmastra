@@ -19,6 +19,7 @@ import {
   updateConversation,
 } from '@/utils/app/conversation';
 import { throttle } from '@/utils/data/throttle';
+import { getApiProvider } from '@/utils/app/const';
 
 import { ChatBody, Conversation, Message } from '@/types/chat';
 import { Plugin } from '@/types/plugin';
@@ -30,6 +31,7 @@ import { ChatInput } from './ChatInput';
 import { ChatLoader } from './ChatLoader';
 import { ErrorMessageDiv } from './ErrorMessageDiv';
 import { ModelSelect } from './ModelSelect';
+import { ApiProviderSelect } from './ApiProviderSelect';
 import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
@@ -97,12 +99,13 @@ export const Chat = memo(({ stopConversationRef , prompt}: Props) => {
         // Check if we have screenshot data stored
         const screenshotData = (window as any).screenshotData;
         
-        const chatBody: ChatBody & { imageData?: string } = {
+        const chatBody: ChatBody & { imageData?: string; apiProvider?: 'openai' | 'openrouter' | 'azure' } = {
           model: screenshotData?.model || updatedConversation.model,
           messages: updatedConversation.messages,
           key: apiKey,
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
+          apiProvider: getApiProvider(), // Add the current API provider
           ...(screenshotData?.imageData && { imageData: screenshotData.imageData })
         };
         
@@ -423,6 +426,8 @@ export const Chat = memo(({ stopConversationRef , prompt}: Props) => {
 
                   {models.length > 0 && (
                     <div className="flex h-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600">
+                      <ApiProviderSelect />
+                      
                       <ModelSelect />
 
                       <SystemPrompt
@@ -470,6 +475,8 @@ export const Chat = memo(({ stopConversationRef , prompt}: Props) => {
                 {showSettings && (
                   <div className="flex flex-col space-y-10 md:mx-auto md:max-w-xl md:gap-6 md:py-3 md:pt-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
                     <div className="flex h-full flex-col space-y-4 border-b border-neutral-200 p-4 dark:border-neutral-600 md:rounded-lg md:border">
+                      <ApiProviderSelect />
+                      
                       <ModelSelect />
                     </div>
                   </div>

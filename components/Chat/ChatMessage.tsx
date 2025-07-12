@@ -5,6 +5,7 @@ import {
   IconRobot,
   IconTrash,
   IconUser,
+  IconPhoto,
 } from '@tabler/icons-react';
 import { FC, memo, useContext, useEffect, useRef, useState } from 'react';
 
@@ -42,7 +43,26 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     if (typeof content === 'string') {
       return content;
     }
-    return content.map(item => item.text || '').join('\n');
+    return content.filter(item => item.type === 'text').map(item => item.text || '').join('\n');
+  };
+
+  // Helper function to get image content from message
+  const getImageContent = (content: Message['content']): Array<{url: string}> => {
+    if (typeof content === 'string') {
+      return [];
+    }
+    return content
+      .filter(item => item.type === 'image_url')
+      .map(item => ({ url: item.image_url?.url || '' }))
+      .filter(item => item.url);
+  };
+
+  // Helper function to check if message has images
+  const hasImages = (content: Message['content']): boolean => {
+    if (typeof content === 'string') {
+      return false;
+    }
+    return content.some(item => item.type === 'image_url');
   };
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -134,6 +154,9 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     }
   }, [isEditing]);
 
+  const messageImages = getImageContent(message.content);
+  const messageText = getTextContent(message.content);
+
   return (
     <div
       className={`group md:px-4 ${
@@ -196,7 +219,34 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                 </div>
               ) : (
                 <div className="prose whitespace-pre-wrap dark:prose-invert flex-1">
-                  {getTextContent(message.content)}
+                  {/* Display images if present */}
+                  {messageImages.length > 0 && (
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {messageImages.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={image.url}
+                            alt={`Uploaded image ${index + 1}`}
+                            className="max-w-xs max-h-64 object-contain rounded border border-gray-300 dark:border-gray-600"
+                            style={{ maxWidth: '300px', maxHeight: '256px' }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Display text content */}
+                  {messageText && (
+                    <div>{messageText}</div>
+                  )}
+                  
+                  {/* Show icon if only images and no text */}
+                  {messageImages.length > 0 && !messageText && (
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                      <IconPhoto size={16} />
+                      <span>{t('{{count}} image(s) uploaded', { count: messageImages.length })}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

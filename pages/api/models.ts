@@ -1,4 +1,4 @@
-import { AZURE_DEPLOYMENT_ID, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY } from '../../utils/app/const';
+import { getOpenAIApiHost, getOpenAIApiType, getOpenAIApiVersion, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY } from '../../utils/app/const';
 
 import { OpenAIModel, OpenAIModelID, OpenAIModels } from '@/types/openai';
 
@@ -8,40 +8,48 @@ export const config = {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { key } = (await req.json()) as {
+    const { key, apiProvider } = (await req.json()) as {
       key: string;
+      apiProvider?: 'openai' | 'openrouter' | 'azure';
     };
 
-    let url = `${OPENAI_API_HOST}/v1/models`;
+    // Use the provided apiProvider or default to current setting
+    const currentApiType = getOpenAIApiType(apiProvider);
+    const currentApiHost = getOpenAIApiHost(apiProvider);
+    const currentApiVersion = getOpenAIApiVersion(apiProvider);
+
+    let url = `${currentApiHost}/v1/models`;
     let otherHeaders: Record<string, string> = {};
 
-    if (OPENAI_API_TYPE === 'azure') {
-      url = `${OPENAI_API_HOST}/openai/deployments?api-version=${OPENAI_API_VERSION}`;
-      return new Response(JSON.stringify( [
-        { id: 'gpt-4o', name: 'GPT-4o' },
-        { id: 'gpt-3.5-turbo', name: 'GPT-3.5' }
-      ]
-      ),{status: 200})
-    } else if (OPENAI_API_TYPE === 'openrouter') {
+    if (currentApiType === 'azure') {
+      url = `${currentApiHost}/openai/deployments?api-version=${currentApiVersion}`;
+      const azureModels = [
+        { id: 'gpt-4o', name: 'GPT-4o', supportsImages: true },
+        { id: 'gpt-3.5-turbo', name: 'GPT-3.5', supportsImages: false }
+      ];
+      return new Response(JSON.stringify(azureModels), {status: 200})
+    } else if (currentApiType === 'openrouter') {
       url = `https://openrouter.ai/api/v1/models`;
       otherHeaders = {
         'Authorization': `Bearer ${key ? key : OPENROUTER_API_KEY}`,
         'HTTP-Referer': '', // Optional: Replace with your app URL for OpenRouter leaderboards
         'X-Title': '', // Optional: Replace with your app name for OpenRouter leaderboards
       };
-      return new Response(JSON.stringify( [
-        { id: 'gpt-4o', name: 'GPT-4o' },
-        { id: 'gpt-3.5-turbo', name: 'GPT-3.5' },
-        { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4' },
-        {id:"anthropic/claude-3.7-sonnet:thinking", name: 'Claude 3.7 Sonnet Thinking' },
-        { id: "mistralai/mistral-small-3.2-24b-instruct:free", name: 'Mistral Small 3.2 24B Instruct'  },
-        {id: "google/gemini-2.5-pro-exp-03-25", name: 'Gemini 2.5 Pro Exp 03 25' },
-        {id: "deepseek/deepseek-r1-0528-qwen3-8b:free", name: 'DeepSeek R1 0528 Qwen3 8B' },
-        {id: "mistralai/ministral-8b", name: 'Mistral 8B' },
-        {id: 'deepseek/deepseek-v3-base:free', name: 'DeepSeek V3 Base' },
+      const openRouterModels = [
+        { id: 'gpt-4o', name: 'GPT-4o', supportsImages: true },
+        { id: 'gpt-3.5-turbo', name: 'GPT-3.5', supportsImages: false },
+        { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', supportsImages: true },
+        { id: "anthropic/claude-3.7-sonnet:thinking", name: 'Claude 3.7 Sonnet Thinking', supportsImages: true },
+        { id: "mistralai/mistral-small-3.2-24b-instruct:free", name: 'Mistral Small 3.2 24B Instruct', supportsImages: false },
+        { id: "google/gemini-2.5-pro-exp-03-25", name: 'Gemini 2.5 Pro Exp 03 25', supportsImages: true },
+        { id: "deepseek/deepseek-r1-0528-qwen3-8b:free", name: 'DeepSeek R1 0528 Qwen3 8B', supportsImages: false },
+        { id: "mistralai/ministral-8b", name: 'Mistral 8B', supportsImages: false },
+        { id: 'deepseek/deepseek-v3-base:free', name: 'DeepSeek V3 Base', supportsImages: false },
+      ];
 
-      ]),{status: 200})
-    } else if(OPENAI_API_TYPE === 'openai'){
+      return new Response(JSON.stringify(openRouterModels), {status: 200})
+    } else if(currentApiType === 'openai'){
+      url = `${currentApiHost}/v1/models`;
       otherHeaders = {Authorization: `Bearer ${key ? key : process.env.OPENAI_API_KEY}`};
       if(OPENAI_ORGANIZATION){
         otherHeaders = {...otherHeaders, 'OpenAI-Organization': OPENAI_ORGANIZATION};
@@ -77,7 +85,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const models: OpenAIModel[] = json.data
       .map((model: any) => {
-        const model_name = (OPENAI_API_TYPE === 'azure') ? model.model : model.id;
+        const model_name = (currentApiType === 'azure') ? model.model : model.id;
       //  console.log("\n\n\n\n\n\n\n\npratheesh🚀 ~ .map ~ model_name:", model_name,  Object.entries(OpenAIModelID))
         for (const [key, value] of Object.entries(OpenAIModelID)) {
          model_name === value && console.log("\n\n\n pratheeshpratheesh🚀🚀pratheesh🚀🚀🚀🚀 ~ .map ~ key, value:", key,'..key,', value,'..value', '..model', model)
@@ -85,6 +93,9 @@ const handler = async (req: Request): Promise<Response> => {
             return {
               id: model.id,
               name: OpenAIModels[value].name,
+              maxLength: OpenAIModels[value].maxLength,
+              tokenLimit: OpenAIModels[value].tokenLimit,
+              supportsImages: OpenAIModels[value].supportsImages || false,
             };
           }
         }

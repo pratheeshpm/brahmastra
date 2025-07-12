@@ -146,7 +146,7 @@ export const SUMMARIZATION_PROMPT = `You are an expert at analyzing and summariz
 
 export const SHORT_SUMMARIZATION_PROMPT = `# YouTube Video Analysis Prompt
 
-Analyze this YouTube transcript and create a comprehensive technical summary. **CRITICAL**: Provide EXHAUSTIVE detail - expand every concept with full explanations, complete code implementations, and step-by-step walkthroughs.
+Analyze this YouTube transcript and create a comprehensive technical summary under each section with bullet points. **CRITICAL**: Provide EXHAUSTIVE detail - expand every concept with full explanations, complete code implementations, and step-by-step walkthroughs.
 
 **For System Design**: Include complete HLD/LLD with detailed architecture diagrams, database schemas, API designs, data flow analysis, scalability strategies, and failure handling mechanisms.
 

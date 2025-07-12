@@ -4,6 +4,7 @@ import { useFetch } from '@/hooks/useFetch';
 
 export interface GetModelsRequestProps {
   key: string;
+  apiProvider?: 'openai' | 'openrouter' | 'azure';
 }
 
 const useApiService = () => {
@@ -28,7 +29,7 @@ const useApiService = () => {
   const getModels = useCallback(
     (params: GetModelsRequestProps, signal?: AbortSignal) => {
       return fetchService.post<GetModelsRequestProps>(`/api/models`, {
-        body: { key: params.key },
+        body: { key: params.key, apiProvider: params.apiProvider },
         headers: {
           'Content-Type': 'application/json',
         },

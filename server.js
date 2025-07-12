@@ -27,10 +27,15 @@ Please analyze this screenshot and you would see a coding question in that:
  3. Time Complexity: O(?) + Detailed reasoning (step-by-step breakdown).
  4. Space Complexity: O(?) + Memory usage explanation.
  5. Key Insight: The critical observation enabling optimization and edge cases handled (e.g., "Sorting eliminates nested loops").
-If not, then answer the question in the screenshot.
+If not a coding question, then answer the normal question,
+If you dont see any question, predict the next step in the flow of the question,
+If not, then extract the text in the main area of the image and give it
 
 
 [Image data will be included in the chat request]`;
+
+// New prompt for Ctrl+O - Code output prediction
+const codeOutputPredictionPrompt = `🔍 Code Analysis: Predict the output of this code or identify errors and provide corrections. Include step-by-step execution flow and reasoning.`;
 
 // Screenshot functionality with global keyboard detection
 let GlobalKeyboardListener;
@@ -41,6 +46,29 @@ try {
 } catch (error) {
   console.log('❌ Global keyboard listener not available:', error.message);
 }
+
+// Add clipboard functionality
+const clipboardy = require('clipboardy');
+
+// Function to send clipboard content to chat
+const sendClipboardToChat = async () => {
+  try {
+    const clipboardContent = clipboardy.readSync() || '';
+    if (clipboardContent.trim() === '') {
+      console.log('📋 Clipboard is empty, nothing to send');
+      return;
+    }
+    
+    console.log('📋 Sending clipboard content to chat:', clipboardContent.substring(0, 100) + (clipboardContent.length > 100 ? '...' : ''));
+    
+    // Send to connected clients via socket
+    global.io && global.io.emit('clipboardContent', clipboardContent);
+    
+    console.log('✅ Clipboard content sent to chat service');
+  } catch (error) {
+    console.error('❌ Error sending clipboard to chat:', error);
+  }
+};
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -180,13 +208,115 @@ const sendScreenshotToChat = async (base64Image, screenshotPath) => {
   }
 };
 
-// Initialize screenshot feature with global keyboard detection
-const initializeScreenshotFeature = () => {
-  console.log('Screenshot feature initialized. Available triggers:');
+// New function for Ctrl+O - Code output prediction screenshot
+const takeCodeOutputScreenshot = async () => {
+  if (isProcessingScreenshot) {
+    console.log('Screenshot already in progress, skipping...');
+    return;
+  }
+
+  isProcessingScreenshot = true;
+  console.log('Taking code output prediction screenshot...');
+
+  try {
+    const timestamp = Date.now();
+    const screenshotPath = path.join(SCREENSHOTS_FOLDER, `code_output_screenshot_${timestamp}.jpg`);
+    
+    // Take screenshot using macOS screencapture command
+    const screencaptureCommand = `screencapture -x -C -D 1 -t jpg "${screenshotPath}"`;
+    
+    exec(screencaptureCommand, async (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error taking code output screenshot:', error);
+        isProcessingScreenshot = false;
+        return;
+      }
+
+      console.log('Code output screenshot saved to:', screenshotPath);
+
+      // Wait a moment for file to be written
+      setTimeout(async () => {
+        try {
+          // Read screenshot and convert to base64
+          const imageBuffer = fs.readFileSync(screenshotPath);
+          const base64Image = imageBuffer.toString('base64');
+          const dataUrl = `data:image/jpeg;base64,${base64Image}`;
+
+          console.log('Code output screenshot converted to base64, sending to chat...');
+
+          // Send to chat service with code output prediction prompt
+          await sendCodeOutputScreenshotToChat(dataUrl, screenshotPath);
+
+        } catch (readError) {
+          console.error('Error reading code output screenshot file:', readError);
+        } finally {
+          isProcessingScreenshot = false;
+        }
+      }, 500);
+    });
+
+  } catch (error) {
+    console.error('Error in code output screenshot process:', error);
+    isProcessingScreenshot = false;
+  }
+};
+
+// Send code output screenshot data to chat service
+const sendCodeOutputScreenshotToChat = async (base64Image, screenshotPath) => {
+  try {
+    console.log('Sending code output screenshot to chat service...');
+
+    // Create the message data structure with code output prediction prompt
+    const chatData = {
+      type: 'code_output_screenshot',
+      timestamp: Date.now(),
+      screenshotPath: screenshotPath,
+      prompt: codeOutputPredictionPrompt,
+      imageData: base64Image,
+    };
+
+    // Emit to connected clients via socket - this will be picked up by the frontend
+    global.io && global.io.emit('screenshot_taken', chatData);
+
+    console.log('Code output screenshot data sent to chat service via socket');
+
+  } catch (error) {
+    console.error('Error sending code output screenshot to chat:', error);
+    global.io && global.io.emit('screenshot_error', {
+      error: error.message
+    });
+  }
+};
+
+// New function for Ctrl+N - Simulate "Click to Next" functionality
+const simulateClickToNext = () => {
+  try {
+    console.log('🔄 Simulating "Click to Next" functionality...');
+    
+    // Emit to connected clients via socket - this will be picked up by the frontend
+    global.io && global.io.emit('click_to_next_triggered', {
+      type: 'click_to_next',
+      timestamp: Date.now(),
+    });
+
+    console.log('Click to Next event sent to frontend');
+
+  } catch (error) {
+    console.error('Error simulating click to next:', error);
+  }
+};
+
+// Initialize screenshot and clipboard features with global keyboard detection
+const initializeGlobalFeatures = () => {
+  console.log('Global features initialized. Available triggers:');
   console.log('1. POST /api/screenshot');
   console.log('2. UI button in the frontend');
   console.log('3. Console commands: "screenshot" or "ss"');
-  console.log('4. 🔥 GLOBAL Ctrl+S keyboard shortcut');
+  console.log('4. 🔥 GLOBAL Ctrl+S keyboard shortcut (screenshot)');
+  console.log('5. 🔥 GLOBAL Ctrl+C keyboard shortcut (send clipboard to chat)');
+  console.log('6. 🔥 GLOBAL Ctrl+O keyboard shortcut (code output prediction screenshot)');
+  console.log('7. 🔥 GLOBAL Ctrl+N keyboard shortcut (click to next)');
+  console.log('8. Note: Cmd+C still works as normal copy (default macOS behavior)');
   
   // Set up true global keyboard detection
   if (GlobalKeyboardListener) {
@@ -201,7 +331,7 @@ let keyboardListener;
 
 const startGlobalKeyboardListener = () => {
   try {
-    console.log('🎯 Setting up GLOBAL Ctrl+S keyboard detection...');
+    console.log('🎯 Setting up GLOBAL keyboard detection (Ctrl+S, Ctrl+C, Ctrl+O, Ctrl+N)...');
     
     // Create the global keyboard listener
     keyboardListener = new GlobalKeyboardListener({
@@ -237,8 +367,8 @@ const startGlobalKeyboardListener = () => {
         console.log('✅ Keyboard detection is working!');
       }
       
-      // Reset the combo detection when either Ctrl or S is released
-      if (e.state === 'UP' && (e.name === 'S' || e.name.includes('CTRL') || e.name.includes('META') || e.name.includes('CMD'))) {
+      // Reset the combo detection when keys are released
+      if (e.state === 'UP' && (e.name === 'S' || e.name === 'C' || e.name === 'O' || e.name === 'N' || e.name.includes('CTRL') || e.name.includes('META') || e.name.includes('CMD'))) {
         if (comboDetected) {
           if (debugMode) {
             console.log(`🔄 Reset: ${e.name} released`);
@@ -247,7 +377,7 @@ const startGlobalKeyboardListener = () => {
         }
       }
       
-      // Detect Ctrl+S combination
+      // Detect Ctrl+S combination (screenshot)
       if (e.name === 'S' && e.state === 'DOWN' && !comboDetected) {
         // Check if any Control or Command key is currently pressed
         const isCtrlPressed = down['LEFT CTRL'] || down['RIGHT CTRL'] || down['CTRL'] || down['CONTROL'];
@@ -261,14 +391,74 @@ const startGlobalKeyboardListener = () => {
         if (isCtrlPressed || isCmdPressed) {
           console.log('🚀 GLOBAL Ctrl+S detected! Taking screenshot...');
           console.log(`   Control keys pressed: ${Object.keys(down).filter(k => k.includes('CTRL') || k.includes('META') || k.includes('CMD')).join(', ')}`);
-          comboDetected = true; // Mark as detected to prevent repeats until reset
+          comboDetected = true;
           takeScreenshot();
+        }
+      }
+      
+      // Detect Ctrl+C combination (clipboard to chat) - ONLY Ctrl, NOT Cmd
+      if (e.name === 'C' && e.state === 'DOWN' && !comboDetected) {
+        // Check ONLY for Control key (not Command key) to preserve default Cmd+C behavior
+        const isCtrlPressed = down['LEFT CTRL'] || down['RIGHT CTRL'] || down['CTRL'] || down['CONTROL'];
+        
+        if (debugMode) {
+          console.log(`🎮 C pressed - Ctrl: ${isCtrlPressed}`);
+          console.log(`🎮 Current keys down:`, Object.keys(down).filter(k => down[k]));
+        }
+        
+        if (isCtrlPressed) {
+          console.log('📋 GLOBAL Ctrl+C detected! Sending clipboard to chat...');
+          console.log(`   Control keys pressed: ${Object.keys(down).filter(k => k.includes('CTRL')).join(', ')}`);
+          comboDetected = true;
+          sendClipboardToChat();
+        }
+      }
+      
+      // Detect Ctrl+O combination (code output prediction screenshot)
+      if (e.name === 'O' && e.state === 'DOWN' && !comboDetected) {
+        // Check if any Control or Command key is currently pressed
+        const isCtrlPressed = down['LEFT CTRL'] || down['RIGHT CTRL'] || down['CTRL'] || down['CONTROL'];
+        const isCmdPressed = down['LEFT META'] || down['RIGHT META'] || down['LEFT CMD'] || down['RIGHT CMD'] || down['META'] || down['CMD'];
+        
+        if (debugMode) {
+          console.log(`🎮 O pressed - Ctrl: ${isCtrlPressed}, Cmd: ${isCmdPressed}`);
+          console.log(`🎮 Current keys down:`, Object.keys(down).filter(k => down[k]));
+        }
+        
+        if (isCtrlPressed || isCmdPressed) {
+          console.log('🔍 GLOBAL Ctrl+O detected! Taking code output prediction screenshot...');
+          console.log(`   Control keys pressed: ${Object.keys(down).filter(k => k.includes('CTRL') || k.includes('META') || k.includes('CMD')).join(', ')}`);
+          comboDetected = true;
+          takeCodeOutputScreenshot();
+        }
+      }
+      
+      // Detect Ctrl+N combination (click to next)
+      if (e.name === 'N' && e.state === 'DOWN' && !comboDetected) {
+        // Check if any Control or Command key is currently pressed
+        const isCtrlPressed = down['LEFT CTRL'] || down['RIGHT CTRL'] || down['CTRL'] || down['CONTROL'];
+        const isCmdPressed = down['LEFT META'] || down['RIGHT META'] || down['LEFT CMD'] || down['RIGHT CMD'] || down['META'] || down['CMD'];
+        
+        if (debugMode) {
+          console.log(`🎮 N pressed - Ctrl: ${isCtrlPressed}, Cmd: ${isCmdPressed}`);
+          console.log(`🎮 Current keys down:`, Object.keys(down).filter(k => down[k]));
+        }
+        
+        if (isCtrlPressed || isCmdPressed) {
+          console.log('🔄 GLOBAL Ctrl+N detected! Simulating click to next...');
+          console.log(`   Control keys pressed: ${Object.keys(down).filter(k => k.includes('CTRL') || k.includes('META') || k.includes('CMD')).join(', ')}`);
+          comboDetected = true;
+          simulateClickToNext();
         }
       }
     });
     
     console.log('✅ Global keyboard listener started successfully!');
-    console.log('🔥 Press Ctrl+S (or Cmd+S) ANYWHERE to take a screenshot!');
+    console.log('🔥 Press Ctrl+S ANYWHERE to take a screenshot!');
+    console.log('📋 Press Ctrl+C ANYWHERE to send clipboard content to chat!');
+    console.log('🔍 Press Ctrl+O ANYWHERE to take code output prediction screenshot!');
+    console.log('🔄 Press Ctrl+N ANYWHERE to simulate click to next!');
+    console.log('💡 Note: Cmd+C still works as normal copy (default macOS behavior)');
     console.log('⚠️  Note: On macOS, you may need to grant accessibility permissions');
     console.log('   Go to: System Preferences > Security & Privacy > Privacy > Accessibility');
     console.log('   Add Terminal or your IDE to the list');
@@ -363,9 +553,33 @@ rl.on('line', (input) => {
     console.log('🎯 Manual screenshot trigger via console!');
     takeScreenshot();
   }
+  if (input === 'clipboard' || input === 'cb') {
+    console.log('📋 Manual clipboard trigger via console!');
+    sendClipboardToChat();
+  }
+  if (input === 'codeoutput' || input === 'co') {
+    console.log('🔍 Manual code output screenshot trigger via console!');
+    takeCodeOutputScreenshot();
+  }
+  if (input === 'clicknext' || input === 'cn') {
+    console.log('🔄 Manual click to next trigger via console!');
+    simulateClickToNext();
+  }
   if (input === 'ctrl+s' || input === 'ctrl s') {
     console.log('🎯 Simulating Ctrl+S global shortcut detection!');
     takeScreenshot();
+  }
+  if (input === 'ctrl+c' || input === 'ctrl c') {
+    console.log('📋 Simulating Ctrl+C global shortcut detection!');
+    sendClipboardToChat();
+  }
+  if (input === 'ctrl+o' || input === 'ctrl o') {
+    console.log('🔍 Simulating Ctrl+O global shortcut detection!');
+    takeCodeOutputScreenshot();
+  }
+  if (input === 'ctrl+n' || input === 'ctrl n') {
+    console.log('🔄 Simulating Ctrl+N global shortcut detection!');
+    simulateClickToNext();
   }
   if (input === 'test') {
     console.log('🧪 Run: node test_global_keys.js');
@@ -373,14 +587,15 @@ rl.on('line', (input) => {
   }
 });
 
-console.log('\n📋 Available Commands:');
+console.log('🎯 Brahmastra Server Console Commands:');
 console.log('- Type "ss" to take a screenshot');
-console.log('- Type "test" to test global keyboard detection');
-console.log('- Use API endpoint /api/screenshot');
-console.log('- Use UI button in frontend');
-console.log('- Press Ctrl+S globally (if permissions granted)\n');
-
-
+console.log('- Type "cb" to send clipboard content to chat');
+console.log('- Type "co" to take code output prediction screenshot');
+console.log('- Type "cn" to simulate click to next');
+console.log('- Press Ctrl+S globally for screenshot (if permissions granted)');
+console.log('- Press Ctrl+C globally for clipboard to chat (if permissions granted)');
+console.log('- Press Ctrl+O globally for code output prediction screenshot (if permissions granted)');
+console.log('- Press Ctrl+N globally for click to next (if permissions granted)');
 
 
 app.use(function(req, res, next) {
@@ -532,12 +747,95 @@ nextApp.prepare().then(() => {
     }
   });
 
+  // Clipboard API endpoint
+  app.post('/api/clipboard', async (req, res) => {
+    try {
+      console.log('📋 Clipboard API endpoint called');
+      await sendClipboardToChat();
+      res.json({ success: true, message: 'Clipboard content sent to chat' });
+    } catch (error) {
+      console.error('Clipboard API error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Simple GET endpoint for easier triggering
+  app.get('/api/clipboard', async (req, res) => {
+    try {
+      console.log('📋 Clipboard GET endpoint called');
+      await sendClipboardToChat();
+      res.json({ success: true, message: 'Clipboard content sent to chat' });
+    } catch (error) {
+      console.error('Clipboard API error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Shortcut simulation endpoint
   app.post('/api/shortcut/ctrl-s', async (req, res) => {
     try {
       console.log('🎯 Ctrl+S shortcut simulation endpoint called');
       await takeScreenshot();
       res.json({ success: true, message: 'Ctrl+S shortcut simulated - screenshot taken' });
+    } catch (error) {
+      console.error('Shortcut simulation error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Clipboard shortcut simulation endpoint
+  app.post('/api/shortcut/ctrl-c', async (req, res) => {
+    try {
+      console.log('📋 Ctrl+C shortcut simulation endpoint called');
+      await sendClipboardToChat();
+      res.json({ success: true, message: 'Ctrl+C shortcut simulated - clipboard sent to chat' });
+    } catch (error) {
+      console.error('Shortcut simulation error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Code output prediction screenshot API endpoint
+  app.post('/api/screenshot/codeoutput', async (req, res) => {
+    try {
+      console.log('Code output prediction screenshot API endpoint called');
+      await takeCodeOutputScreenshot();
+      res.json({ success: true, message: 'Code output prediction screenshot taken and being processed' });
+    } catch (error) {
+      console.error('Code output screenshot API error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Click to next API endpoint
+  app.post('/api/click-to-next', async (req, res) => {
+    try {
+      console.log('Click to next API endpoint called');
+      await simulateClickToNext();
+      res.json({ success: true, message: 'Click to next triggered' });
+    } catch (error) {
+      console.error('Click to next API error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Shortcut simulation endpoints
+  app.post('/api/shortcut/ctrl-o', async (req, res) => {
+    try {
+      console.log('🔍 Ctrl+O shortcut simulation endpoint called');
+      await takeCodeOutputScreenshot();
+      res.json({ success: true, message: 'Ctrl+O shortcut simulated - code output prediction screenshot taken' });
+    } catch (error) {
+      console.error('Shortcut simulation error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.post('/api/shortcut/ctrl-n', async (req, res) => {
+    try {
+      console.log('🔄 Ctrl+N shortcut simulation endpoint called');
+      await simulateClickToNext();
+      res.json({ success: true, message: 'Ctrl+N shortcut simulated - click to next triggered' });
     } catch (error) {
       console.error('Shortcut simulation error:', error);
       res.status(500).json({ success: false, error: error.message });
@@ -580,12 +878,17 @@ nextApp.prepare().then(() => {
   });
 
   // Initialize keyboard listener after server setup
-  initializeScreenshotFeature();
+  initializeGlobalFeatures();
 
   server.listen(port, err => {
     if (err) throw err
     console.log(`> Ready on http://localhost:${port}`)
-    console.log('🔥 Screenshot functionality: Press Ctrl+S ANYWHERE to take a screenshot!')
+    console.log('🔥 Global shortcuts enabled:')
+    console.log('  📸 Press Ctrl+S ANYWHERE to take a screenshot!')
+    console.log('  📋 Press Ctrl+C ANYWHERE to send clipboard to chat!')
+    console.log('  🔍 Press Ctrl+O ANYWHERE to take code output prediction screenshot!')
+    console.log('  🔄 Press Ctrl+N ANYWHERE to simulate click to next!')
+    console.log('  💡 Note: Cmd+C still works as normal copy')
   })
 
   // Cleanup on process exit

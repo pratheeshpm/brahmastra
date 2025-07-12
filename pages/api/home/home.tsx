@@ -22,7 +22,7 @@ import useApiService from '@/services/useApiService';
 
 
 import { cleanConversationHistory, cleanSelectedConversation } from '@/utils/app/clean';
-import { DIAGRAM_SEARCH_ENDPOINT, RECEIVER_IP, sysDesignFolder, sysDesignPath } from '@/utils/app/const';
+import { DIAGRAM_SEARCH_ENDPOINT, RECEIVER_IP, sysDesignFolder, sysDesignPath, getApiProvider } from '@/utils/app/const';
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { saveConversation, saveConversations, updateConversation } from '@/utils/app/conversation';
 import { saveFolders } from '@/utils/app/folders';
@@ -98,6 +98,7 @@ const openUpDiagrams = ((data: string) => {
   const interval = setInterval(() => {
     if (counter < diagramPrompts.length) {
       //window.open(`${DIAGRAM_SEARCH_ENDPOINT}/?search=${data}&prefix=${diagramPrompts[counter]}`, '_blank');
+      // REDIRECTION: Opens new tab to DIAGRAM_SEARCH_ENDPOINT with diagram prompts
       openNewTabStayOnCurrent(`${DIAGRAM_SEARCH_ENDPOINT}/?search=${data}&prefix=${diagramPrompts[counter]}`)
       counter++;
     } else {
@@ -108,6 +109,7 @@ const openUpDiagrams = ((data: string) => {
 })
 
 const openUpSearch = ((data: string) => {
+  // REDIRECTION: Opens new tab to DIAGRAM_SEARCH_ENDPOINT with /summary path for FE System Design search
   openNewTabStayOnCurrent(`${DIAGRAM_SEARCH_ENDPOINT}/summary?search=${data}&prefix=${"FE System Design for"}`)
 })
 
@@ -117,6 +119,7 @@ if(enableWebsockets && typeof window !== 'undefined'){
   // Connect to the WebSocket server
   ws = new WebSocket(`ws://${domain}:8080`);
   ws2 = new WebSocket(`ws://${domain}:8081`);
+  wsReceiver = new WebSocket(`ws://${domain}:8082`); // Initialize wsReceiver
   //ws3 = new WebSocket('ws://localhost:8082');
 }
 
@@ -157,6 +160,7 @@ interface Props {
 
 // Function to open a new tab and stay on the current page
 function openNewTabStayOnCurrent(url: string) {
+  // REDIRECTION: Opens new tab with provided URL
   window.open(url,'_blank');
   //newTab.location.href = url;
   window.focus();
@@ -181,7 +185,7 @@ const Home = ({
   const [fileSearch, setFileSearch] = useState<string>('');
 
   const [speechResult, setSpeechResult] = useState('');
-  const [screenshotPrompt, setScreenshotPrompt] = useState<string>('');
+
   const handleSpeechResult = (result: string) => {
     setSpeechResult(result);
   };
@@ -212,6 +216,7 @@ const Home = ({
         data: data,
       };
 
+      // REDIRECTION: Makes API call to /api/ocr endpoint for OCR processing
       axios
         .request(config)
         .then((response: AxiosResponse) => {
@@ -276,6 +281,7 @@ const Home = ({
       data && onMsgHandler({data: data})
       if(selectedOption == 'leetcode'){
         console.log("\n\n pratheesh should come here")
+        // REDIRECTION: Opens new tab to localhost:3001 search with leetcode data
         window.open(`http://localhost:3001/search?term=${data}&from=chatbotai`, '_blank');
       }
       setTimeout(()=>{
@@ -317,24 +323,34 @@ const Home = ({
   // Screenshot socket events - integrates with existing chat flow
   useSocket('screenshot_taken', data => {
     console.log('Screenshot taken:', data);
-    console.log('Screenshot prompt:', data.prompt);
-    console.log('Current fileContent before update:', fileContent);
     
-    // Force focus on the window if it's in background
-    if (typeof window !== 'undefined') {
-      window.focus();
-    }
-    
-    // Store the image data for the chat request first
+    // Store the screenshot data in the window object for ChatInput to access
     (window as any).screenshotData = {
       imageData: data.imageData,
-      model: data.model,
-      screenshotPath: data.screenshotPath
+      model: data.model
     };
     
-    // Set both states to ensure one works
-    setFileContent(data.prompt);
-    setScreenshotPrompt(data.prompt);
+    // Check if this is a screenshot prompt that should show preview
+    const shouldShowPreview = data.prompt.includes('🔍 Code Analysis:') || 
+                             data.prompt.includes('📸 Screenshot Analysis');
+    
+    if (shouldShowPreview) {
+      // For screenshot types that should show preview AND auto-execute
+      console.log('Screenshot with preview - setting prompt for ChatInput to handle');
+      
+      // Set a flag to indicate screenshot data is ready
+      (window as any).screenshotDataReady = true;
+      
+      // Set the prompt which will trigger the ChatInput useEffect
+      setFileContent(data.prompt);
+      
+      // DO NOT call executeClick() - let ChatInput handle everything
+      console.log('Screenshot data stored, ChatInput will handle the rest');
+    } else {
+      // For regular screenshots, use the old behavior with auto-execution
+      setFileContent(data.prompt);
+      executeClick();
+    }
     
     console.log('Screenshot data stored, prompt set to:', data.prompt);
   });
@@ -345,39 +361,61 @@ const Home = ({
     executeClick();
   });
 
-  // Handle screenshot prompt execution with useEffect
-  useEffect(() => {
-    if (screenshotPrompt) {
-      console.log('Screenshot prompt effect triggered:', screenshotPrompt);
-      
-      // Use multiple approaches to ensure the prompt gets set
-      setTimeout(() => {
-        // Approach 1: Try to manually set the input value
-        const chatInput = document.querySelector('textarea[placeholder*="Send a message"]') as HTMLTextAreaElement;
-        if (chatInput) {
-          console.log('Setting input value manually:', screenshotPrompt);
-          chatInput.value = screenshotPrompt;
-          chatInput.focus();
-          chatInput.dispatchEvent(new Event('input', { bubbles: true }));
-          chatInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        
-        // Approach 2: Also update fileContent as backup
-        if (fileContent !== screenshotPrompt) {
-          console.log('Updating fileContent as backup');
-          setFileContent(screenshotPrompt);
-        }
-        
-        console.log('About to execute click for screenshot');
-        executeClick();
-        
-        // Clear the screenshot prompt after processing
-        setScreenshotPrompt('');
-      }, 200);
+  // New socket event handler for Ctrl+N - Click to Next functionality
+  useSocket('click_to_next_triggered', data => {
+    console.log('Click to Next triggered via Ctrl+N:', data);
+    
+    // Force focus on the window if it's in background
+    if (typeof window !== 'undefined') {
+      window.focus();
     }
-  }, [screenshotPrompt]);
+    
+    // Replicate the "Click To Next" button behavior with auto-send
+    setTimeout(() => {
+      console.log('Ctrl+N: Processing system design prompt progression...');
+      console.log('Current sysDesignCounter:', sysDesignCounter);
+      console.log('Current selectedSystemDesign:', selectedSystemDesign);
+      
+      if(sysDesignCounter === 'none'){
+        // Set the first prompt in the chat input and auto-send
+        const firstPrompt = selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] : systemDesignPrompts[0];
+        setFileContent(firstPrompt);
+        setSysDesignCounter(0);
+        setSelectedOption('systemdesign');
+        console.log('Ctrl+N: Set first system design prompt and auto-sending:', firstPrompt);
+        executeClick(); // Auto-send the message
+        return;
+      }
+      
+      // Check if we can move to next prompt (both arrays have 7 elements, indices 0-6)
+      const maxIndex = selectedSystemDesign == 'FE' ? FESystemDesignPrompts.length - 1 : systemDesignPrompts.length - 1;
+      const currentArray = selectedSystemDesign == 'FE' ? FESystemDesignPrompts : systemDesignPrompts;
+      
+      console.log('Ctrl+N: Current counter:', sysDesignCounter, 'Max index:', maxIndex, 'Array type:', selectedSystemDesign);
+      
+      if(!isNaN(sysDesignCounter) && sysDesignCounter < maxIndex){
+        const nextPrompt = currentArray[sysDesignCounter + 1];
+        // Set the next prompt in the chat input area and auto-send
+        setFileContent(nextPrompt);
+        setSysDesignCounter(sysDesignCounter + 1);
+        console.log(`Ctrl+N: Set system design prompt ${sysDesignCounter + 1} and auto-sending:`, nextPrompt);
+        executeClick(); // Auto-send the message
+      } else {
+        // We've reached the end, show completion message and auto-send
+        const completionMessage = selectedSystemDesign == 'FE' 
+          ? "🎉 You've completed all Frontend System Design prompts! Use 'Reset' to start over."
+          : "🎉 You've completed all Backend System Design prompts! Use 'Reset' to start over.";
+        setFileContent(completionMessage);
+        console.log('Ctrl+N: Reached end of system design prompts, sending completion message');
+        executeClick(); // Auto-send the completion message
+      }
+    }, 100);
+  });
+
+  // Screenshot processing is now handled entirely by ChatInput component
 
   const fetchRelevantFiles = async (file: string = sysDesignQuestion, path: string = '', project: string = '') => {
+    // REDIRECTION: Makes API call to /match endpoint for file/folder matching
     console.log("\n\nurl-->",`/match?keyword=${file}&folder=${path ? path : `${sysDesignPath}${sysDesignFolder}`}`,project);
     //const res = await axios.get(`/match?keyword=${file}&folder=${sysDesignPath}${sysDesignFolder}&project=${sysDesignFolder}`);
     const res = await axios.get(`/match?keyword=${file}&folder=${path ? path : `${sysDesignPath}${sysDesignFolder}`}&project=${project ? project : sysDesignFolder}`);
@@ -432,7 +470,7 @@ const Home = ({
   }
 
   useEffect(() => {
-    if(isReveiver){ 
+    if(isReveiver && wsReceiver){ 
       wsReceiver.onmessage = onMsgHandler;
     }
     if(enableWebsockets){
@@ -517,13 +555,14 @@ const Home = ({
   const stopConversationRef = useRef<boolean>(false);
 
   const { data, error, refetch } = useQuery(
-    ['GetModels', apiKey, serverSideApiKeyIsSet],
+    ['GetModels', apiKey, serverSideApiKeyIsSet, getApiProvider()], // Add API provider to query key
     ({ signal }) => {
       if (!apiKey && !serverSideApiKeyIsSet) return null;
 
       return getModels(
         {
           key: apiKey,
+          apiProvider: getApiProvider(), // Add the current API provider
         },
         signal,
       );
@@ -706,6 +745,7 @@ const Home = ({
   const fetchDiagramNSearch = () => {
     console.log('fetchDiagramNSearch');
     openUpDiagrams(sysDesignQuestion);
+    // REDIRECTION: Opens search functionality with /summary path
     openUpSearch(sysDesignQuestion)
   }
   
@@ -926,17 +966,33 @@ const Home = ({
                     <div>---------</div>
 
                     <div style={{width:'150px',marginTop:'5px'}}>
-                      Copy Prompts:
-                      <button style={{color:'yellow', margin:'3px'}} onClick={() => copyOnClick(leetcodePrompt)}>Leetcode prompt</button>
-                      <button style={{color:'yellow', margin:'3px'}} onClick={() => copyOnClick(reactPrompt)}>React prompt</button>
-                      <button style={{color:'yellow', margin:'3px'}} onClick={() => copyOnClick(codeOutputPrompt)}>Code-Output prompt</button>
-                      <button style={{color:'yellow', margin:'3px'}} onClick={() => copyOnClick(codeErrorPrompt)}>Code-Error prompt</button>
-                      {messagedCopied && <p>{`Copied: ${clipboardData}`}</p>}
+                      Set Prompts in Chat:
+                      <button style={{color:'yellow', margin:'3px'}} onClick={() => {
+                        setFileContent(leetcodePrompt);
+                        setSelectedOption('leetcode');
+                        console.log('Set Leetcode prompt in chat input');
+                      }}>Leetcode prompt</button>
+                      <button style={{color:'yellow', margin:'3px'}} onClick={() => {
+                        setFileContent(reactPrompt);
+                        setSelectedOption('react');
+                        console.log('Set React prompt in chat input');
+                      }}>React prompt</button>
+                      <button style={{color:'yellow', margin:'3px'}} onClick={() => {
+                        setFileContent(codeOutputPrompt);
+                        setSelectedOption('codeoutput');
+                        console.log('Set Code-Output prompt in chat input');
+                      }}>Code-Output prompt</button>
+                      <button style={{color:'yellow', margin:'3px'}} onClick={() => {
+                        setFileContent(codeErrorPrompt);
+                        setSelectedOption('codeerror');
+                        console.log('Set Code-Error prompt in chat input');
+                      }}>Code-Error prompt</button>
                     </div>
                     <div>
                     <input type="text"  style={{ color: 'black' }} value={fileSearch} placeholder="Search..." onChange={(e)=>{setFileSearch(e.target.value)}} />
                     <button onClick={()=>{
                       
+                      // REDIRECTION: Fetches relevant files from specific path with feQs project
                       fetchRelevantFiles(fileSearch,`${sysDesignPath}${feQs}`,feQs);
                     }}>Search</button>
                      <div>
@@ -948,6 +1004,7 @@ const Home = ({
                         <div key={index}>
                           <button style={{textAlign:'left'}} onClick={()=>{
                             console.log("\n\n\nCLicked on file-->",file)
+                            // REDIRECTION: Makes API call to /open endpoint to open file
                             axios.get(`/open?path=${sysDesignPath}${feQs}${file}`)
                           }}>{`->${file}`}</button>
                           <br />
@@ -964,6 +1021,7 @@ const Home = ({
                         <div key={index}>
                           <button  style={{textAlign:'left'}}  onClick={()=>{
                             console.log("\n\n\nCLicked on file-->",file)
+                            // REDIRECTION: Makes API call to /open endpoint to open file
                             axios.get(`/open?path=${sysDesignPath}${feQs}${file}`)
                           }}>{`->${file}`}</button>
                           <br />
@@ -1010,47 +1068,60 @@ const Home = ({
                     <button style={{color:'yellow', margin:'3px'}} onClick={() =>{
                       console.log("\n\n\n clicked on next",sysDesignCounter)
                         if(sysDesignCounter === 'none'){
-                          copyOnClick( selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] :  systemDesignPrompts[0])
-                            setSysDesignCounter(0);
-                            setSelectedOption('systemdesign');
-                            return;
+                          // Set the first prompt in the chat input
+                          const firstPrompt = selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] : systemDesignPrompts[0];
+                          setFileContent(firstPrompt);
+                          setSysDesignCounter(0);
+                          setSelectedOption('systemdesign');
+                          console.log('Set first system design prompt:', firstPrompt);
+                          return;
                         }
-                        if(!isNaN(sysDesignCounter) && sysDesignCounter <= 5){
-                            copyOnClick( selectedSystemDesign == 'FE' ? FESystemDesignPrompts[sysDesignCounter + 1] :  systemDesignPrompts[sysDesignCounter + 1])
-                            setSysDesignCounter(parseInt(sysDesignCounter) + 1);
-                            executeClick()
-                            return;
+                        
+                        // Check if we can move to next prompt (both arrays have 7 elements, indices 0-6)
+                        const maxIndex = selectedSystemDesign == 'FE' ? FESystemDesignPrompts.length - 1 : systemDesignPrompts.length - 1;
+                        const currentArray = selectedSystemDesign == 'FE' ? FESystemDesignPrompts : systemDesignPrompts;
+                        
+                        console.log('Current counter:', sysDesignCounter, 'Max index:', maxIndex, 'Array type:', selectedSystemDesign);
+                        
+                        if(!isNaN(sysDesignCounter) && sysDesignCounter < maxIndex){
+                          const nextPrompt = currentArray[sysDesignCounter + 1];
+                          // Set the next prompt in the chat input area (user can edit before sending)
+                          setFileContent(nextPrompt);
+                          setSysDesignCounter(sysDesignCounter + 1);
+                          console.log(`Set system design prompt ${sysDesignCounter + 1}:`, nextPrompt);
+                        } else {
+                          // We've reached the end, show completion message
+                          const completionMessage = selectedSystemDesign == 'FE' 
+                            ? "🎉 You've completed all Frontend System Design prompts! Click 'Reset' to start over."
+                            : "🎉 You've completed all Backend System Design prompts! Click 'Reset' to start over.";
+                          setFileContent(completionMessage);
+                          console.log('Reached end of system design prompts');
                         }
-                        //copyOnClick(leetcodePrompt)
-                    }}> Click To Next</button>
-                    <button style={{color:'yellow', margin:'3px'}} onClick={() => {
-                       console.log("\n\n\n clicked on next")
-                       copyOnClick(`give more other than the above mentioned`,true)
-                    }
-                      
-                    }>Click for details</button>
-                    <button style={{color:'yellow', margin:'3px'}} onClick={() => {
-                       console.log("\n\n\n clicked on Diagram n search")
-                       fetchDiagramNSearch()
-                    }
-                      
-                    }>Diagram & Search</button>
-                    <button style={{color:'yellow', margin:'3px'}} onClick={() => {
-                       console.log("\n\n\n clicked on screenshot")
-                       // Call screenshot API
-                       axios.post('/api/screenshot').then(response => {
-                         console.log('Screenshot API response:', response.data);
-                       }).catch(error => {
-                         console.error('Screenshot API error:', error);
-                       });
-                    }
-                      
-                    }>Take Screenshot</button>
+                    }}>
+                        Click To Next ({sysDesignCounter === 'none' ? 'Start' : `${sysDesignCounter + 1}/${selectedSystemDesign == 'FE' ? FESystemDesignPrompts.length : systemDesignPrompts.length}`})
+                    </button>
+                    
+                    {/* Reset button to start over */}
+                    <button style={{color:'orange', margin:'3px', fontSize:'12px'}} onClick={() => {
+                      setSysDesignCounter('none');
+                      setFileContent('');
+                      console.log('Reset system design counter');
+                    }}>
+                        Reset
+                    </button>
+                    
+                    {/* Debug info */}
+                    <div style={{color:'gray', fontSize:'10px', marginTop:'5px'}}>
+                      Type: {selectedSystemDesign}<br/>
+                      Counter: {sysDesignCounter}<br/>
+                      Total: {selectedSystemDesign == 'FE' ? FESystemDesignPrompts.length : systemDesignPrompts.length}
+                    </div>
                 </div>
                 <div>---RelevantFiles:----</div>
                 <div>
                   <input type="text"  style={{ color: 'black' }} value={fileSearch} placeholder="Search..." onChange={(e)=>{setFileSearch(e.target.value)}} />
                   <button onClick={()=>{
+                    // REDIRECTION: Fetches relevant files from system design path
                     fetchRelevantFiles(fileSearch);
                   }}>Search</button>
                 </div>
@@ -1062,6 +1133,7 @@ const Home = ({
                       <div key={index}>
                         <button  style={{textAlign:'left'}} onClick={()=>{
                           console.log("\n\n\nCLicked on file-->",file)
+                          // REDIRECTION: Makes API call to /open endpoint to open file
                           axios.get(`/open?path=${sysDesignPath}${sysDesignFolder}${file}`)
                         }}>{`->${file}`}</button>
                         <br />
@@ -1076,6 +1148,7 @@ const Home = ({
                       <div key={index}>
                         <button style={{textAlign:'left'}}  onClick={()=>{
                           console.log("\n\n\nCLicked on file-->",file)
+                          // REDIRECTION: Makes API call to /open endpoint to open file
                           axios.get(`/open?path=${sysDesignPath}${sysDesignFolder}${file}`)
                         }}>{file}</button>
                         <br />

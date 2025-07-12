@@ -1,7 +1,7 @@
 import { Message } from '@/types/chat';
 import { OpenAIModel } from '@/types/openai';
 import  { OpenAIClient, AzureKeyCredential } from "@azure/openai";
-import { AZURE_DEPLOYMENT_ID, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY } from '../app/const';
+import { getOpenAIApiHost, getOpenAIApiType, getOpenAIApiVersion, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY, AZURE_DEPLOYMENT_ID } from '../app/const';
 
 import {
   ParsedEvent,
@@ -29,22 +29,38 @@ export const OpenAIStream = async (
   temperature : number,
   key: string,
   messages: Message[],
+  apiProvider?: 'openai' | 'openrouter' | 'azure',
 ) => {
-  console.log("\n\n\n\n\n\n pratheessssssh🚀 ~ file: index.ts:33 ~ model:", model)
-  let url = `${OPENAI_API_HOST}/v1/chat/completions`;
+  console.log("🚀 ~ OpenAI Stream ~ model:", model.name)
+  console.log("🚀 ~ OpenAI Stream ~ messages count:", messages.length)
+  
+  // Use the provided apiProvider or default to current setting
+  const currentApiType = getOpenAIApiType(apiProvider);
+  const currentApiHost = getOpenAIApiHost(apiProvider);
+  const currentApiVersion = getOpenAIApiVersion(apiProvider);
+  
+  let url = `${currentApiHost}/v1/chat/completions`;
   let res: any;
   //url = `${OPENAI_API_HOST}/openai/deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
-  if(OPENAI_API_TYPE === 'azure'){
+  if(currentApiType === 'azure'){
     const client = new OpenAIClient(
-      OPENAI_API_HOST,
+      currentApiHost,
     new AzureKeyCredential(AZURE_GPT4_KEY));
     console.log("🚀 ~ file: index.ts:43 ~ client:",messages)
     // Convert messages to the expected format for Azure API
     const azureMessages = messages.map(msg => ({
       role: msg.role,
-      content: typeof msg.content === 'string' ? msg.content : msg.content.map(item => item.text || '').join(' ')
+      content: typeof msg.content === 'string' ? msg.content : msg.content.map(item => {
+        if (item.type === 'text') {
+          return item.text || '';
+        } else if (item.type === 'image_url') {
+          return `[Image: ${item.image_url?.url || 'No URL'}]`;
+        }
+        return '';
+      }).join(' ')
     }));
-    
+    console.log("\n\n\n🚀 ~ file: index.ts:53 ~ OPENROUTER_API_KEY:",OPENROUTER_API_KEY)
+  
     res = await client.getChatCompletions(
       AZURE_DEPLOYMENT_ID, // assumes a matching model deployment or model name
       [
@@ -56,9 +72,32 @@ export const OpenAIStream = async (
       ],
       /* { stream: true } */
       )
-    console.log("\n\n\n🚀 ~ file: index.ts:53 ~ res:",res)
-  } else if (OPENAI_API_TYPE === 'openrouter') {
+  } else if (currentApiType === 'openrouter') {
     url = `https://openrouter.ai/api/v1/chat/completions`;
+    
+    // Check if model requires max_completion_tokens instead of max_tokens
+    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1');
+    const tokenParam = requiresMaxCompletionTokens ? 'max_completion_tokens' : 'max_tokens';
+    
+    const requestBody = {
+      model: model.id === 'openrouter' ? 'anthropic/claude-sonnet-4' : model.id, // Use sonnet 4 as default under openrouter
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        ...messages.map(msg => ({
+          role: msg.role,
+          content: typeof msg.content === 'string' ? msg.content : msg.content
+        })),
+      ],
+      [tokenParam]: 100000,
+      temperature: temperature,
+      stream: true,
+    };
+    
+    console.log("🚀 ~ OpenRouter request ~ model:", requestBody.model, "~ messages:", requestBody.messages.length);
+    
     res = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -67,26 +106,11 @@ export const OpenAIStream = async (
         'X-Title': '', // Optional: Replace with your app name for OpenRouter leaderboards
       },
       method: 'POST',
-      body: JSON.stringify({
-        model: model.id === 'openrouter' ? 'anthropic/claude-sonnet-4' : model.id, // Use sonnet 4 as default under openrouter
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt,
-          },
-          ...messages.map(msg => ({
-            role: msg.role,
-            content: typeof msg.content === 'string' ? msg.content : msg.content.map(item => item.text || '').join(' ')
-          })),
-        ],
-        max_tokens: 100000,
-        temperature: temperature,
-        stream: true,
-      }),
+      body: JSON.stringify(requestBody),
     });
   } else {
     let otherHeaders = {};
-    if(OPENAI_API_TYPE === 'openai'){
+    if(currentApiType === 'openai'){
       otherHeaders = {Authorization: `Bearer ${key ? key : process.env.OPENAI_API_KEY}`}
       if(OPENAI_ORGANIZATION){
         otherHeaders = {...otherHeaders, 'OpenAI-Organization': OPENAI_ORGANIZATION}
@@ -94,28 +118,37 @@ export const OpenAIStream = async (
     }else {
       otherHeaders = {'api-key': `${key ? key : process.env.OPENAI_API_KEY}`}
     }
+
+    // Check if model requires max_completion_tokens instead of max_tokens
+    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1');
+    const tokenParam = requiresMaxCompletionTokens ? 'max_completion_tokens' : 'max_tokens';
+    
+    const requestBody = {
+      ...(currentApiType === 'openai' && {model: model.id}),
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        ...messages.map(msg => ({
+          role: msg.role,
+          content: typeof msg.content === 'string' ? msg.content : msg.content
+        })),
+      ],
+      [tokenParam]: 1000,
+      temperature: temperature,
+      stream: true,
+    };
+    
+    console.log("🚀 ~ OpenAI request ~ model:", requestBody.model, "~ messages:", requestBody.messages.length);
+    
     res = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...otherHeaders
       },
       method: 'POST',
-      body: JSON.stringify({
-        ...(OPENAI_API_TYPE === 'openai' && {model: model.id}),
-        messages: [
-          {
-            role: 'system',
-            content: systemPrompt,
-          },
-          ...messages.map(msg => ({
-            role: msg.role,
-            content: typeof msg.content === 'string' ? msg.content : msg.content.map(item => item.text || '').join(' ')
-          })),
-        ],
-        max_tokens: 1000,
-        temperature: temperature,
-        stream: true,
-      }),
+      body: JSON.stringify(requestBody),
     });
   
   }
@@ -123,7 +156,7 @@ export const OpenAIStream = async (
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
-  if ((OPENAI_API_TYPE === 'openai' || OPENAI_API_TYPE === 'openrouter') && res.status !== 200) {
+  if ((currentApiType === 'openai' || currentApiType === 'openrouter') && res.status !== 200) {
     const result = await res.json();
     if (result.error) {
       throw new OpenAIError(
@@ -140,7 +173,7 @@ export const OpenAIStream = async (
       );
     }
   }else{
-    if(OPENAI_API_TYPE === 'azure')
+    if(currentApiType === 'azure')
       return res && res.choices &&res.choices[0] &&res.choices[0]['message']['content']
   }
 
@@ -170,7 +203,7 @@ export const OpenAIStream = async (
       const parser = createParser(onParse);
      // console.log("🚀 ~ file: index.ts:134 ~ forawait ~ chunk:", (OPENAI_API_TYPE === 'openai') ? res.body : res)
       // let resBody = ;
-      for await (const chunk of ((OPENAI_API_TYPE === 'openai' || OPENAI_API_TYPE === 'openrouter') ? res.body : res) as any) {
+      for await (const chunk of ((currentApiType === 'openai' || currentApiType === 'openrouter') ? res.body : res) as any) {
        // console.log("🚀 ~ file: index.ts:134 ~ forawait ~ chunk:", chunk,decoder.decode(chunk))
         parser.feed(decoder.decode(chunk));
       }
