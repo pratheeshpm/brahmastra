@@ -276,24 +276,14 @@ export const ChatInput = ({
   };
 
   const handleSend = async () => {
-    console.log('🚀 handleSend called with:', { 
-      content, 
-      selectedImagesLength: selectedImages.length,
-      messageIsStreaming 
-    });
-    
     if (messageIsStreaming) {
-      console.log('🚀 Aborting - message is streaming');
       return;
     }
 
     if (!content && selectedImages.length === 0) {
-      console.log('🚀 Showing alert - no content and no images');
       alert(t('Please enter a message or select an image'));
       return;
     }
-
-    console.log('🚀 Proceeding with send...');
 
     try {
       let messageContent: Message['content'];
@@ -386,12 +376,10 @@ Please proceed with the analysis:`;
       onSend({ role: 'user', content: messageContent }, plugin);
       
       // Reset form
-      console.log('Resetting form after send...');
       setContent('');
       setPlugin(null);
       setSelectedImages([]);
       setImagePreviewUrls([]);
-      console.log('Form reset complete');
 
       if (window.innerWidth < 640 && textareaRef && textareaRef.current) {
         textareaRef.current.blur();
@@ -537,17 +525,8 @@ Please proceed with the analysis:`;
 
   // Update content when prompt prop changes (for screenshot functionality and system design prompts)
   useEffect(() => {
-    console.log('🔍 useEffect triggered:', { 
-      prompt, 
-      content, 
-      screenshotProcessed: (window as any).screenshotProcessed,
-      screenshotData: !!(window as any).screenshotData,
-      screenshotDataReady: (window as any).screenshotDataReady
-    });
-    
     // Skip if we just processed a screenshot to prevent re-triggering
     if ((window as any).screenshotProcessed) {
-      console.log('🔍 Skipping - screenshot already processed');
       delete (window as any).screenshotProcessed;
       return;
     }
@@ -559,8 +538,6 @@ Please proceed with the analysis:`;
         (window as any).screenshotData && 
         (window as any).screenshotDataReady) {
       
-      console.log('🔍 Processing screenshot with prompt:', prompt);
-      
       // Set content temporarily for the screenshot
       setContent(prompt);
       
@@ -568,7 +545,6 @@ Please proceed with the analysis:`;
       setTimeout(() => {
         const screenshotData = (window as any).screenshotData;
         if (screenshotData && screenshotData.imageData) {
-          console.log('🔍 Setting up screenshot preview and auto-sending...');
           
           // Get the base64 data (it should already include the data:image/jpeg;base64, prefix)
           let base64Data = screenshotData.imageData;
@@ -596,23 +572,17 @@ Please proceed with the analysis:`;
             setSelectedImages([file]);
             setImagePreviewUrls([base64Data]);
             
-            console.log('🔍 Screenshot preview set up successfully');
-            
             // Clear the screenshot data from window to prevent reprocessing
             delete (window as any).screenshotData;
             delete (window as any).screenshotDataReady;
             
             // Auto-trigger send after a small delay to show the preview briefly
             setTimeout(async () => {
-              console.log('🔍 Auto-triggering send for screenshot with image...');
               
               // Instead of calling handleSend which relies on state, directly process the screenshot
               try {
-                console.log('🔍 Compressing screenshot image...');
                 // Compress and convert the screenshot image
                 const compressedBase64Images = await compressAndConvertImages([file]);
-                
-                console.log('🔍 Creating message content array...');
                 // Create message with screenshot
                 const contentArray: Array<{
                   type: 'text' | 'image_url';
@@ -635,19 +605,16 @@ Please proceed with the analysis:`;
                   });
                 });
 
-                console.log('🔍 Sending message directly via onSend...');
                 // Send the message directly
                 onSend({ role: 'user', content: contentArray }, plugin);
                 
                 // Force clear everything after sending
-                console.log('🔍 Force clearing form after screenshot send...');
                 setContent('');
                 setSelectedImages([]);
                 setImagePreviewUrls([]);
                 
                 // Set a flag to prevent the useEffect from running again
                 (window as any).screenshotProcessed = true;
-                console.log('🔍 Screenshot processing completed successfully');
               } catch (error) {
                 console.error('🔍 Error processing screenshot:', error);
                 alert('Error processing screenshot. Please try again.');
@@ -657,24 +624,12 @@ Please proceed with the analysis:`;
           } catch (error) {
             console.error('🔍 Error processing screenshot data:', error);
           }
-        } else {
-          console.log('🔍 No screenshot data found in window object');
         }
       }, 200);
     } 
     // Handle regular prompts (like system design prompts) - just set the content
     else if (prompt && prompt !== content && prompt.trim() !== '') {
-      console.log('📝 Setting regular prompt in chat input:', prompt);
       setContent(prompt);
-    } else {
-      console.log('🔍 Not processing - conditions not met:', {
-        hasPrompt: !!prompt,
-        promptDifferent: prompt !== content,
-        isScreenshotPrompt: prompt && (prompt.includes('🔍 Code Analysis:') || prompt.includes('📸 Screenshot Analysis')),
-        hasScreenshotData: !!(window as any).screenshotData,
-        screenshotDataReady: (window as any).screenshotDataReady,
-        promptNotEmpty: prompt && prompt.trim() !== ''
-      });
     }
   }, [prompt]);
 

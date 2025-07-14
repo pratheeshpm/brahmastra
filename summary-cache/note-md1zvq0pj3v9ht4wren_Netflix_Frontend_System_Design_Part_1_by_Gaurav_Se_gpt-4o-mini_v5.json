@@ -1,0 +1,19 @@
+{
+  "videoId": "note-md1zvq0pj3v9ht4wren",
+  "title": "Netflix Frontend System Design - Part 1 by Gaurav Sen & Chirag Goel |  ft. @gkcs",
+  "model": "gpt-4o-mini",
+  "cachedAt": "2025-07-14T01:25:37.929Z",
+  "lastEditedAt": "2025-07-14T01:25:37.929Z",
+  "generatedAt": 1752456337929,
+  "keywords": [
+    "lazy loading",
+    "service workers",
+    "HTTP/2 multiplexing",
+    "IndexedDB",
+    "caching strategy",
+    "configurable UI",
+    "A/B testing",
+    "sprite management"
+  ],
+  "keywordsGeneratedAt": "2025-07-14T01:25:37.929Z"
+}

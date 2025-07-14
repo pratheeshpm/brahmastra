@@ -1,0 +1,19 @@
+{
+  "videoId": "note-md1zz7l506pmnczo7ff7",
+  "title": "System Design Interview: Design Ticketmaster w/ a Ex-Meta Staff Engineer",
+  "model": "gpt-4o-mini",
+  "cachedAt": "2025-07-13T18:28:06.939Z",
+  "lastEditedAt": "2025-07-13T18:28:06.939Z",
+  "generatedAt": 1752431286939,
+  "keywords": [
+    "microservices architecture",
+    "load balancing",
+    "API design",
+    "caching strategy",
+    "event-driven",
+    "event CRUD service",
+    "eventual consistency",
+    "ticket booking"
+  ],
+  "keywordsGeneratedAt": "2025-07-13T18:28:06.939Z"
+}

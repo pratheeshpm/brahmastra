@@ -1,0 +1,31 @@
+{
+  "id": "md2f6rs4yw8tgallmi",
+  "topic": "How to prepare your Frontend System Design Interview",
+  "content": "**Filtered Resources**\n\nIn these comprehensive technical guides, you'll find indispensable resources for improving your coding skills, particularly within the popular React framework:\n- [React Anti-Patterns](https://www.amazon.com/React-Anti-Patterns-maintainable-applications-test-driven/dp/1805123971): A guide to avoid common mistakes and enhance your React application with cleaner designs.\n- [React Clean Code](https://leanpub.com/react-clean-code): A focus on writing robust and maintainable code in React.\n- [Maintainable React](https://leanpub.com/maintainable-react): Insights into creating big, maintainable React applications.\n- [Maintainable React Course](https://www.udemy.com/course/mastering-maintainable-react/): A course offering hands-on practices to master the React framework.\n\n**Video Overview**\n\nIn this video, Evan, a former Meta staff engineer and experienced interviewer, dissects a common system design interview question: designing a platform akin to LeetCode, often referred to as an online judge or coding competition site. The video emphasizes identifying core features, understanding functional and non-functional requirements, handling API interactions, and adopting modern engineering practices such as CI/CD and build scripts. It caters to both beginners and seasoned developers, particularly those preparing for system design interviews in the tech industry.\n\n**Detailed Technical Content**\n\n1. **Functional and Non-Functional Requirements**  \n   - **Functional Requirements** include:\n     - Users should be able to view and select a list of coding problems.\n     - Users can attempt these problems, submit solutions, and receive feedback.\n     - The platform should allow for coding competitions with live leaderboards.\n   - **Non-Functional Requirements** focus on system qualities like:\n     - Prioritizing availability over consistency (CAP theorem consideration).\n     - Ensuring the secure and isolated execution of user-submitted code.\n     - Supporting up to 100,000 users during competitions.\n\n2. **Core Entities and Data Model**  \n   - The system design includes essential entities:\n     - **Users**, **Problems**, **Submissions**, and **Competitions** are critical tables with relevant fields such as problem IDs, user IDs, and time stamps.\n   - The design recommends gradual schema detailing throughout the high-level design process.\n\n3. **API and User Interactions**  \n   - APIs function as the protocol for user interaction, fulfilling the listed functional requirements:\n     - **View List of Problems** API using GET to retrieve problems with optional filters like category and difficulty.\n     - **View Specific Problem** and **Submit Solution** APIs, ensuring seamless coding experiences.\n   - Key design patterns include pagination for large data, and using POST for creating submissions.\n\n4. **High-Level Design (HLD)**  \n   - Initially involves simple CRUD operations and direct database interactions.\n   - Suggestions include:\n     - Starting with a monolithic architecture with potential for transitioning to microservices.\n     - Using a relational database like PostgreSQL, with considerations for eventual non-relational solutions for greater scalability.\n\n5. **Security and Performance**  \n   - Critical emphasis on isolating user code execution using Docker containers instead of direct server execution to mitigate security risks from malicious code.\n   - Implementing timeouts and resource limits on execution environments to avoid runaway processes or resource overconsumption.\n\n6. **Deep Dive into Scalability**  \n   - Use of a message queue (e.g., AWS SQS) as buffering layer to manage submission loads, particularly during peak times in competitions.\n   - Introduction of polling mechanisms over WebSockets for simple real-time updates without over-engineering the solution.\n\n7. **Efficiency in Leaderboard Updates**  \n   - Proposes maintaining an updated leaderboard using periodic cache refresh or by tracking score changes dynamically.\n   - Introduction of sorted sets in Redis to efficiently manage and access leaderboard rankings, enhancing query performance dramatically.\n\n8. **Build and CI/CD**  \n   - Incorporates modern CI/CD pipelines for continuous integration of updates and seamless deployment of changes.\n   - Use of build scripts for automation of routine tasks ensuring a smooth transition from development to production.\n\n9. **Trade-offs and Analysis**  \n   - The video underscores the importance of discussing trade-offs with interviewers: whether to preserve the simplicity of polling or include more complex real-time mechanisms.\n   - Encourages strategic thinking, pointing out that design should align with the planned scale and expected load, including consideration of rare failure modes like data inconsistency between database and cache.\n\n**Key Takeaways**\n\n- **Preparation and Strategy**: Success in system design interviews hinges on clearly understanding the problem, breaking it into comprehensible parts, and effectively communicating each design layer.\n- **Security and Isolation**: Ensure robust security measures, particularly when executing untrusted code, to protect system integrity.\n- **Efficiency in Design**: Opt for simpler, more maintainable designs initially, scaling complexity in deeper levels or as requirements evolve.\n- **Communication**: Engage interviewers in discussions about possible trade-offs and potential pitfalls which demonstrate critical thinking and problem-solving skills.",
+  "createdAt": "2025-07-14T01:23:43.012Z",
+  "updatedAt": "2025-07-14T01:23:43.012Z",
+  "tags": [
+    "react",
+    "postgresql",
+    "redis",
+    "aws",
+    "docker",
+    "microservices",
+    "websockets",
+    "API interactions",
+    "microservices architecture",
+    "Docker containers",
+    "message queue",
+    "sorted sets",
+    "pagination design",
+    "CI/CD pipelines",
+    "CAP theorem",
+    "system-design",
+    "frontend-system-design",
+    "chat-messaging",
+    "e-commerce",
+    "streaming-media",
+    "code-editor",
+    "interview-prep"
+  ]
+}

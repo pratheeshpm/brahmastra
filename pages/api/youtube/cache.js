@@ -124,6 +124,70 @@ export default async function handler(req, res) {
       console.error('Error saving manual transcript to cache:', error);
       res.status(500).json({ error: error.message });
     }
+  } else if (req.method === 'PUT') {
+    // Handle editing existing transcript
+    try {
+      const { videoId, title, transcript } = req.body;
+      
+      if (!videoId || !transcript) {
+        return res.status(400).json({ error: 'videoId and transcript are required' });
+      }
+
+      // Ensure cache directory exists
+      if (!fs.existsSync(CACHE_DIR)) {
+        fs.mkdirSync(CACHE_DIR, { recursive: true });
+      }
+
+      // Find existing cache file
+      const files = fs.readdirSync(CACHE_DIR);
+      const matchingFiles = files.filter(file => file.startsWith(`${videoId}_`));
+      
+      let existingData = null;
+      let cacheFile = null;
+      
+      if (matchingFiles.length > 0) {
+        // Load existing data
+        cacheFile = path.join(CACHE_DIR, matchingFiles[0]);
+        existingData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      } else {
+        // Create new cache file if none exists
+        cacheFile = getCacheFilePath(videoId, title);
+        existingData = {
+          success: true,
+          method: 'manual_input',
+          language: 'unknown',
+          source: 'manual',
+          videoId: videoId,
+          title: title || 'Manual Input'
+        };
+      }
+
+      // Update the transcript data
+      const updatedData = {
+        ...existingData,
+        text: transcript,
+        transcript: transcript.split(/[.!?]+/).filter(sentence => sentence.trim().length > 0).map(text => ({ text: text.trim() })),
+        source: 'edited',
+        cachedAt: new Date().toISOString(),
+        lastEditedAt: new Date().toISOString()
+      };
+
+      // Save updated data
+      fs.writeFileSync(cacheFile, JSON.stringify(updatedData, null, 2));
+      
+      console.log(`✏️ Updated transcript in cache: ${path.basename(cacheFile)}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Transcript updated successfully',
+        filename: path.basename(cacheFile),
+        cachedAt: updatedData.cachedAt,
+        lastEditedAt: updatedData.lastEditedAt
+      });
+    } catch (error) {
+      console.error('Error updating transcript in cache:', error);
+      res.status(500).json({ error: error.message });
+    }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }

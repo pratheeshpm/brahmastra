@@ -23,7 +23,6 @@ transcript*
 .DS_Store
 *.pem
 .yarn
-.pnp.*
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -45,5 +44,5 @@ pnpm-lock.yaml
 
 # cache directory
 .cache/
-summary-cache/
+//summary-cache/
 transcript-cache/

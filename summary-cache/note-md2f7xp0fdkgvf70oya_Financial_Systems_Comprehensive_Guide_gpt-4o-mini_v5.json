@@ -1,0 +1,19 @@
+{
+  "videoId": "note-md2f7xp0fdkgvf70oya",
+  "title": "Financial Systems - Comprehensive Guide",
+  "model": "gpt-4o-mini",
+  "cachedAt": "2025-07-14T01:26:02.403Z",
+  "lastEditedAt": "2025-07-14T01:26:02.403Z",
+  "generatedAt": 1752456362403,
+  "keywords": [
+    "Saga pattern",
+    "sharding strategy",
+    "2-phase-commit",
+    "Change Data Capture",
+    "database indexing",
+    "strong read consistency",
+    "transaction isolation",
+    "ACID properties"
+  ],
+  "keywordsGeneratedAt": "2025-07-14T01:26:02.403Z"
+}

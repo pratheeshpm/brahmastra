@@ -19,6 +19,20 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+  // Add logging for prop changes
+  useEffect(() => {
+    console.log('🎨 [MERMAID COMPONENT] Props changed:', {
+      id,
+      codeLength: code?.length || 0,
+      codePreview: code?.substring(0, 50) + '...',
+      timestamp: new Date().toISOString()
+    });
+  }, [code, id]);
+
+  // PNG preview state
+  const [showPngPreview, setShowPngPreview] = useState(false);
+  const [pngPreviewUrl, setPngPreviewUrl] = useState<string | null>(null);
+
   // Download functions
   const downloadAsPNG = async () => {
     const sourceElement = isFullscreen ? fullscreenRef.current : elementRef.current;
@@ -65,7 +79,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
 
       // Create image and convert
       const img = new Image();
-      img.crossOrigin = 'anonymous'; // This helps with CORS issues
+      img.crossOrigin = 'anonymous';
       
       img.onload = () => {
         try {
@@ -76,15 +90,12 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
           // Draw the SVG
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Convert to blob and download
+          // Convert to blob and show preview
           canvas.toBlob((blob) => {
             if (blob) {
               const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.download = `mermaid-diagram-${Date.now()}.png`;
-              link.href = url;
-              link.click();
-              URL.revokeObjectURL(url);
+              setPngPreviewUrl(url);
+              setShowPngPreview(true);
             }
           }, 'image/png', 1.0);
         } catch (canvasError) {
@@ -101,10 +112,27 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
 
       img.src = svgDataUrl;
     } catch (err) {
-      console.error('Error downloading PNG:', err);
+      console.error('Error generating PNG preview:', err);
       // Fallback: download as SVG
       downloadAsSVG();
     }
+  };
+
+  const downloadPngFromPreview = () => {
+    if (pngPreviewUrl) {
+      const link = document.createElement('a');
+      link.download = `mermaid-diagram-${Date.now()}.png`;
+      link.href = pngPreviewUrl;
+      link.click();
+    }
+  };
+
+  const closePngPreview = () => {
+    if (pngPreviewUrl) {
+      URL.revokeObjectURL(pngPreviewUrl);
+      setPngPreviewUrl(null);
+    }
+    setShowPngPreview(false);
   };
 
   const downloadAsSVG = () => {
@@ -204,16 +232,20 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
   // Close fullscreen on Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isFullscreen) {
-        closeFullscreen();
+      if (event.key === 'Escape') {
+        if (isFullscreen) {
+          closeFullscreen();
+        } else if (showPngPreview) {
+          closePngPreview();
+        }
       }
     };
 
-    if (isFullscreen) {
+    if (isFullscreen || showPngPreview) {
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
-  }, [isFullscreen]);
+  }, [isFullscreen, showPngPreview]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -262,6 +294,38 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
               secondaryColor: '#f8f8f8',
               tertiaryColor: '#f0f0f0',
             },
+            // Add flowchart and sequence diagram specific configurations
+            flowchart: {
+              useMaxWidth: true,
+              htmlLabels: true,
+              curve: 'basis',
+              padding: 20,
+            },
+            sequence: {
+              useMaxWidth: true,
+              diagramMarginX: 50,
+              diagramMarginY: 50,
+              actorMargin: 50,
+              width: 150,
+              height: 65,
+              boxMargin: 10,
+              boxTextMargin: 5,
+              noteMargin: 10,
+              messageMargin: 35,
+              mirrorActors: false,
+              bottomMarginAdj: 1,
+              rightAngles: false,
+              showSequenceNumbers: false,
+            },
+            // Add gantt and other diagram types
+            gantt: {
+              useMaxWidth: true,
+              leftPadding: 75,
+              gridLineStartPadding: 35,
+              fontSize: 11,
+              sectionFontSize: 11,
+              numberSectionStyles: 4,
+            },
           });
           setMermaidLoaded(true);
         }
@@ -290,6 +354,26 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
         // Set the SVG content if component is still mounted
         if (elementRef.current && isMounted) {
           elementRef.current.innerHTML = svg;
+          
+          // Minimal text enhancement only - preserve original SVG layout
+          const svgElement = elementRef.current.querySelector('svg');
+          if (svgElement) {
+            // Only improve text styling without changing SVG structure
+            const textElements = svgElement.querySelectorAll('text');
+            textElements.forEach((textEl) => {
+              const element = textEl as SVGTextElement;
+              
+              // Minimal styling improvements for better readability
+              element.style.fontFamily = element.style.fontFamily || 'inherit';
+              element.style.fill = element.style.fill || '#000000';
+              
+              // Slightly improve font weight for better visibility
+              if (!element.style.fontWeight) {
+                element.style.fontWeight = '500';
+              }
+            });
+          }
+          
           setIsLoaded(true);
           setError(null);
         }
@@ -345,7 +429,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
               display: isLoaded ? 'flex' : 'none', 
               justifyContent: 'center',
               alignItems: 'center',
-              minHeight: '100px'
+              minHeight: '200px'
             }}
             onClick={openFullscreen}
             title="Click to open in fullscreen"
@@ -370,10 +454,10 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
                     downloadAsPNG();
                   }}
                   className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-                  title="Download as PNG (with SVG fallback)"
+                  title="Preview PNG (with SVG fallback)"
                 >
                   <IconDownload size={14} />
-                  PNG
+                  Preview
                 </button>
                 <button
                   onClick={(e) => {
@@ -511,6 +595,39 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
             {/* Instructions */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
               Mouse wheel: zoom • Drag: pan • ESC: close
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PNG Preview Modal */}
+      {showPngPreview && pngPreviewUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2">
+          <div className="relative w-[98vw] h-[98vh] bg-white rounded-lg shadow-2xl overflow-hidden">
+            {/* Close button */}
+            <button
+              onClick={closePngPreview}
+              className="absolute top-4 right-4 z-20 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+              title="Close preview"
+            >
+              <IconX size={20} className="text-gray-600 hover:text-gray-800" />
+            </button>
+            
+            {/* Download button */}
+            <button
+              onClick={downloadPngFromPreview}
+              className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition-colors"
+              title="Download PNG"
+            >
+              <IconDownload size={16} />
+              Download PNG
+            </button>
+            
+            <div className="w-full h-full flex items-center justify-center">
+              <img src={pngPreviewUrl} alt="Mermaid Diagram Preview" className="max-w-full max-h-full cursor-pointer" onClick={downloadPngFromPreview} />
+            </div>
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
+              Click image or download button to save • ESC to close
             </div>
           </div>
         </div>

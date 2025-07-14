@@ -64,7 +64,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const enableWebsockets = true;
 
-
+const openOnGo = false;
 
 const isBrowser = typeof window !== 'undefined';
 const isReveiver = 0;
@@ -265,8 +265,13 @@ const Home = ({
   useSocket('clipboardContent', data => {
     if(data){
       socket.emit('clipboardContent',data);
-      console.log("\n\n\n\n\npratheesh🚀 ~ file: home.tsx:225 ~ useEffect ~ sysDesignCounter:", data)
-      if(sysDesignCounter === 0 ){
+      console.log("\n\n\n\n\npratheesh🚀 ~ file: home.tsx:225 ~ useSocket ~ data:", data)
+      console.log("📋 Current selectedOption:", selectedOption)
+      console.log("📋 Current sysDesignCounter:", sysDesignCounter)
+      console.log("📋 Current selectedSystemDesign:", selectedSystemDesign)
+      
+      // Special handling for system design first prompt
+      if(selectedOption === 'systemdesign' && sysDesignCounter === 0 ){
         data && setFileContent(`${ selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] :  systemDesignPrompts[0]} ${data}`);
         executeClick()
         console.log("\n\n\npratheesh in System Design--->",selectedOption,data)
@@ -276,20 +281,36 @@ const Home = ({
         fetchRelevantFiles(data);
         return;
       }
-      //data && setFileContent(data)
+      
+      // For all other cases, process through onMsgHandler
       console.log("\n\n\npratheesh--->",selectedOption,data)
-      data && onMsgHandler({data: data})
+      
+      // Try to process through onMsgHandler
+      try {
+        data && onMsgHandler({data: data})
+      } catch (error) {
+        console.error("❌ Error in onMsgHandler, using fallback:", error);
+        // Fallback: just set the raw clipboard content
+        setFileContent(data);
+      }
+      
+      // Special handling for leetcode
       if(selectedOption == 'leetcode'){
         console.log("\n\n pratheesh should come here")
         // REDIRECTION: Opens new tab to localhost:3001 search with leetcode data
         window.open(`http://localhost:3001/search?term=${data}&from=chatbotai`, '_blank');
       }
+      
       setTimeout(()=>{
         // Simulating a click event on the button
           let button = document.getElementById('send-button');
 
-          if (button) 
+          if (button) {
             button.click();
+            console.log("✅ Send button clicked successfully");
+          } else {
+            console.error("❌ Send button not found!");
+          }
 
           let clipboardContent = data;
           const capturedLogs: any[] = [];
@@ -409,6 +430,67 @@ const Home = ({
         console.log('Ctrl+N: Reached end of system design prompts, sending completion message');
         executeClick(); // Auto-send the completion message
       }
+      
+      // Special handling for first system design prompt with additional text (Ctrl+N)
+      // Check if we're at counter 0 (first prompt) and if user has added extra text
+      console.log('🎬 Ctrl+N DEBUG: Checking YouTube search conditions...');
+      console.log('🎬 Ctrl+N DEBUG: sysDesignCounter:', sysDesignCounter);
+      console.log('🎬 Ctrl+N DEBUG: selectedOption:', selectedOption);
+      console.log('🎬 Ctrl+N DEBUG: fileContent length:', fileContent ? fileContent.length : 0);
+      
+      if(sysDesignCounter === 0 && selectedOption === 'systemdesign'){
+        const currentPrompt = selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] : systemDesignPrompts[0];
+        console.log('🎬 Ctrl+N DEBUG: currentPrompt length:', currentPrompt.length);
+        
+        // Check if the current fileContent has additional text beyond the original prompt
+        if(fileContent && fileContent.length > currentPrompt.length && fileContent.includes(currentPrompt)){
+          console.log('🎬 Ctrl+N DEBUG: Additional text detected!');
+          // Extract the additional text that user appended
+          const additionalText = fileContent.replace(currentPrompt, '').trim();
+          console.log('🎬 Ctrl+N DEBUG: Extracted additional text:', additionalText);
+          
+          if(additionalText.length > 0){
+            console.log('🎬 Ctrl+N: Opening YouTube search for additional text:', additionalText);
+            // Open YouTube search tab with the additional text before executing click
+            const youtubeSearchUrl = `http://localhost:3000/youtube-search?q=${encodeURIComponent(additionalText)}`;
+            console.log('🎬 Ctrl+N DEBUG: Opening URL:', youtubeSearchUrl);
+            
+            try {
+              const youtubeWindow = window.open(youtubeSearchUrl, '_blank');
+              if (youtubeWindow) {
+                console.log('🎬 Ctrl+N: YouTube search opened successfully!');
+              } else {
+                console.error('🎬 Ctrl+N ERROR: YouTube search window was blocked!');
+              }
+            } catch (error) {
+              console.error('🎬 Ctrl+N ERROR: Failed to open YouTube search:', error);
+            }
+
+            // Use requestAnimationFrame to queue the second window opening
+            requestAnimationFrame(() => {
+              const fileSearchUrl = `http://localhost:3000/file-search?q=${encodeURIComponent(additionalText)}&mode=filename`;
+              console.log('🎬 Ctrl+N DEBUG: Opening File Search URL:', fileSearchUrl);
+              try {
+                const fileSearchWindow = window.open(fileSearchUrl, '_blank');
+                if (fileSearchWindow) {
+                  console.log('🎬 Ctrl+N: File search opened successfully!');
+                } else {
+                  console.error('🎬 Ctrl+N ERROR: File search window was blocked!');
+                }
+              } catch (error) {
+                console.error('🎬 Ctrl+N ERROR: Failed to open File search:', error);
+              }
+            });
+          } else {
+            console.log('🎬 Ctrl+N DEBUG: Additional text is empty after trim');
+          }
+        } else {
+          console.log('🎬 Ctrl+N DEBUG: No additional text found');
+          console.log('🎬 Ctrl+N DEBUG: fileContent includes currentPrompt:', fileContent ? fileContent.includes(currentPrompt) : false);
+        }
+      } else {
+        console.log('🎬 Ctrl+N DEBUG: Conditions not met for YouTube search');
+      }
     }, 100);
   });
 
@@ -442,31 +524,81 @@ const Home = ({
 
   const onMsgHandler = (event: any) => {
     console.log(
-      '🚀 ~ file: home.tsx:116 ~ useEffect ~ event.data:',
+      '🚀 ~ file: home.tsx:116 ~ onMsgHandler ~ event.data:',
       event.data,
     );
+    console.log('🔍 onMsgHandler - selectedOption:', selectedOption);
+    console.log('🔍 onMsgHandler - sysDesignCounter:', sysDesignCounter);
+    console.log('🔍 onMsgHandler - selectedSystemDesign:', selectedSystemDesign);
+    
     let prompt = ''
     switch(selectedOption){
       case 'finderror':
-        prompt = codeErrorPrompt;
+        prompt = codeErrorPrompt || '';
+        console.log('📝 Using codeErrorPrompt');
         break;
       case 'leetcode':
-        prompt = leetcodePrompt;
+        prompt = leetcodePrompt || '';
+        console.log('📝 Using leetcodePrompt');
         break;
       case 'react':
-        prompt = reactPrompt;
+        prompt = reactPrompt || '';
+        console.log('📝 Using reactPrompt');
         break;
       case 'codeoutput':
-        prompt = codeOutputPrompt;
+        prompt = codeOutputPrompt || '';
+        console.log('📝 Using codeOutputPrompt');
         break;
       case 'systemdesign':
-        prompt =  selectedSystemDesign == 'FE' ? FESystemDesignPrompts[sysDesignCounter] :  systemDesignPrompts[sysDesignCounter];    
+        // Handle system design prompts with bounds checking
+        const currentArray = selectedSystemDesign == 'FE' ? FESystemDesignPrompts : systemDesignPrompts;
+        
+        // Validate that the arrays exist
+        if (!currentArray || !Array.isArray(currentArray) || currentArray.length === 0) {
+          console.error('❌ System design prompts array is invalid:', currentArray);
+          prompt = '';
+          break;
+        }
+        
+        const maxIndex = currentArray.length - 1;
+        
+        console.log('📝 System design - currentArray length:', currentArray.length);
+        console.log('📝 System design - maxIndex:', maxIndex);
+        console.log('📝 System design - sysDesignCounter:', sysDesignCounter);
+        
+        // If sysDesignCounter is valid, use it; otherwise use the first prompt
+        if (typeof sysDesignCounter === 'number' && sysDesignCounter >= 0 && sysDesignCounter <= maxIndex) {
+          prompt = currentArray[sysDesignCounter] || '';
+          console.log('📝 Using system design prompt at index:', sysDesignCounter);
+        } else {
+          // Fallback to first prompt if counter is invalid
+          prompt = currentArray[0] || '';
+          console.log('🔧 Using fallback system design prompt (first prompt) due to invalid counter:', sysDesignCounter);
+        }
+        break;
+      case 'plain':
+        // For plain text, don't add any prefix prompt
+        prompt = '';
+        console.log('📝 Using plain text (no prompt prefix)');
         break;
       default:    
+        // For unknown options, use plain text
+        prompt = '';
+        console.log('📝 Using default (no prompt prefix) for unknown option:', selectedOption);
     }
-    let correctPropmpt = `${prompt}${event.data}`
+    
+    // Ensure we always have valid data
+    const dataToUse = event.data || '';
+    let correctPropmpt = `${prompt}${dataToUse}`
+    
+    // If prompt is empty and we have data, just use the data
+    if (!prompt && dataToUse) {
+      correctPropmpt = dataToUse;
+      console.log('📝 No prompt prefix, using raw data');
+    }
+    
     setFileContent(correctPropmpt);
-    console.log("🚀 ~ file: home.tsx:119 ~ .then ~ correctPropmpt:", correctPropmpt)
+    console.log("🚀 ~ file: home.tsx:119 ~ onMsgHandler ~ correctPropmpt:", correctPropmpt)
   }
 
   useEffect(() => {
@@ -1097,8 +1229,117 @@ const Home = ({
                           setFileContent(completionMessage);
                           console.log('Reached end of system design prompts');
                         }
+                        
+                        // Special handling for first system design prompt with additional text
+                        // Check if we're moving from the first prompt (counter 0) to second prompt (counter 1)
+                        console.log('🎬 DEBUG: Checking YouTube search conditions...');
+                        console.log('🎬 DEBUG: sysDesignCounter:', sysDesignCounter);
+                        console.log('🎬 DEBUG: selectedOption:', selectedOption);
+                        console.log('🎬 DEBUG: fileContent length:', fileContent ? fileContent.length : 0);
+                        console.log('🎬 DEBUG: fileContent preview:', fileContent ? fileContent.substring(0, 100) + '...' : 'empty');
+                        
+                        if(sysDesignCounter === 0 && selectedOption === 'systemdesign'){
+                          const currentPrompt = selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] : systemDesignPrompts[0];
+                          console.log('🎬 DEBUG: currentPrompt length:', currentPrompt.length);
+                          console.log('🎬 DEBUG: currentPrompt preview:', currentPrompt.substring(0, 100) + '...');
+                          
+                          // Check if the current fileContent has additional text beyond the original prompt
+                          if(openOnGo && fileContent && fileContent.length > currentPrompt.length && fileContent.includes(currentPrompt)){
+                            console.log('🎬 DEBUG: Additional text detected!');
+                            // Extract the additional text that user appended
+                            const additionalText = fileContent.replace(currentPrompt, '').trim();
+                            console.log('🎬 DEBUG: Extracted additional text:', additionalText);
+                            
+                            if(additionalText.length > 0){
+                              console.log('🎬 Opening YouTube search for additional text:', additionalText);
+                              // Open YouTube search tab with the additional text before executing click
+                              const youtubeSearchUrl = `http://localhost:3000/youtube-search?q=${encodeURIComponent(additionalText)}`;
+                              console.log('🎬 DEBUG: Opening URL:', youtubeSearchUrl);
+                              
+                              try {
+                                const youtubeWindow = window.open(youtubeSearchUrl, '_blank');
+                                if (youtubeWindow) {
+                                  console.log('🎬 YouTube search opened successfully!');
+                                } else {
+                                  console.error('🎬 ERROR: YouTube search window was blocked!');
+                                }
+                              } catch (error) {
+                                console.error('🎬 ERROR: Failed to open YouTube search:', error);
+                              }
+
+                              // Use requestAnimationFrame to queue the second window opening
+                              requestAnimationFrame(() => {
+                                const fileSearchUrl = `http://localhost:3000/file-search?q=${encodeURIComponent(additionalText)}&mode=filename`;
+                                console.log('🎬 DEBUG: Opening File Search URL:', fileSearchUrl);
+                                try {
+                                  const fileSearchWindow = window.open(fileSearchUrl, '_blank');
+                                  if (fileSearchWindow) {
+                                    console.log('🎬 File search opened successfully!');
+                                  } else {
+                                    console.error('🎬 ERROR: File search window was blocked!');
+                                  }
+                                } catch (error) {
+                                  console.error('🎬 ERROR: Failed to open File search:', error);
+                                }
+                              });
+                            } else {
+                              console.log('🎬 DEBUG: Additional text is empty after trim');
+                            }
+                          } else {
+                            console.log('🎬 DEBUG: No additional text found');
+                            console.log('🎬 DEBUG: fileContent includes currentPrompt:', fileContent ? fileContent.includes(currentPrompt) : false);
+                          }
+                        } else {
+                          console.log('🎬 DEBUG: Conditions not met for YouTube search');
+                        }
                     }}>
                         Click To Next ({sysDesignCounter === 'none' ? 'Start' : `${sysDesignCounter + 1}/${selectedSystemDesign == 'FE' ? FESystemDesignPrompts.length : systemDesignPrompts.length}`})
+                    </button>
+
+                    {/* YouTube Search Button */}
+                    <button style={{color:'red', margin:'3px', fontSize:'12px'}} onClick={() => {
+                      if(sysDesignCounter === 0 && selectedOption === 'systemdesign'){
+                        const currentPrompt = selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] : systemDesignPrompts[0];
+                        if(fileContent && fileContent.length > currentPrompt.length && fileContent.includes(currentPrompt)){
+                          const additionalText = fileContent.replace(currentPrompt, '').trim();
+                          if(additionalText.length > 0){
+                            const youtubeSearchUrl = `http://localhost:3000/youtube-search?q=${encodeURIComponent(additionalText)}`;
+                            console.log('🎬 Manual YouTube search:', youtubeSearchUrl);
+                            window.open(youtubeSearchUrl, '_blank');
+                          } else {
+                            alert('No additional text found to search');
+                          }
+                        } else {
+                          alert('Please add additional text to the first system design prompt');
+                        }
+                      } else {
+                        alert('YouTube search only available for first system design prompt with additional text');
+                      }
+                    }}>
+                        🎬 YouTube
+                    </button>
+
+                    {/* File Search Button */}
+                    <button style={{color:'blue', margin:'3px', fontSize:'12px'}} onClick={() => {
+                      if(sysDesignCounter === 0 && selectedOption === 'systemdesign'){
+                        const currentPrompt = selectedSystemDesign == 'FE' ? FESystemDesignPrompts[0] : systemDesignPrompts[0];
+                        if(fileContent && fileContent.length > currentPrompt.length && fileContent.includes(currentPrompt)){
+                          const additionalText = fileContent.replace(currentPrompt, '').trim();
+                          if(additionalText.length > 0){
+                            const fileSearchUrl = `http://localhost:3000/file-search?q=${encodeURIComponent(additionalText)}&mode=filename`;
+                            console.log('🎬 Manual File search:', fileSearchUrl);
+                            window.open(fileSearchUrl, '_blank');
+                          } else {
+                            alert('No additional text found to search');
+                          }
+                        } else {
+                          alert('Please add additional text to the first system design prompt');
+                        }
+                      } else {
+                        alert('File search only available for first system design prompt with additional text');
+                      }
+                    }}>
+                        📁 Files
                     </button>
                     
                     {/* Reset button to start over */}
