@@ -47,6 +47,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   const [mermaidError, setMermaidError] = useState(false);
   const [explanationError, setExplanationError] = useState<string>('');
   const [showTableOfContents, setShowTableOfContents] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -109,23 +110,73 @@ export const NotesModal: React.FC<NotesModalProps> = ({
     }
   }, []);
 
-  // Escape key handler
+  // Keyboard shortcuts handler
   useEffect(() => {
-    const handleEscapeKey = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Handle Escape key
       if (e.key === 'Escape') {
         if (showKeywordModal) {
           setShowKeywordModal(false);
         } else if (isOpen) {
           onClose();
         }
+        return;
+      }
+
+      // Only handle shortcuts when modal is open and not editing
+      if (!isOpen || editingKeywordIndex !== null || isAddingKeyword) return;
+
+      // Handle Option/Alt + number keys for keyword shortcuts
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const keyNumber = parseInt(e.key);
+        if (!isNaN(keyNumber)) {
+          e.preventDefault();
+          
+          // Map 1-9 to indices 0-8, and 0 to index 9
+          const keywordIndex = keyNumber === 0 ? 9 : keyNumber - 1;
+          
+          if (keywordIndex < keywords.length) {
+            handleKeywordClick(keywords[keywordIndex]);
+          }
+          return;
+        }
+
+        // Handle other Alt shortcuts
+        switch (e.key.toLowerCase()) {
+          case 'f':
+            e.preventDefault();
+            handleFormatNotes();
+            break;
+          case 'e':
+            e.preventDefault();
+            setShowEnhancementInput(!showEnhancementInput);
+            break;
+          case 't':
+            e.preventDefault();
+            scrollToTop();
+            break;
+          case 'c':
+            e.preventDefault();
+            setShowTableOfContents(!showTableOfContents);
+            break;
+          case 'k':
+            e.preventDefault();
+            setIsKeywordsExpanded(!isKeywordsExpanded);
+            break;
+          case 'h':
+          case '?':
+            e.preventDefault();
+            setShowKeyboardHelp(!showKeyboardHelp);
+            break;
+        }
       }
     };
 
     if (isOpen || showKeywordModal) {
-      document.addEventListener('keydown', handleEscapeKey);
-      return () => document.removeEventListener('keydown', handleEscapeKey);
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen, showKeywordModal, onClose]);
+      }, [isOpen, showKeywordModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp]);
 
   // Text selection handler
   useEffect(() => {
@@ -624,6 +675,15 @@ ${note.content}`;
             </button>
             
             <button
+              onClick={() => setShowKeyboardHelp(!showKeyboardHelp)}
+              className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 flex items-center space-x-1"
+              title="Keyboard Shortcuts"
+            >
+              <span>⌨️</span>
+              <span>Shortcuts</span>
+            </button>
+            
+            <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-xl font-bold"
             >
@@ -631,6 +691,34 @@ ${note.content}`;
             </button>
           </div>
         </div>
+
+        {/* Keyboard Shortcuts Help */}
+        {showKeyboardHelp && (
+          <div className="p-4 bg-gray-50 border-b">
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">⌨️ Keyboard Shortcuts</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Keywords</h4>
+                <div className="space-y-1 text-gray-600">
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + 1-9</kbd> Open keyword 1-9</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + 0</kbd> Open keyword 10</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + K</kbd> Expand/collapse keywords</div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Actions</h4>
+                <div className="space-y-1 text-gray-600">
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + F</kbd> Format notes</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + E</kbd> Enhance with AI</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + T</kbd> Back to top</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + C</kbd> Toggle table of contents</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + H</kbd> Toggle this help</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Escape</kbd> Close modal/dialog</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhancement Input */}
         {showEnhancementInput && (
@@ -663,7 +751,10 @@ ${note.content}`;
         {/* Keywords Section */}
         <div className="p-4 bg-gray-50 border-b">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-700">Keywords</h3>
+            <div className="flex items-center space-x-2">
+              <h3 className="text-sm font-medium text-gray-700">Keywords</h3>
+              <span className="text-xs text-gray-500">(Option + 1-9, 0)</span>
+            </div>
             {keywords.length > 12 && (
               <button
                 onClick={() => setIsKeywordsExpanded(!isKeywordsExpanded)}
@@ -682,64 +773,75 @@ ${note.content}`;
               </div>
             ) : (
               <>
-                {(isKeywordsExpanded ? keywords : keywords.slice(0, 12)).map((keyword, index) => (
-                  <div key={index} className="relative group">
-                    {editingKeywordIndex === index ? (
-                      <div className="flex items-center space-x-1">
-                        <input
-                          type="text"
-                          value={editingKeywordValue}
-                          onChange={(e) => setEditingKeywordValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveKeywordEdit();
-                            if (e.key === 'Escape') handleCancelKeywordEdit();
-                          }}
-                          className="px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          autoFocus
-                        />
-                        <button
-                          onClick={handleSaveKeywordEdit}
-                          className="text-green-600 hover:text-green-800 text-xs"
-                        >
-                          ✓
-                        </button>
-                        <button
-                          onClick={handleCancelKeywordEdit}
-                          className="text-red-600 hover:text-red-800 text-xs"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleKeywordClick(keyword)}
-                        className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded hover:bg-indigo-200 transition-colors relative"
-                      >
-                        {keyword}
-                        <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditKeyword(index);
+                {(isKeywordsExpanded ? keywords : keywords.slice(0, 12)).map((keyword, index) => {
+                  // Get display number (1-9, then 0 for 10th)
+                  const displayIndex = index < 9 ? index + 1 : (index === 9 ? 0 : null);
+                  const showNumber = displayIndex !== null;
+                  
+                  return (
+                    <div key={index} className="relative group">
+                      {editingKeywordIndex === index ? (
+                        <div className="flex items-center space-x-1">
+                          <input
+                            type="text"
+                            value={editingKeywordValue}
+                            onChange={(e) => setEditingKeywordValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveKeywordEdit();
+                              if (e.key === 'Escape') handleCancelKeywordEdit();
                             }}
-                            className="w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-blue-600"
+                            className="px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            autoFocus
+                          />
+                          <button
+                            onClick={handleSaveKeywordEdit}
+                            className="text-green-600 hover:text-green-800 text-xs"
                           >
-                            ✎
+                            ✓
                           </button>
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteKeyword(index);
-                            }}
-                            className="w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-600"
+                            onClick={handleCancelKeywordEdit}
+                            className="text-red-600 hover:text-red-800 text-xs"
                           >
-                            ×
+                            ✕
                           </button>
                         </div>
-                      </button>
-                    )}
-                  </div>
-                ))}
+                      ) : (
+                        <button
+                          onClick={() => handleKeywordClick(keyword)}
+                          className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded hover:bg-indigo-200 transition-colors relative flex items-center space-x-1"
+                        >
+                          {showNumber && (
+                            <span className="inline-flex items-center justify-center w-4 h-4 bg-indigo-600 text-white text-xs rounded-full font-bold mr-1">
+                              {displayIndex}
+                            </span>
+                          )}
+                          <span>{keyword}</span>
+                          <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditKeyword(index);
+                              }}
+                              className="w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-blue-600"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteKeyword(index);
+                              }}
+                              className="w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
                 
                 {isAddingKeyword ? (
                   <div className="flex items-center space-x-1">
