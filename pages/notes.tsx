@@ -7,7 +7,6 @@ interface Note {
   content: string;
   createdAt: string;
   updatedAt: string;
-  tags?: string[];
   keywords?: string[];
 }
 
@@ -123,7 +122,6 @@ const NotesPage: React.FC = () => {
   const filteredNotes = notes.filter(note =>
     note.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
     note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (note.tags && note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) ||
     (note.keywords && note.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
@@ -223,20 +221,20 @@ const NotesPage: React.FC = () => {
                   {note.content.substring(0, 150)}...
                 </p>
                 
-                {/* Keywords/Tags */}
-                {(note.keywords || note.tags) && (
+                {/* Keywords */}
+                {note.keywords && note.keywords.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {(note.keywords || note.tags || []).slice(0, 3).map((tag, index) => (
+                    {note.keywords.slice(0, 3).map((keyword, index) => (
                       <span
                         key={index}
                         className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
                       >
-                        {tag}
+                        {keyword}
                       </span>
                     ))}
-                    {(note.keywords || note.tags || []).length > 3 && (
+                    {note.keywords.length > 3 && (
                       <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                        +{(note.keywords || note.tags || []).length - 3} more
+                        +{note.keywords.length - 3} more
                       </span>
                     )}
                   </div>

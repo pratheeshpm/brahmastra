@@ -8,7 +8,6 @@ interface Note {
   content: string;
   createdAt: string;
   updatedAt: string;
-  tags?: string[];
   keywords?: string[];
 }
 
@@ -82,7 +81,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
-  const { topic, content, tags = [], keywords = [] } = req.body;
+  const { topic, content, keywords = [] } = req.body;
 
   if (!topic || !content) {
     return res.status(400).json({ error: 'Topic and content are required' });
@@ -97,7 +96,6 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     content,
     createdAt: now,
     updatedAt: now,
-    tags,
     keywords
   };
 
@@ -111,7 +109,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
 async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-  const { topic, content, tags, keywords } = req.body;
+  const { topic, content, keywords } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: 'Note ID is required' });
@@ -134,7 +132,6 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     ...existingNote,
     ...(topic && { topic }),
     ...(content && { content }),
-    ...(tags && { tags }),
     ...(keywords && { keywords }),
     updatedAt: new Date().toISOString()
   };

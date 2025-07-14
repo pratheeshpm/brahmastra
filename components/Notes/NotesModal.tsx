@@ -8,7 +8,6 @@ interface Note {
   content: string;
   createdAt: string;
   updatedAt: string;
-  tags?: string[];
   keywords?: string[];
 }
 
@@ -48,16 +47,27 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   const [explanationError, setExplanationError] = useState<string>('');
   const [showTableOfContents, setShowTableOfContents] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [isEditingExplanation, setIsEditingExplanation] = useState(false);
+  const [editingExplanationText, setEditingExplanationText] = useState('');
 
   const contentRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Initialize keywords when note changes
   useEffect(() => {
     if (note) {
-      setKeywords(note.keywords || note.tags || []);
+      setKeywords(note.keywords || []);
       setMermaidError(false);
     }
   }, [note]);
+
+  // Focus management
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      // Focus the modal container to ensure it can receive keyboard events
+      modalRef.current.focus();
+    }
+  }, [isOpen]);
 
   // Handle URL hash navigation
   useEffect(() => {
@@ -124,10 +134,12 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       }
 
       // Only handle shortcuts when modal is open and not editing
-      if (!isOpen || editingKeywordIndex !== null || isAddingKeyword) return;
+      if (!isOpen || editingKeywordIndex !== null || isAddingKeyword) {
+        return;
+      }
 
-      // Handle Option/Alt + number keys for keyword shortcuts
-      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+      // Handle Cmd + number keys for keyword shortcuts (Mac-friendly)
+      if (e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         const keyNumber = parseInt(e.key);
         if (!isNaN(keyNumber)) {
           e.preventDefault();
@@ -141,7 +153,52 @@ export const NotesModal: React.FC<NotesModalProps> = ({
           return;
         }
 
-        // Handle other Alt shortcuts
+        // Handle other Cmd shortcuts
+        switch (e.key.toLowerCase()) {
+          case 'f':
+            e.preventDefault();
+            handleFormatNotes();
+            break;
+          case 'e':
+            e.preventDefault();
+            setShowEnhancementInput(!showEnhancementInput);
+            break;
+          case 't':
+            e.preventDefault();
+            scrollToTop();
+            break;
+          case 'c':
+            e.preventDefault();
+            setShowTableOfContents(!showTableOfContents);
+            break;
+          case 'k':
+            e.preventDefault();
+            setIsKeywordsExpanded(!isKeywordsExpanded);
+            break;
+          case 'h':
+          case '?':
+            e.preventDefault();
+            setShowKeyboardHelp(!showKeyboardHelp);
+            break;
+        }
+      }
+      
+      // Alternative: Ctrl + Shift combinations for broader compatibility
+      if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
+        const keyNumber = parseInt(e.key);
+        if (!isNaN(keyNumber)) {
+          e.preventDefault();
+          
+          // Map 1-9 to indices 0-8, and 0 to index 9
+          const keywordIndex = keyNumber === 0 ? 9 : keyNumber - 1;
+          
+          if (keywordIndex < keywords.length) {
+            handleKeywordClick(keywords[keywordIndex]);
+          }
+          return;
+        }
+
+        // Handle other Ctrl+Shift shortcuts
         switch (e.key.toLowerCase()) {
           case 'f':
             e.preventDefault();
@@ -172,11 +229,9 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       }
     };
 
-    if (isOpen || showKeywordModal) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-      }, [isOpen, showKeywordModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, showKeywordModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp]);
 
   // Text selection handler
   useEffect(() => {
@@ -238,7 +293,6 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       const updatedNote = {
         ...note,
         keywords: newKeywords,
-        tags: newKeywords,
         updatedAt: new Date().toISOString()
       };
 
@@ -252,7 +306,19 @@ export const NotesModal: React.FC<NotesModalProps> = ({
         const errorData = await response.json();
         console.error('Failed to save keywords:', errorData.error || response.statusText);
       } else {
-        console.log('✅ Keywords saved successfully');
+        const result = await response.json();
+        console.log('✅ Keywords saved successfully:', {
+          savedKeywords: newKeywords,
+          response: result
+        });
+        // Update the note in the parent component
+        if (onEdit) {
+          onEdit({
+            ...note,
+            keywords: newKeywords,
+            updatedAt: new Date().toISOString()
+          });
+        }
       }
     } catch (error) {
       console.error('Error saving keywords:', error);
@@ -260,20 +326,45 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   };
 
   // Handle keyword click for explanation
-  const handleKeywordClick = async (keyword: string) => {
+  const handleKeywordClick = async (keyword: string, forceRefresh = false) => {
     setSelectedKeyword(keyword);
     setShowKeywordModal(true);
     setIsLoadingExplanation(true);
     setKeywordExplanation('');
     setExplanationError('');
+    setIsEditingExplanation(false);
 
     try {
+      // First check if we have a cached explanation for this note + keyword
+      if (!forceRefresh && note?.id) {
+        try {
+          const cacheResponse = await fetch(`/api/youtube/keyword-explanations-cache?videoId=${encodeURIComponent(note.id)}&keyword=${encodeURIComponent(keyword)}&title=${encodeURIComponent(note.topic)}`);
+          
+          if (cacheResponse.ok) {
+            const cacheData = await cacheResponse.json();
+            if (cacheData.success && cacheData.cached && cacheData.cached.length > 0) {
+              console.log(`✅ Found cached explanation for keyword: ${keyword}`);
+              setKeywordExplanation(cacheData.cached[0].explanation);
+              setExplanationError('');
+              setIsLoadingExplanation(false);
+              return;
+            }
+          }
+        } catch (cacheError) {
+          console.warn('Cache check failed, proceeding with generation:', cacheError);
+        }
+      }
+
+      // If no cache or force refresh, generate new explanation
       const response = await fetch('/api/youtube/keyword-explanation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           keyword,
-          context: note?.content || ''
+          context: note?.content || '',
+          videoId: note?.id,
+          title: note?.topic,
+          forceRefresh
         })
       });
 
@@ -315,8 +406,48 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   // Retry keyword explanation
   const retryKeywordExplanation = () => {
     if (selectedKeyword) {
-      handleKeywordClick(selectedKeyword);
+      handleKeywordClick(selectedKeyword, true); // Force refresh
     }
+  };
+
+  // Handle editing keyword explanation
+  const handleEditExplanation = () => {
+    setIsEditingExplanation(true);
+    setEditingExplanationText(keywordExplanation);
+  };
+
+  const handleSaveExplanation = async () => {
+    if (!selectedKeyword || !note?.id || !editingExplanationText.trim()) return;
+
+    try {
+      // Save the edited explanation to cache
+      const response = await fetch(`/api/youtube/keyword-explanations-cache?videoId=${encodeURIComponent(note.id)}&title=${encodeURIComponent(note.topic)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keyword: selectedKeyword,
+          explanation: editingExplanationText.trim(),
+          model: 'user-edited',
+        }),
+      });
+
+      if (response.ok) {
+        setKeywordExplanation(editingExplanationText.trim());
+        setIsEditingExplanation(false);
+        console.log(`✅ Saved edited explanation for keyword: ${selectedKeyword}`);
+      } else {
+        console.error('Failed to save explanation');
+      }
+    } catch (error) {
+      console.error('Error saving explanation:', error);
+    }
+  };
+
+  const handleCancelEditExplanation = () => {
+    setIsEditingExplanation(false);
+    setEditingExplanationText('');
   };
 
   // Handle keyword editing
@@ -624,7 +755,11 @@ ${note.content}`;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+      <div 
+        ref={modalRef}
+        tabIndex={-1}
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col outline-none"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900 flex-1 mr-4">
@@ -696,24 +831,35 @@ ${note.content}`;
         {showKeyboardHelp && (
           <div className="p-4 bg-gray-50 border-b">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">⌨️ Keyboard Shortcuts</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div>
-                <h4 className="font-medium text-gray-700 mb-2">Keywords</h4>
+                <h4 className="font-medium text-gray-700 mb-2">Keywords (Mac)</h4>
                 <div className="space-y-1 text-gray-600">
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + 1-9</kbd> Open keyword 1-9</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + 0</kbd> Open keyword 10</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + K</kbd> Expand/collapse keywords</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + 1-9</kbd> Open keyword 1-9</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + 0</kbd> Open keyword 10</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + K</kbd> Expand/collapse keywords</div>
                 </div>
               </div>
               <div>
-                <h4 className="font-medium text-gray-700 mb-2">Actions</h4>
+                <h4 className="font-medium text-gray-700 mb-2">Actions (Mac)</h4>
                 <div className="space-y-1 text-gray-600">
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + F</kbd> Format notes</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + E</kbd> Enhance with AI</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + T</kbd> Back to top</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + C</kbd> Toggle table of contents</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Option + H</kbd> Toggle this help</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + F</kbd> Format notes</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + E</kbd> Enhance with AI</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + T</kbd> Back to top</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + C</kbd> Toggle table of contents</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + H</kbd> Toggle this help</div>
                   <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Escape</kbd> Close modal/dialog</div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Alternative (All OS)</h4>
+                <div className="space-y-1 text-gray-600">
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + 1-9</kbd> Keywords</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + 0</kbd> Keyword 10</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + F</kbd> Format</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + E</kbd> Enhance</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + T</kbd> Top</div>
+                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + C</kbd> TOC</div>
                 </div>
               </div>
             </div>
@@ -753,7 +899,7 @@ ${note.content}`;
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="text-sm font-medium text-gray-700">Keywords</h3>
-              <span className="text-xs text-gray-500">(Option + 1-9, 0)</span>
+              <span className="text-xs text-gray-500">(⌘ + 1-9, 0)</span>
             </div>
             {keywords.length > 12 && (
               <button
@@ -1055,12 +1201,22 @@ ${note.content}`;
       {/* Keyword Explanation Modal */}
       {showKeywordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-900">
                 Keyword: {selectedKeyword}
               </h3>
               <div className="flex items-center space-x-2">
+                {!isLoadingExplanation && keywordExplanation && !isEditingExplanation && (
+                  <button
+                    onClick={handleEditExplanation}
+                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center space-x-1"
+                    title="Edit explanation"
+                  >
+                    <span>✏️</span>
+                    <span>Edit</span>
+                  </button>
+                )}
                 <button
                   onClick={retryKeywordExplanation}
                   disabled={isLoadingExplanation}
@@ -1070,7 +1226,10 @@ ${note.content}`;
                   🔄
                 </button>
                 <button
-                  onClick={() => setShowKeywordModal(false)}
+                  onClick={() => {
+                    setShowKeywordModal(false);
+                    setIsEditingExplanation(false);
+                  }}
                   className="text-gray-400 hover:text-gray-600 text-xl font-bold"
                 >
                   ×
@@ -1099,40 +1258,73 @@ ${note.content}`;
                   </button>
                 </div>
               ) : keywordExplanation ? (
-                <div className="prose prose-sm max-w-none">
-                  <MemoizedReactMarkdown
-                    components={{
-                      code({ node, inline, className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const language = match ? match[1] : '';
+                isEditingExplanation ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-700">Edit Explanation</h4>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={handleSaveExplanation}
+                          className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center space-x-1"
+                        >
+                          <span>✓</span>
+                          <span>Save</span>
+                        </button>
+                        <button
+                          onClick={handleCancelEditExplanation}
+                          className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 flex items-center space-x-1"
+                        >
+                          <span>✕</span>
+                          <span>Cancel</span>
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      value={editingExplanationText}
+                      onChange={(e) => setEditingExplanationText(e.target.value)}
+                      className="w-full h-96 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                      placeholder="Enter your explanation in Markdown format..."
+                    />
+                    <div className="text-xs text-gray-500">
+                      Tip: You can use Markdown formatting including code blocks, lists, and even Mermaid diagrams with ```mermaid
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prose prose-sm max-w-none">
+                    <MemoizedReactMarkdown
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          const language = match ? match[1] : '';
 
-                        if (language === 'mermaid') {
+                          if (language === 'mermaid') {
+                            return (
+                              <MermaidDiagram
+                                code={String(children).replace(/\n$/, '')}
+                              />
+                            );
+                          }
+
                           return (
-                            <MermaidDiagram
-                              code={String(children).replace(/\n$/, '')}
-                            />
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
                           );
-                        }
-
-                        return (
-                          <code className={className} {...props}>
+                        },
+                        blockquote: ({ children, ...props }) => (
+                          <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 py-2" {...props}>
                             {children}
-                          </code>
-                        );
-                      },
-                      blockquote: ({ children, ...props }) => (
-                        <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 py-2" {...props}>
-                          {children}
-                        </blockquote>
-                      ),
-                      hr: ({ ...props }) => (
-                        <hr className="my-8 border-gray-300" {...props} />
-                      )
-                    }}
-                  >
-                    {keywordExplanation}
-                  </MemoizedReactMarkdown>
-                </div>
+                          </blockquote>
+                        ),
+                        hr: ({ ...props }) => (
+                          <hr className="my-8 border-gray-300" {...props} />
+                        )
+                      }}
+                    >
+                      {keywordExplanation}
+                    </MemoizedReactMarkdown>
+                  </div>
+                )
               ) : (
                 <div className="flex items-center justify-center py-8 text-gray-500">
                   <p>No explanation available</p>
