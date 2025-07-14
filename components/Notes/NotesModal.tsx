@@ -46,6 +46,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [mermaidError, setMermaidError] = useState(false);
   const [explanationError, setExplanationError] = useState<string>('');
+  const [showTableOfContents, setShowTableOfContents] = useState(false);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +57,35 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       setMermaidError(false);
     }
   }, [note]);
+
+  // Handle URL hash navigation
+  useEffect(() => {
+    if (note && isOpen) {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        const toc = generateTableOfContents(note.content);
+        if (toc.some(heading => heading.id === hash)) {
+          setShowTableOfContents(true);
+          
+          // Scroll to the anchor after a short delay to ensure the modal is fully rendered
+          setTimeout(() => {
+            const element = document.getElementById(hash);
+            if (element && contentRef.current) {
+              const containerRect = contentRef.current.getBoundingClientRect();
+              const elementRect = element.getBoundingClientRect();
+              const scrollTop = contentRef.current.scrollTop;
+              const offsetTop = elementRect.top - containerRect.top + scrollTop - 20;
+              
+              contentRef.current.scrollTo({ 
+                top: Math.max(0, offsetTop), 
+                behavior: 'smooth' 
+              });
+            }
+          }, 300);
+        }
+      }
+    }
+  }, [note, isOpen]);
 
   // Auto-generate keywords if none exist
   useEffect(() => {
@@ -440,34 +470,93 @@ ${note.content}`;
     if (target.tagName === 'A' && target.getAttribute('href')?.startsWith('#')) {
       e.preventDefault();
       const anchor = target.getAttribute('href')?.substring(1);
-      if (anchor) {
-        // Try exact match first
+      if (anchor && contentRef.current) {
+        // Try to find the element with various ID formats
         let element = document.getElementById(anchor);
         
-        // If not found, try to find similar ID
+        // If not found, try different variations of the anchor
         if (!element) {
-          const possibleIds = [
+          const variations = [
             anchor,
-            anchor.replace(/[-\s]/g, ''),
-            anchor.replace(/\s/g, '-'),
             anchor.toLowerCase(),
-            anchor.toLowerCase().replace(/[-\s]/g, ''),
-            anchor.toLowerCase().replace(/\s/g, '-')
+            anchor.replace(/\s+/g, '-'),
+            anchor.toLowerCase().replace(/\s+/g, '-'),
+            anchor.replace(/[^a-z0-9]+/gi, '-'),
+            anchor.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            anchor.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, ''),
+            anchor.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+            // Handle numbered sections like "37-consideration-for-api-and-backend-integration"
+            anchor.replace(/^\d+-/, ''),
+            anchor.toLowerCase().replace(/^\d+-/, ''),
           ];
           
-          for (const id of possibleIds) {
-            element = document.getElementById(id);
+          for (const variation of variations) {
+            element = document.getElementById(variation);
             if (element) break;
           }
         }
         
-        if (element && contentRef.current) {
-          const offsetTop = element.offsetTop - 20;
-          contentRef.current.scrollTo({ top: offsetTop, behavior: 'smooth' });
+        // If still not found, try to find by text content
+        if (!element) {
+          const headings = Array.from(contentRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+          const searchText = anchor.replace(/[-_]/g, ' ').toLowerCase();
+          
+          for (const heading of headings) {
+            const headingText = heading.textContent?.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+            if (headingText?.includes(searchText) || searchText.includes(headingText || '')) {
+              element = heading as HTMLElement;
+              break;
+            }
+          }
+        }
+        
+        if (element) {
+          // Calculate the position relative to the scrollable container
+          const containerRect = contentRef.current.getBoundingClientRect();
+          const elementRect = element.getBoundingClientRect();
+          const scrollTop = contentRef.current.scrollTop;
+          const offsetTop = elementRect.top - containerRect.top + scrollTop - 20; // 20px offset for better visibility
+          
+          contentRef.current.scrollTo({ 
+            top: Math.max(0, offsetTop), 
+            behavior: 'smooth' 
+          });
+          
+          // Update URL hash for bookmarking
+          window.history.replaceState(null, '', `#${anchor}`);
+        } else {
+          console.warn(`Could not find element for anchor: ${anchor}`);
         }
       }
     }
   };
+
+  // Helper function to generate consistent IDs for headings
+  const generateHeadingId = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters except spaces
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  // Extract table of contents from the note content
+  const generateTableOfContents = (content: string) => {
+    const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+    const headings: Array<{level: number, text: string, id: string}> = [];
+    let match;
+
+    while ((match = headingRegex.exec(content)) !== null) {
+      const level = match[1].length;
+      const text = match[2].trim();
+      const id = generateHeadingId(text);
+      headings.push({ level, text, id });
+    }
+
+    return headings;
+  };
+
+  const tableOfContents = note ? generateTableOfContents(note.content) : [];
 
   if (!isOpen || !note) return null;
 
@@ -687,6 +776,59 @@ ${note.content}`;
           </div>
         </div>
 
+        {/* Table of Contents */}
+        {tableOfContents.length > 0 && (
+          <div className="border-b bg-gray-50">
+            <button
+              onClick={() => setShowTableOfContents(!showTableOfContents)}
+              className="w-full px-6 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+            >
+              <span className="flex items-center space-x-2">
+                <span>📋</span>
+                <span>Table of Contents ({tableOfContents.length} sections)</span>
+              </span>
+              <span className={`transform transition-transform ${showTableOfContents ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
+            
+            {showTableOfContents && (
+              <div className="px-6 pb-4 max-h-60 overflow-y-auto">
+                <ul className="space-y-1">
+                  {tableOfContents.map((heading, index) => (
+                    <li key={index} style={{ marginLeft: `${(heading.level - 1) * 16}px` }}>
+                      <a
+                        href={`#${heading.id}`}
+                                                 onClick={(e) => {
+                           e.preventDefault();
+                           const element = document.getElementById(heading.id);
+                           if (element && contentRef.current) {
+                             const containerRect = contentRef.current.getBoundingClientRect();
+                             const elementRect = element.getBoundingClientRect();
+                             const scrollTop = contentRef.current.scrollTop;
+                             const offsetTop = elementRect.top - containerRect.top + scrollTop - 20;
+                             
+                             contentRef.current.scrollTo({ 
+                               top: Math.max(0, offsetTop), 
+                               behavior: 'smooth' 
+                             });
+                             
+                             // Update URL hash for bookmarking
+                             window.history.replaceState(null, '', `#${heading.id}`);
+                           }
+                         }}
+                        className="text-blue-600 hover:text-blue-800 text-sm hover:underline block py-1"
+                      >
+                        {heading.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Content */}
         <div 
           ref={contentRef}
@@ -715,27 +857,27 @@ ${note.content}`;
                   );
                 },
                 h1: ({ children, ...props }) => {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const id = generateHeadingId(String(children));
                   return <h1 id={id} {...props}>{children}</h1>;
                 },
                 h2: ({ children, ...props }) => {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const id = generateHeadingId(String(children));
                   return <h2 id={id} {...props}>{children}</h2>;
                 },
                 h3: ({ children, ...props }) => {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const id = generateHeadingId(String(children));
                   return <h3 id={id} {...props}>{children}</h3>;
                 },
                 h4: ({ children, ...props }) => {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const id = generateHeadingId(String(children));
                   return <h4 id={id} {...props}>{children}</h4>;
                 },
                 h5: ({ children, ...props }) => {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const id = generateHeadingId(String(children));
                   return <h5 id={id} {...props}>{children}</h5>;
                 },
                 h6: ({ children, ...props }) => {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  const id = generateHeadingId(String(children));
                   return <h6 id={id} {...props}>{children}</h6>;
                 },
                 blockquote: ({ children, ...props }) => (
