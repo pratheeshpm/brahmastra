@@ -46,14 +46,17 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
   if (id) {
-    // Get specific note
-    const noteFile = `${id}.json`;
-    const notePath = path.join(notesDirectory, noteFile);
+    // Get specific note - find file that starts with the ID
+    const idStr = Array.isArray(id) ? id[0] : id;
+    const files = fs.readdirSync(notesDirectory).filter(file => 
+      file.endsWith('.json') && file.startsWith(idStr)
+    );
 
-    if (!fs.existsSync(notePath)) {
+    if (files.length === 0) {
       return res.status(404).json({ error: 'Note not found' });
     }
 
+    const notePath = path.join(notesDirectory, files[0]);
     const noteData = JSON.parse(fs.readFileSync(notePath, 'utf8'));
     return res.status(200).json({ data: noteData });
   } else {
@@ -114,12 +117,16 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Note ID is required' });
   }
 
-  const noteFile = `${id}.json`;
-  const notePath = path.join(notesDirectory, noteFile);
+  const idStr = Array.isArray(id) ? id[0] : id;
+  const files = fs.readdirSync(notesDirectory).filter(file => 
+    file.endsWith('.json') && file.startsWith(idStr)
+  );
 
-  if (!fs.existsSync(notePath)) {
+  if (files.length === 0) {
     return res.status(404).json({ error: 'Note not found' });
   }
+
+  const notePath = path.join(notesDirectory, files[0]);
 
   const existingNote = JSON.parse(fs.readFileSync(notePath, 'utf8'));
 
@@ -144,12 +151,16 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Note ID is required' });
   }
 
-  const noteFile = `${id}.json`;
-  const notePath = path.join(notesDirectory, noteFile);
+  const idStr = Array.isArray(id) ? id[0] : id;
+  const files = fs.readdirSync(notesDirectory).filter(file => 
+    file.endsWith('.json') && file.startsWith(idStr)
+  );
 
-  if (!fs.existsSync(notePath)) {
+  if (files.length === 0) {
     return res.status(404).json({ error: 'Note not found' });
   }
+
+  const notePath = path.join(notesDirectory, files[0]);
 
   fs.unlinkSync(notePath);
 

@@ -87,7 +87,7 @@ const NotesPage: React.FC = () => {
 
   const handleSaveNote = async (updatedNote: Note) => {
     try {
-      const response = await fetch('/api/notes', {
+      const response = await fetch(`/api/notes?id=${updatedNote.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedNote)
@@ -101,11 +101,17 @@ const NotesPage: React.FC = () => {
         // Return to modal view of the updated note
         setSelectedNote(updatedNote);
         setIsModalOpen(true);
+        
+        // Show success message (you could add a toast notification here)
+        console.log('✅ Note saved successfully');
       } else {
-        console.error('Failed to save note');
+        const errorData = await response.json();
+        console.error('Failed to save note:', errorData.error || response.statusText);
+        alert(`Failed to save note: ${errorData.error || response.statusText}`);
       }
     } catch (error) {
       console.error('Error saving note:', error);
+      alert('Network error occurred while saving note. Please check your connection and try again.');
     }
   };
 

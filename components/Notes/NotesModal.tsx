@@ -191,14 +191,17 @@ export const NotesModal: React.FC<NotesModalProps> = ({
         updatedAt: new Date().toISOString()
       };
 
-      const response = await fetch('/api/notes', {
+      const response = await fetch(`/api/notes?id=${note.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedNote)
       });
 
       if (!response.ok) {
-        console.error('Failed to save keywords');
+        const errorData = await response.json();
+        console.error('Failed to save keywords:', errorData.error || response.statusText);
+      } else {
+        console.log('✅ Keywords saved successfully');
       }
     } catch (error) {
       console.error('Error saving keywords:', error);
@@ -352,7 +355,7 @@ ${note.content}`;
           updatedAt: new Date().toISOString()
         };
 
-        const saveResponse = await fetch('/api/notes', {
+        const saveResponse = await fetch(`/api/notes?id=${note.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedNote)
@@ -363,6 +366,10 @@ ${note.content}`;
           Object.assign(note, updatedNote);
           // Force re-render
           setMermaidError(false);
+          console.log('✅ Note formatted and saved successfully');
+        } else {
+          const errorData = await saveResponse.json();
+          console.error('Failed to save formatted note:', errorData.error || saveResponse.statusText);
         }
       }
     } catch (error) {
@@ -418,7 +425,7 @@ ${note.content}`;
           updatedAt: new Date().toISOString()
         };
 
-        const saveResponse = await fetch('/api/notes', {
+        const saveResponse = await fetch(`/api/notes?id=${note.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedNote)
@@ -429,6 +436,10 @@ ${note.content}`;
           Object.assign(note, updatedNote);
           // Force re-render
           setMermaidError(false);
+          console.log('✅ Note enhanced and saved successfully');
+        } else {
+          const errorData = await saveResponse.json();
+          console.error('Failed to save enhanced note:', errorData.error || saveResponse.statusText);
         }
       }
     } catch (error) {
