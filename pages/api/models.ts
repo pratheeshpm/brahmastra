@@ -1,4 +1,4 @@
-import { getOpenAIApiHost, getOpenAIApiType, getOpenAIApiVersion, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY } from '../../utils/app/const';
+import { getOpenAIApiHost, getOpenAIApiType, getOpenAIApiVersion, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY } from '../../utils/app/const';
 
 import { OpenAIModel, OpenAIModelID, OpenAIModels } from '@/types/openai';
 
@@ -10,7 +10,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { key, apiProvider } = (await req.json()) as {
       key: string;
-      apiProvider?: 'openai' | 'openrouter' | 'azure';
+      apiProvider?: 'openai' | 'openrouter' | 'azure' | 'gemini';
     };
 
     // Use the provided apiProvider or default to current setting
@@ -28,6 +28,16 @@ const handler = async (req: Request): Promise<Response> => {
         { id: 'gpt-3.5-turbo', name: 'GPT-3.5', supportsImages: false }
       ];
       return new Response(JSON.stringify(azureModels), {status: 200})
+    } else if (currentApiType === 'gemini') {
+      // Return predefined Gemini models
+      const geminiModels = [
+        { id: OpenAIModelID.GEMINI_1_5_FLASH, name: OpenAIModels[OpenAIModelID.GEMINI_1_5_FLASH].name, supportsImages: OpenAIModels[OpenAIModelID.GEMINI_1_5_FLASH].supportsImages },
+        { id: OpenAIModelID.GEMINI_1_5_PRO, name: OpenAIModels[OpenAIModelID.GEMINI_1_5_PRO].name, supportsImages: OpenAIModels[OpenAIModelID.GEMINI_1_5_PRO].supportsImages },
+        { id: OpenAIModelID.GEMINI_2_0_FLASH_EXP, name: OpenAIModels[OpenAIModelID.GEMINI_2_0_FLASH_EXP].name, supportsImages: OpenAIModels[OpenAIModelID.GEMINI_2_0_FLASH_EXP].supportsImages },
+        { id: OpenAIModelID.GEMINI_2_5_FLASH, name: OpenAIModels[OpenAIModelID.GEMINI_2_5_FLASH].name, supportsImages: OpenAIModels[OpenAIModelID.GEMINI_2_5_FLASH].supportsImages },
+        { id: OpenAIModelID.GEMINI_2_5_PRO, name: OpenAIModels[OpenAIModelID.GEMINI_2_5_PRO].name, supportsImages: OpenAIModels[OpenAIModelID.GEMINI_2_5_PRO].supportsImages },
+      ];
+      return new Response(JSON.stringify(geminiModels), {status: 200})
     } else if (currentApiType === 'openrouter') {
       url = `https://openrouter.ai/api/v1/models`;
       otherHeaders = {
@@ -42,10 +52,15 @@ const handler = async (req: Request): Promise<Response> => {
         { id: "anthropic/claude-3.7-sonnet:thinking", name: 'Claude 3.7 Sonnet Thinking', supportsImages: true },
         { id: "mistralai/mistral-small-3.2-24b-instruct:free", name: 'Mistral Small 3.2 24B Instruct', supportsImages: false },
         { id: "google/gemini-2.5-pro-exp-03-25", name: 'Gemini 2.5 Pro Exp 03 25', supportsImages: true },
-        { id: "deepseek/deepseek-r1-0528-qwen3-8b:free", name: 'DeepSeek R1 0528 Qwen3 8B', supportsImages: false },
-        { id: "mistralai/ministral-8b", name: 'Mistral 8B', supportsImages: false },
-        { id: 'deepseek/deepseek-v3-base:free', name: 'DeepSeek V3 Base', supportsImages: false },
-        { id: 'meta-llama/llama-3.2-90b-vision-instruct', name: 'Llama 3.2 90B Vision Instruct', supportsImages: true },
+        { id: "google/gemini-2.5-pro-preview", name: 'Gemini 2.5 Pro', supportsImages: true },
+        { id: "google/gemini-2.5-flash-preview", name: 'Gemini 2.5 Flash', supportsImages: true },
+        { id: "deepseek/deepseek-r1", name: 'DeepSeek R1', supportsImages: false },
+        { id: "deepseek/deepseek-v3-base:free", name: 'DeepSeek V3 Base', supportsImages: false },
+        { id: "qwen/qwen-2.5-72b-instruct", name: 'Qwen 2.5 72B Instruct', supportsImages: false },
+        { id: "anthropic/claude-3.5-sonnet", name: 'Claude 3.5 Sonnet', supportsImages: true },
+        { id: "openai/gpt-4o-mini", name: 'GPT-4o Mini', supportsImages: true },
+        { id: "meta-llama/llama-3.2-90b-vision-instruct", name: 'Llama 3.2 90B Vision', supportsImages: true },
+        { id: "x-ai/grok-beta", name: 'Grok Beta', supportsImages: false },
       ];
 
       return new Response(JSON.stringify(openRouterModels), {status: 200})

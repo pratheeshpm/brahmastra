@@ -10,6 +10,20 @@ global.io = require('socket.io')(server,{
     origin: '*', // Replace with the appropriate origin URL
     methods: ['GET', 'POST'],
   },
+  // WebSocket connection keep-alive settings for 1-2 hour sessions
+  pingTimeout: 7200000, // 2 hours (2 * 60 * 60 * 1000 ms) - how long to wait for pong response
+  pingInterval: 60000,   // 1 minute (60 * 1000 ms) - how often to send ping packets
+  upgradeTimeout: 30000, // 30 seconds - timeout for upgrade process
+  allowEIO3: true,       // Allow Engine.IO v3 clients for better compatibility
+  transports: ['websocket', 'polling'], // Enable both WebSocket and polling fallback
+  // Additional connection settings
+  connectTimeout: 45000, // 45 seconds - timeout for initial connection
+  maxHttpBufferSize: 1e8, // 100MB - max buffer size for large screenshot data
+  allowRequest: (req, callback) => {
+    // Log connection attempts for debugging
+    console.log('🔌 New connection attempt from:', req.headers.origin || 'unknown');
+    callback(null, true); // Allow all connections
+  }
 })
 const cors = require('cors');
 const next = require('next');
@@ -142,6 +156,11 @@ const takeScreenshot = async () => {
         } finally {
           console.log('🔍 Setting isProcessingScreenshot to false');
           isProcessingScreenshot = false;
+          
+          // Add a small delay before allowing next screenshot to prevent rapid-fire issues
+          setTimeout(() => {
+            console.log('🔍 Screenshot processing cooldown completed');
+          }, 1000);
         }
       }, 500); // Wait 500ms for file to be fully written
     });
@@ -216,9 +235,16 @@ const sendScreenshotToChat = async (base64Image, screenshotPath) => {
 
     // Emit to connected clients via socket - this will be picked up by the frontend
     if (global.io) {
+      const connectedClients = global.io.engine.clientsCount;
       console.log('🔍 Emitting screenshot_taken event to clients');
+      console.log('🔍 Connected clients count:', connectedClients);
+      
+      if (connectedClients === 0) {
+        console.warn('🔍 Warning: No clients connected to receive screenshot event');
+      }
+      
       global.io.emit('screenshot_taken', chatData);
-      console.log('🔍 Screenshot_taken event emitted successfully');
+      console.log('🔍 Screenshot_taken event emitted successfully to', connectedClients, 'clients');
     } else {
       console.error('🔍 global.io is not available');
     }
@@ -644,9 +670,37 @@ const getApiAndEmit = socket => {
   socket.emit("FromAPI", response);
 };
 
+// Connection tracking for monitoring long-duration sessions
+const connectionSessions = new Map();
+
 global.io && global.io.on("connection", (socket) => {
   global.socketIO = socket;
-  console.log("New client connected");
+  const connectTime = Date.now();
+  const clientInfo = {
+    id: socket.id,
+    connectTime,
+    lastActivity: connectTime,
+    userAgent: socket.handshake.headers['user-agent'] || 'unknown',
+    ip: socket.handshake.address
+  };
+  
+  connectionSessions.set(socket.id, clientInfo);
+  
+  console.log("New client connected with socket ID:", socket.id);
+  console.log("Client info:", {
+    userAgent: clientInfo.userAgent?.substring(0, 50) + '...',
+    ip: clientInfo.ip,
+    connectTime: new Date(connectTime).toISOString()
+  });
+  console.log("Total connected clients:", global.io.engine.clientsCount);
+  
+  // Set up activity tracking for keep-alive monitoring
+  const updateActivity = () => {
+    if (connectionSessions.has(socket.id)) {
+      connectionSessions.get(socket.id).lastActivity = Date.now();
+    }
+  };
+  
   /* if (interval) {
     clearInterval(interval);
   }
@@ -654,18 +708,61 @@ global.io && global.io.on("connection", (socket) => {
    */
 
   socket.on('filecontent',(result) => {
+    updateActivity();
     console.log("\n🚀 ~ file: server.js:77 ~ socket.on ~ result:", result)
     appendContent(result)
   })
 
   socket.on('message', (message) => {
+    updateActivity();
     console.log('Received message:', message);
     global.io && global.io.emit('message', message);
   });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
+  // Add ping event handler for keep-alive monitoring
+  socket.on('ping', () => {
+    updateActivity();
+    console.log('🏓 Ping received from client:', socket.id);
+  });
+
+  socket.on('pong', () => {
+    updateActivity();
+    console.log('🏓 Pong received from client:', socket.id);
+  });
+
+  socket.on("disconnect", (reason) => {
+    const sessionInfo = connectionSessions.get(socket.id);
+    let sessionDuration = 0;
+    
+    if (sessionInfo) {
+      sessionDuration = Date.now() - sessionInfo.connectTime;
+      connectionSessions.delete(socket.id);
+    }
+    
+    console.log("Client disconnected:", socket.id);
+    console.log("Disconnect reason:", reason);
+    console.log("Session duration:", Math.round(sessionDuration / 1000), "seconds");
+    console.log("Total connected clients:", global.io.engine.clientsCount);
     clearInterval(interval);
+  });
+  
+  // Send periodic keep-alive status for long sessions
+  const keepAliveInterval = setInterval(() => {
+    if (connectionSessions.has(socket.id)) {
+      const session = connectionSessions.get(socket.id);
+      const sessionDuration = Date.now() - session.connectTime;
+      const timeSinceActivity = Date.now() - session.lastActivity;
+      
+      // Log session status every 5 minutes for long sessions (> 10 minutes)
+      if (sessionDuration > 10 * 60 * 1000 && sessionDuration % (5 * 60 * 1000) < 30000) {
+        console.log(`📊 Long session status - ID: ${socket.id}, Duration: ${Math.round(sessionDuration / 60000)} min, Last activity: ${Math.round(timeSinceActivity / 1000)}s ago`);
+      }
+    }
+  }, 30000); // Check every 30 seconds
+  
+  // Clean up interval on disconnect
+  socket.on('disconnect', () => {
+    clearInterval(keepAliveInterval);
   });
 });
 
@@ -749,6 +846,58 @@ nextApp.prepare().then(() => {
     origin: '*', // Replace with your allowed origin(s)
     methods: ['GET', 'POST','PUT'], // Specify the allowed HTTP methods
   }));
+
+  // Debug endpoint to test WebSocket connectivity
+  app.get('/api/debug/websocket', async (req, res) => {
+    try {
+      const connectedClients = global.io ? global.io.engine.clientsCount : 0;
+      console.log('🔍 WebSocket debug endpoint called');
+      console.log('🔍 Connected clients:', connectedClients);
+      
+      // Gather session information
+      const sessionInfo = Array.from(connectionSessions.values()).map(session => {
+        const duration = Date.now() - session.connectTime;
+        const lastActivity = Date.now() - session.lastActivity;
+        return {
+          id: session.id,
+          duration: Math.round(duration / 1000), // in seconds
+          durationFormatted: `${Math.floor(duration / 60000)}m ${Math.floor((duration % 60000) / 1000)}s`,
+          lastActivity: Math.round(lastActivity / 1000), // seconds since last activity
+          userAgent: session.userAgent?.substring(0, 50) + '...',
+          ip: session.ip
+        };
+      });
+      
+      if (global.io && connectedClients > 0) {
+        // Emit a test event
+        global.io.emit('debug_test', {
+          message: 'WebSocket connection test',
+          timestamp: Date.now(),
+          clientsCount: connectedClients,
+          sessionInfo
+        });
+        console.log('🔍 Test event emitted to clients');
+      }
+      
+      res.json({ 
+        success: true, 
+        connectedClients,
+        message: 'WebSocket debug info retrieved',
+        globalIoExists: !!global.io,
+        sessions: sessionInfo,
+        serverUptime: process.uptime(),
+        socketIoSettings: {
+          pingTimeout: '2 hours (7200000ms)',
+          pingInterval: '1 minute (60000ms)',
+          upgradeTimeout: '30 seconds',
+          transports: ['websocket', 'polling']
+        }
+      });
+    } catch (error) {
+      console.error('WebSocket debug error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
 
   // Screenshot API endpoint - must be before the general API handler
   app.post('/api/screenshot', async (req, res) => {

@@ -5,7 +5,7 @@ import HomeContext from '@/pages/api/home/home.context';
 
 export const ApiProviderSelect = () => {
   const { t } = useTranslation('chat');
-  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'openrouter' | 'azure'>('openai');
+  const [selectedProvider, setSelectedProvider] = useState<'openai' | 'openrouter' | 'azure' | 'gemini'>('openai');
   
   const {
     dispatch: homeDispatch,
@@ -18,7 +18,7 @@ export const ApiProviderSelect = () => {
   }, []);
 
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const provider = e.target.value as 'openai' | 'openrouter' | 'azure';
+    const provider = e.target.value as 'openai' | 'openrouter' | 'azure' | 'gemini';
     setSelectedProvider(provider);
     setApiProvider(provider);
     
@@ -58,12 +58,19 @@ export const ApiProviderSelect = () => {
           >
             Azure OpenAI
           </option>
+          <option
+            value="gemini"
+            className="dark:bg-[#343541] dark:text-white"
+          >
+            Google Gemini
+          </option>
         </select>
       </div>
       <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
         {selectedProvider === 'openai' && 'Use OpenAI GPT models directly'}
         {selectedProvider === 'openrouter' && 'Access Claude, Mistral, and other models via OpenRouter'}
         {selectedProvider === 'azure' && 'Use Azure OpenAI Service'}
+        {selectedProvider === 'gemini' && 'Use Google Gemini models directly'}
       </div>
     </div>
   );

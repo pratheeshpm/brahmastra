@@ -17,7 +17,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature, imageData, apiProvider } = (await req.json()) as ChatBody & { 
       imageData?: string;
-      apiProvider?: 'openai' | 'openrouter' | 'azure';
+      apiProvider?: 'openai' | 'openrouter' | 'azure' | 'gemini';
     };
     console.log("🚀 ~ file: chat.ts:19 ~ handler ~  model, messages, key, prompt, temperature, imageData, apiProvider :",  model, messages, key, prompt, temperature, !!imageData, apiProvider )
 

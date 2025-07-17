@@ -82,7 +82,56 @@ if(isBrowser){
   console.log("\n\nRECEIVER_IP-->",RECEIVER_IP)
   // Temporarily disable RECEIVER_IP socket to prevent interference with screenshot functionality
   // socket = io(RECEIVER_IP); 
-  selfSocket = io(location.origin);
+  
+  // Enhanced selfSocket configuration for long-duration connections
+  selfSocket = io(location.origin, {
+    // Connection timeout and keep-alive settings
+    timeout: 45000,           // 45 seconds - connection timeout
+    autoConnect: true,        // Automatically connect on creation
+    reconnection: true,       // Enable automatic reconnection
+    reconnectionAttempts: 10, // Number of reconnection attempts
+    reconnectionDelay: 1000,  // Initial delay between reconnection attempts (1 second)
+    reconnectionDelayMax: 10000, // Maximum delay between reconnection attempts (10 seconds)
+    randomizationFactor: 0.5, // Randomization factor for reconnection delay
+    
+    // Transport settings for better connection stability
+    transports: ['websocket', 'polling'], // Use both WebSocket and polling as fallback
+    upgrade: true,            // Allow transport upgrades
+    rememberUpgrade: true,    // Remember the transport upgrade
+    
+    // Additional settings for reliability
+    forceNew: false,          // Reuse existing connection if available
+    multiplex: true,          // Allow multiplexing
+  });
+  
+  // Add connection monitoring for the selfSocket
+  selfSocket.on('connect', () => {
+    console.log('🔌 SelfSocket connected:', selfSocket.id);
+    console.log('🔌 SelfSocket transport:', selfSocket.io.engine.transport.name);
+  });
+  
+  selfSocket.on('disconnect', (reason: string) => {
+    console.log('🔌 SelfSocket disconnected:', reason);
+  });
+  
+  selfSocket.on('connect_error', (error: Error) => {
+    console.error('🔌 SelfSocket connection error:', error);
+  });
+  
+  selfSocket.on('reconnect', (attemptNumber: number) => {
+    console.log('🔌 SelfSocket reconnected after', attemptNumber, 'attempts');
+  });
+  
+  // DEBUG: Add direct event listener to selfSocket for screenshot_taken
+  selfSocket.on('screenshot_taken', (data: any) => {
+    console.log('🔍 SelfSocket DIRECT screenshot_taken event received:', {
+      type: data.type,
+      timestamp: data.timestamp,
+      hasImageData: !!data.imageData,
+      socketId: selfSocket.id
+    });
+  });
+  
   //diagramSocket = io(DIAGRAM_SEARCH_ENDPOINT);
 }
 
@@ -263,6 +312,9 @@ const Home = ({
 
 
 
+  // Moved selfSocket event setup to after context destructuring
+
+  // Add clipboard content useSocket back
   useSocket('clipboardContent', data => {
     if(data){
       // RECEIVER_IP feature disabled - commenting out socket emission

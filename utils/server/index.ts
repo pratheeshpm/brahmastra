@@ -1,7 +1,7 @@
 import { Message } from '@/types/chat';
 import { OpenAIModel } from '@/types/openai';
 import  { OpenAIClient, AzureKeyCredential } from "@azure/openai";
-import { getOpenAIApiHost, getOpenAIApiType, getOpenAIApiVersion, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY, AZURE_DEPLOYMENT_ID } from '../app/const';
+import { getOpenAIApiHost, getOpenAIApiType, getOpenAIApiVersion, OPENAI_ORGANIZATION, AZURE_GPT4_KEY, OPENROUTER_API_KEY, AZURE_DEPLOYMENT_ID, GEMINI_API_KEY } from '../app/const';
 
 import {
   ParsedEvent,
@@ -29,7 +29,7 @@ export const OpenAIStream = async (
   temperature : number,
   key: string,
   messages: Message[],
-  apiProvider?: 'openai' | 'openrouter' | 'azure',
+  apiProvider?: 'openai' | 'openrouter' | 'azure' | 'gemini',
 ) => {
   console.log("🚀 ~ OpenAI Stream ~ model:", model.name)
   console.log("🚀 ~ OpenAI Stream ~ messages count:", messages.length)
@@ -42,7 +42,64 @@ export const OpenAIStream = async (
   let url = `${currentApiHost}/v1/chat/completions`;
   let res: any;
   //url = `${OPENAI_API_HOST}/openai/deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
-  if(currentApiType === 'azure'){
+  if(currentApiType === 'gemini'){
+    // Handle Gemini API calls
+    const apiKey = key || GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+    url = `${currentApiHost}/${currentApiVersion}/models/${model.id}:generateContent?key=${apiKey}`;
+    
+    // Convert messages to Gemini format
+    const geminiMessages = messages.map(msg => {
+      if (typeof msg.content === 'string') {
+        return {
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: msg.content }]
+        };
+      } else if (Array.isArray(msg.content)) {
+        const parts = msg.content.map(item => {
+          if (item.type === 'text') {
+            return { text: item.text || '' };
+          } else if (item.type === 'image_url') {
+            // For images, we'd need to convert to base64 format that Gemini expects
+            return { text: `[Image: ${item.image_url?.url || 'No URL'}]` };
+          }
+          return { text: '' };
+        });
+        return {
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts
+        };
+      }
+      return {
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: String(msg.content) }]
+      };
+    });
+    
+    // Add system prompt as the first message if provided
+    const contents = systemPrompt 
+      ? [{ role: 'user', parts: [{ text: systemPrompt }] }, ...geminiMessages]
+      : geminiMessages;
+    
+    const requestBody = {
+      contents,
+      generationConfig: {
+        temperature: temperature,
+        maxOutputTokens: 8000,
+      }
+    };
+    
+    console.log("🚀 ~ Gemini request ~ model:", model.id, "~ contents:", contents.length);
+    console.log("🚀 ~ Gemini API Key present:", !!apiKey);
+    
+    res = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+  }
+  else if(currentApiType === 'azure'){
     const client = new OpenAIClient(
       currentApiHost,
     new AzureKeyCredential(AZURE_GPT4_KEY));
@@ -155,6 +212,31 @@ export const OpenAIStream = async (
 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
+
+  // Handle Gemini API responses
+  if (currentApiType === 'gemini') {
+    if (res.status !== 200) {
+      const result = await res.json();
+      throw new Error(`Gemini API returned an error: ${result.error?.message || res.statusText}`);
+    }
+    
+    const result = await res.json();
+    console.log("🚀 ~ Gemini response:", result);
+    
+    // Extract text from Gemini response
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    // Create a simple stream that returns the text
+    const stream = new ReadableStream({
+      start(controller) {
+        const queue = encoder.encode(text);
+        controller.enqueue(queue);
+        controller.close();
+      },
+    });
+    
+    return stream;
+  }
 
   if ((currentApiType === 'openai' || currentApiType === 'openrouter') && res.status !== 200) {
     const result = await res.json();

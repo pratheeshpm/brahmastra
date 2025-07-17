@@ -49,11 +49,18 @@ export enum OpenAIModelID {
   DEEPSEEK_R1 = 'deepseek/deepseek-r1',
   DEEPSEEK_PROVER_V2 = 'deepseek/deepseek-prover-v2',
   
-  // Google Models
+  // Google Models (OpenRouter)
   GEMINI_2_5_PRO_EXP_03_25 = 'google/gemini-2.5-pro-exp-03-25',
-  GEMINI_2_5_PRO = 'google/gemini-2.5-pro-preview',
-  GEMINI_2_5_FLASH = 'google/gemini-2.5-flash-preview',
-  GEMINI_2_0_FLASH = 'google/gemini-2.0-flash-exp',
+  GEMINI_2_5_PRO_OR = 'google/gemini-2.5-pro-preview',
+  GEMINI_2_5_FLASH_OR = 'google/gemini-2.5-flash-preview',
+  GEMINI_2_0_FLASH_OR = 'google/gemini-2.0-flash-exp',
+  
+  // Native Google Gemini Models (Direct API)
+  GEMINI_1_5_FLASH = 'gemini-1.5-flash',
+  GEMINI_1_5_PRO = 'gemini-1.5-pro',
+  GEMINI_2_0_FLASH_EXP = 'gemini-2.0-flash-exp',
+  GEMINI_2_5_FLASH = 'gemini-2.5-flash',
+  GEMINI_2_5_PRO = 'gemini-2.5-pro',
   
   // xAI Models
   GROK_4 = 'x-ai/grok-4',
@@ -288,7 +295,7 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     tokenLimit: 65536,
   },
   
-  // Google Models
+  // Google Models (OpenRouter)
   [OpenAIModelID.GEMINI_2_5_PRO_EXP_03_25]: {
     id: OpenAIModelID.GEMINI_2_5_PRO_EXP_03_25,
     name: 'Gemini 2.5 Pro Exp',
@@ -296,9 +303,46 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     tokenLimit: 1000000,
     supportsImages: true,
   },
-  [OpenAIModelID.GEMINI_2_5_PRO]: {
-    id: OpenAIModelID.GEMINI_2_5_PRO,
+  [OpenAIModelID.GEMINI_2_5_PRO_OR]: {
+    id: OpenAIModelID.GEMINI_2_5_PRO_OR,
     name: 'Gemini 2.5 Pro',
+    maxLength: 3000000,
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GEMINI_2_5_FLASH_OR]: {
+    id: OpenAIModelID.GEMINI_2_5_FLASH_OR,
+    name: 'Gemini 2.5 Flash',
+    maxLength: 3000000,
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GEMINI_2_0_FLASH_OR]: {
+    id: OpenAIModelID.GEMINI_2_0_FLASH_OR,
+    name: 'Gemini 2.0 Flash',
+    maxLength: 3000000,
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  
+  // Native Google Gemini Models (Direct API)
+  [OpenAIModelID.GEMINI_1_5_FLASH]: {
+    id: OpenAIModelID.GEMINI_1_5_FLASH,
+    name: 'Gemini 1.5 Flash',
+    maxLength: 3000000,
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GEMINI_1_5_PRO]: {
+    id: OpenAIModelID.GEMINI_1_5_PRO,
+    name: 'Gemini 1.5 Pro',
+    maxLength: 3000000,
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GEMINI_2_0_FLASH_EXP]: {
+    id: OpenAIModelID.GEMINI_2_0_FLASH_EXP,
+    name: 'Gemini 2.0 Flash Exp',
     maxLength: 3000000,
     tokenLimit: 1000000,
     supportsImages: true,
@@ -310,9 +354,9 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     tokenLimit: 1000000,
     supportsImages: true,
   },
-  [OpenAIModelID.GEMINI_2_0_FLASH]: {
-    id: OpenAIModelID.GEMINI_2_0_FLASH,
-    name: 'Gemini 2.0 Flash',
+  [OpenAIModelID.GEMINI_2_5_PRO]: {
+    id: OpenAIModelID.GEMINI_2_5_PRO,
+    name: 'Gemini 2.5 Pro',
     maxLength: 3000000,
     tokenLimit: 1000000,
     supportsImages: true,

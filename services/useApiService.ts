@@ -4,7 +4,7 @@ import { useFetch } from '@/hooks/useFetch';
 
 export interface GetModelsRequestProps {
   key: string;
-  apiProvider?: 'openai' | 'openrouter' | 'azure';
+  apiProvider?: 'openai' | 'openrouter' | 'azure' | 'gemini';
 }
 
 const useApiService = () => {
