@@ -75,9 +75,10 @@ const SpeechRecognitionComponent: React.FC<Props> = ({ handleSpeechResult, onPre
     if(!listening){
       if(transcript !== '' && transcript !== lastText){
         selfSocket.emit('filecontent', transcript);
-        if(socket.connected){
-          socket.emit('message', transcript);
-        }
+        // RECEIVER_IP feature disabled - commenting out socket emission
+        // if(socket.connected){
+        //   socket.emit('message', transcript);
+        // }
         console.log("🚀 ~ file: SpeechRecognitionComponent.tsx:51 ~ React.useEffect ~ transcript:", transcript)
         lastText = transcript;
         let lastHistory: string[];

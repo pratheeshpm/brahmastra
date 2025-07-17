@@ -64,6 +64,7 @@ export enum OpenAIModelID {
   LLAMA_3_3_70B = 'meta-llama/llama-3.3-70b-instruct',
   LLAMA_4_SCOUT = 'meta-llama/llama-4-scout',
   LLAMA_4_MAVERICK = 'meta-llama/llama-4-maverick',
+  LLAMA_3_2_90B_VISION_INSTRUCT = 'meta-llama/llama-3.2-90b-vision-instruct',
   
   // Qwen Models
   QWEN_3_235B = 'qwen/qwen-3-235b-a22b',
@@ -358,6 +359,13 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     name: 'Llama 4 Maverick',
     maxLength: 393216,
     tokenLimit: 131072,
+  },
+  [OpenAIModelID.LLAMA_3_2_90B_VISION_INSTRUCT]: {
+    id: OpenAIModelID.LLAMA_3_2_90B_VISION_INSTRUCT,
+    name: 'Llama 3.2 90B Vision Instruct',
+    maxLength: 393216,
+    tokenLimit: 131072,
+    supportsImages: true,
   },
   
   // Qwen Models

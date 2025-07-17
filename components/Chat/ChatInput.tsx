@@ -302,7 +302,7 @@ export const ChatInput = ({
           setIsProcessingImages(false);
           
           // Create the default image analysis prompt
-          const imageAnalysisPrompt = `📸 Image Analysis Request
+          const imageAnalysisPrompt = ''; /*`📸 Image Analysis Request
 Please analyze this image and respond based on the following priority:
 
 1. **If it's a coding question/problem:**
@@ -324,6 +324,7 @@ Please analyze this image and respond based on the following priority:
    - Identify key elements, text, diagrams, or concepts shown
 
 Please proceed with the analysis:`;
+*/
 
           // Create message with images
           const contentArray: Array<{
@@ -525,8 +526,18 @@ Please proceed with the analysis:`;
 
   // Update content when prompt prop changes (for screenshot functionality and system design prompts)
   useEffect(() => {
+    console.log('🔍 ChatInput useEffect triggered:', {
+      prompt: prompt?.substring(0, 100) + '...',
+      promptLength: prompt?.length,
+      currentContent: content?.substring(0, 100) + '...',
+      hasScreenshotData: !!(window as any).screenshotData,
+      hasScreenshotDataReady: !!(window as any).screenshotDataReady,
+      screenshotProcessed: !!(window as any).screenshotProcessed
+    });
+    
     // Skip if we just processed a screenshot to prevent re-triggering
     if ((window as any).screenshotProcessed) {
+      console.log('🔍 Skipping - screenshot already processed');
       delete (window as any).screenshotProcessed;
       return;
     }
@@ -538,13 +549,18 @@ Please proceed with the analysis:`;
         (window as any).screenshotData && 
         (window as any).screenshotDataReady) {
       
+      console.log('🔍 Processing screenshot prompt with image data');
+      
       // Set content temporarily for the screenshot
       setContent(prompt);
       
       // Small delay to ensure the content is set and UI is updated
       setTimeout(() => {
+        console.log('🔍 Starting screenshot processing after delay');
         const screenshotData = (window as any).screenshotData;
         if (screenshotData && screenshotData.imageData) {
+          
+          console.log('🔍 Screenshot data found, processing image');
           
           // Get the base64 data (it should already include the data:image/jpeg;base64, prefix)
           let base64Data = screenshotData.imageData;
@@ -568,6 +584,8 @@ Please proceed with the analysis:`;
             // Create a File object from the blob
             const file = new File([blob], 'screenshot.jpg', { type: 'image/jpeg' });
             
+            console.log('🔍 Created file from screenshot data, setting images');
+            
             // Set the selected images and preview URLs to show the screenshot in the input
             setSelectedImages([file]);
             setImagePreviewUrls([base64Data]);
@@ -576,13 +594,19 @@ Please proceed with the analysis:`;
             delete (window as any).screenshotData;
             delete (window as any).screenshotDataReady;
             
+            console.log('🔍 Screenshot data cleared from window, starting auto-send timer');
+            
             // Auto-trigger send after a small delay to show the preview briefly
             setTimeout(async () => {
+              
+              console.log('🔍 Auto-sending screenshot message');
               
               // Instead of calling handleSend which relies on state, directly process the screenshot
               try {
                 // Compress and convert the screenshot image
                 const compressedBase64Images = await compressAndConvertImages([file]);
+                console.log('🔍 Image compression completed');
+                
                 // Create message with screenshot
                 const contentArray: Array<{
                   type: 'text' | 'image_url';
@@ -605,8 +629,12 @@ Please proceed with the analysis:`;
                   });
                 });
 
+                console.log('🔍 Sending screenshot message with content array');
+                
                 // Send the message directly
                 onSend({ role: 'user', content: contentArray }, plugin);
+                
+                console.log('🔍 Screenshot message sent, clearing state');
                 
                 // Force clear everything after sending
                 setContent('');
@@ -615,6 +643,8 @@ Please proceed with the analysis:`;
                 
                 // Set a flag to prevent the useEffect from running again
                 (window as any).screenshotProcessed = true;
+                
+                console.log('🔍 Screenshot processing completed successfully');
               } catch (error) {
                 console.error('🔍 Error processing screenshot:', error);
                 alert('Error processing screenshot. Please try again.');
@@ -624,11 +654,14 @@ Please proceed with the analysis:`;
           } catch (error) {
             console.error('🔍 Error processing screenshot data:', error);
           }
+        } else {
+          console.log('🔍 No screenshot data found in window object');
         }
       }, 200);
     } 
     // Handle regular prompts (like system design prompts) - just set the content
     else if (prompt && prompt !== content && prompt.trim() !== '') {
+      console.log('🔍 Setting regular prompt content');
       setContent(prompt);
     }
   }, [prompt]);

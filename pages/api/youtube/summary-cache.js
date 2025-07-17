@@ -17,12 +17,39 @@ export default async function handler(req, res) {
         // Return specific video data including full content
         const matchingFiles = files.filter(file => file.startsWith(`${videoId}_`));
         if (matchingFiles.length > 0) {
-          const filePath = path.join(SUMMARY_CACHE_DIR, matchingFiles[0]);
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          return res.json({ 
-            cached: [data], 
-            count: 1 
-          });
+          
+          // If multiple files exist, prioritize the one with actual summary content
+          let selectedFile = null;
+          let selectedData = null;
+          
+          for (const file of matchingFiles) {
+            try {
+              const filePath = path.join(SUMMARY_CACHE_DIR, file);
+              const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+              
+              // Prioritize files that have summary content
+              if (data.summary && data.summary.trim() && data.summary.length > 50) {
+                selectedFile = file;
+                selectedData = data;
+                break; // Found a file with summary, use it
+              } else if (!selectedData) {
+                // If no summary file found yet, keep this as fallback
+                selectedFile = file;
+                selectedData = data;
+              }
+            } catch (error) {
+              console.error(`Error reading cache file ${file}:`, error);
+            }
+          }
+          
+          if (selectedData) {
+            console.log(`📋 Returning cached data from: ${selectedFile}`);
+            console.log(`📋 Has summary: ${!!(selectedData.summary && selectedData.summary.trim())}`);
+            return res.json({ 
+              cached: [selectedData], 
+              count: 1 
+            });
+          }
         } else {
           return res.json({ cached: [], count: 0 });
         }

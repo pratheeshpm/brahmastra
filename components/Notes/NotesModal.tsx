@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MemoizedReactMarkdown } from '../Markdown/MemoizedReactMarkdown';
 import { MermaidDiagram } from '../Markdown/MermaidDiagram';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeMathjax from 'rehype-mathjax';
+import { NotesModalHeader } from './NotesModalHeader';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { EnhancementInput } from './EnhancementInput';
+import { KeywordsSection } from './KeywordsSection';
+import { TableOfContents } from './TableOfContents';
+import { NotesContent } from './NotesContent';
+import { NotesFooter } from './NotesFooter';
+import { KeywordExplanationModal } from './KeywordExplanationModal';
 
 interface Note {
   id: string;
@@ -49,6 +60,17 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [isEditingExplanation, setIsEditingExplanation] = useState(false);
   const [editingExplanationText, setEditingExplanationText] = useState('');
+  const [enhancedContentPreview, setEnhancedContentPreview] = useState<string>('');
+  const [showEnhancementPreview, setShowEnhancementPreview] = useState(false);
+  const [isEditingEnhancedContent, setIsEditingEnhancedContent] = useState(false);
+  const [formattedContentPreview, setFormattedContentPreview] = useState<string>('');
+  const [showFormatPreview, setShowFormatPreview] = useState(false);
+  const [isEditingFormattedContent, setIsEditingFormattedContent] = useState(false);
+  const [showAskAI, setShowAskAI] = useState(false);
+  const [askAIQuery, setAskAIQuery] = useState<string>('');
+  const [askAIResponse, setAskAIResponse] = useState<string>('');
+  const [isLoadingAskAI, setIsLoadingAskAI] = useState(false);
+  const [showAskAIModal, setShowAskAIModal] = useState(false);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -127,6 +149,12 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       if (e.key === 'Escape') {
         if (showKeywordModal) {
           setShowKeywordModal(false);
+        } else if (showEnhancementPreview) {
+          handleCancelEnhancement();
+        } else if (showFormatPreview) {
+          handleCancelFormat();
+        } else if (showAskAIModal) {
+          handleCloseAskAI();
         } else if (isOpen) {
           onClose();
         }
@@ -139,7 +167,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       }
 
       // Handle Cmd + number keys for keyword shortcuts (Mac-friendly)
-      if (e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+      if (e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
         const keyNumber = parseInt(e.key);
         if (!isNaN(keyNumber)) {
           e.preventDefault();
@@ -155,27 +183,15 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
         // Handle other Cmd shortcuts
         switch (e.key.toLowerCase()) {
-          case 'f':
-            e.preventDefault();
-            handleFormatNotes();
-            break;
-          case 'e':
+          case 'e': // Cmd + E for Enhance
             e.preventDefault();
             setShowEnhancementInput(!showEnhancementInput);
             break;
-          case 't':
-            e.preventDefault();
-            scrollToTop();
-            break;
-          case 'c':
-            e.preventDefault();
-            setShowTableOfContents(!showTableOfContents);
-            break;
-          case 'k':
+          case 'k': // Cmd + K for Keywords
             e.preventDefault();
             setIsKeywordsExpanded(!isKeywordsExpanded);
             break;
-          case 'h':
+          case 'h': // Cmd + H for Help
           case '?':
             e.preventDefault();
             setShowKeyboardHelp(!showKeyboardHelp);
@@ -183,7 +199,29 @@ export const NotesModal: React.FC<NotesModalProps> = ({
         }
       }
       
-      // Alternative: Ctrl + Shift combinations for broader compatibility
+      // New: Command + letter combinations for Mac users (may conflict with system/browser shortcuts)
+      if (e.metaKey && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'd': // Cmd + D for Format
+            e.preventDefault();
+            handleFormatNotes();
+            break;
+          case 'j': // Cmd + J for Scroll to Top
+            e.preventDefault();
+            scrollToTop();
+            break;
+          case 'm': // Cmd + M for Table of Contents
+            e.preventDefault();
+            setShowTableOfContents(!showTableOfContents);
+            break;
+          case 'a': // Cmd + A for Ask AI
+            e.preventDefault();
+            handleAskAI();
+            break;
+        }
+      }
+
+      // Alternative: Ctrl + Shift combinations for broader compatibility (includes number keys)
       if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
         const keyNumber = parseInt(e.key);
         if (!isNaN(keyNumber)) {
@@ -200,30 +238,40 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
         // Handle other Ctrl+Shift shortcuts
         switch (e.key.toLowerCase()) {
-          case 'f':
-            e.preventDefault();
-            handleFormatNotes();
-            break;
-          case 'e':
+          case 'e': // Ctrl + Shift + E for Enhance
             e.preventDefault();
             setShowEnhancementInput(!showEnhancementInput);
             break;
-          case 't':
-            e.preventDefault();
-            scrollToTop();
-            break;
-          case 'c':
-            e.preventDefault();
-            setShowTableOfContents(!showTableOfContents);
-            break;
-          case 'k':
+          case 'k': // Ctrl + Shift + K for Keywords
             e.preventDefault();
             setIsKeywordsExpanded(!isKeywordsExpanded);
             break;
-          case 'h':
+          case 'h': // Ctrl + Shift + H for Help
           case '?':
             e.preventDefault();
             setShowKeyboardHelp(!showKeyboardHelp);
+            break;
+        }
+      }
+      
+      // New: Ctrl + Alt combinations for Windows/Linux users
+      if (e.ctrlKey && e.altKey && !e.metaKey && !e.shiftKey) {
+        switch (e.key.toLowerCase()) {
+          case 'f': // Ctrl + Alt + F for Format
+            e.preventDefault();
+            handleFormatNotes();
+            break;
+          case 't': // Ctrl + Alt + T for Scroll to Top
+            e.preventDefault();
+            scrollToTop();
+            break;
+          case 'c': // Ctrl + Alt + C for Table of Contents
+            e.preventDefault();
+            setShowTableOfContents(!showTableOfContents);
+            break;
+          case 'a': // Ctrl + Alt + A for Ask AI
+            e.preventDefault();
+            handleAskAI();
             break;
         }
       }
@@ -231,7 +279,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showKeywordModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp]);
+  }, [isOpen, showKeywordModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp, showEnhancementPreview, showFormatPreview, showAskAIModal]);
 
   // Text selection handler
   useEffect(() => {
@@ -530,29 +578,9 @@ ${note.content}`;
           formattedContent = formattedContent.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
         }
 
-        // Update note with formatted content
-        const updatedNote = {
-          ...note,
-          content: formattedContent,
-          updatedAt: new Date().toISOString()
-        };
-
-        const saveResponse = await fetch(`/api/notes?id=${note.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedNote)
-        });
-
-        if (saveResponse.ok) {
-          // Update local note data
-          Object.assign(note, updatedNote);
-          // Force re-render
-          setMermaidError(false);
-          console.log('✅ Note formatted and saved successfully');
-        } else {
-          const errorData = await saveResponse.json();
-          console.error('Failed to save formatted note:', errorData.error || saveResponse.statusText);
-        }
+        // Show preview instead of directly applying
+        setFormattedContentPreview(formattedContent);
+        setShowFormatPreview(true);
       }
     } catch (error) {
       console.error('Error formatting notes:', error);
@@ -567,21 +595,30 @@ ${note.content}`;
 
     setIsEnhancing(true);
     try {
-      const prompt = `Please enhance the following content by adding missing explanations, relevant additional information, and improving the overall quality. ${enhancementRequirements ? `Specific requirements: ${enhancementRequirements}` : ''}
+      const prompt = `Based on the following content, generate ONLY additional new content that would enhance and complement the existing material. Do not rewrite or repeat any existing content.
 
-Requirements:
-1. Add detailed explanations for technical concepts mentioned but not explained
-2. Include relevant examples and use cases
-3. Add system architecture diagrams using Mermaid when helpful (for system design, process flows, database relationships, sequence diagrams, state diagrams)
-4. Expand on important topics with more context
-5. Add cross-references and connections between concepts
-6. Include best practices and common pitfalls
-7. Maintain the original structure while enhancing content
-8. Keep all original content - only add, don't remove or truncate
-9. Use proper markdown formatting with headings, lists, and emphasis
+${enhancementRequirements ? `Specific requirements: ${enhancementRequirements}` : ''}
 
-Content to enhance:
-${note.content}`;
+Generate additional content that includes:
+1. Missing explanations for technical concepts that are mentioned but not fully explained
+2. Relevant examples and use cases that aren't already covered
+3. System architecture diagrams using Mermaid (if helpful and not already present)
+4. Best practices and common pitfalls related to the topics
+5. Advanced concepts or related topics that would be valuable
+6. Cross-references and connections between concepts
+7. Practical implementation details or code examples (if applicable)
+
+Important instructions:
+- Generate ONLY NEW content that adds value
+- Do NOT repeat or rewrite existing content
+- Use proper markdown formatting
+- Keep the additional content focused and relevant
+- Start with a clear heading for the new section(s)
+
+Existing content to complement:
+${note.content}
+
+Generate additional content:`;
 
       const response = await fetch('/api/ai/generate', {
         method: 'POST',
@@ -591,45 +628,215 @@ ${note.content}`;
 
       if (response.ok) {
         const result = await response.json();
-        let enhancedContent = result.data || result.response || '';
+        let additionalContent = result.data || result.response || '';
         
         // Strip markdown code block wrappers if present
-        if (enhancedContent.startsWith('```markdown')) {
-          enhancedContent = enhancedContent.replace(/^```markdown\n/, '').replace(/\n```$/, '');
-        } else if (enhancedContent.startsWith('```')) {
-          enhancedContent = enhancedContent.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
+        if (additionalContent.startsWith('```markdown')) {
+          additionalContent = additionalContent.replace(/^```markdown\n/, '').replace(/\n```$/, '');
+        } else if (additionalContent.startsWith('```')) {
+          additionalContent = additionalContent.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '');
         }
 
-        // Update note with enhanced content
-        const updatedNote = {
-          ...note,
-          content: enhancedContent,
-          updatedAt: new Date().toISOString()
-        };
-
-        const saveResponse = await fetch(`/api/notes?id=${note.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updatedNote)
-        });
-
-        if (saveResponse.ok) {
-          // Update local note data
-          Object.assign(note, updatedNote);
-          // Force re-render
-          setMermaidError(false);
-          console.log('✅ Note enhanced and saved successfully');
-        } else {
-          const errorData = await saveResponse.json();
-          console.error('Failed to save enhanced note:', errorData.error || saveResponse.statusText);
-        }
+        // Show preview of additional content
+        setEnhancedContentPreview(additionalContent);
+        setShowEnhancementPreview(true);
+        setIsEditingEnhancedContent(false);
+        console.log('✅ Additional content generated, showing preview');
       }
     } catch (error) {
-      console.error('Error enhancing notes:', error);
+      console.error('Error generating additional content:', error);
+      alert('Failed to generate additional content. Please try again.');
     } finally {
       setIsEnhancing(false);
       setEnhancementRequirements('');
       setShowEnhancementInput(false);
+    }
+  };
+
+  // Handle enhancement preview actions
+  const handleApproveEnhancement = async (position: 'top' | 'bottom' | 'replace') => {
+    if (!note || !enhancedContentPreview) return;
+
+    try {
+      let updatedContent = '';
+      
+      switch (position) {
+        case 'top':
+          updatedContent = enhancedContentPreview + '\n\n---\n\n' + note.content;
+          break;
+        case 'bottom':
+          updatedContent = note.content + '\n\n---\n\n' + enhancedContentPreview;
+          break;
+        case 'replace':
+          updatedContent = enhancedContentPreview;
+          break;
+        default:
+          updatedContent = note.content + '\n\n---\n\n' + enhancedContentPreview;
+      }
+
+      const updatedNote = {
+        ...note,
+        content: updatedContent,
+        updatedAt: new Date().toISOString()
+      };
+
+      const saveResponse = await fetch(`/api/notes?id=${note.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedNote)
+      });
+
+      if (saveResponse.ok) {
+        // Update local note data
+        Object.assign(note, updatedNote);
+        // Force re-render
+        setMermaidError(false);
+        setShowEnhancementPreview(false);
+        setEnhancedContentPreview('');
+        console.log(`✅ Additional content added at ${position} and saved successfully`);
+      } else {
+        const errorData = await saveResponse.json();
+        console.error('Failed to save enhanced note:', errorData.error || saveResponse.statusText);
+        alert('Failed to save enhanced note. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving enhanced note:', error);
+      alert('Failed to save enhanced note. Please try again.');
+    }
+  };
+
+  // Specific handlers for each position
+  const handleAddToTop = () => handleApproveEnhancement('top');
+  const handleAddToBottom = () => handleApproveEnhancement('bottom');
+  const handleReplaceContent = () => handleApproveEnhancement('replace');
+
+  const handleEditEnhancement = () => {
+    setIsEditingEnhancedContent(true);
+  };
+
+  const handleSaveEditedEnhancement = () => {
+    // Exit edit mode to show position options
+    setIsEditingEnhancedContent(false);
+  };
+
+  const handleCancelEnhancement = () => {
+    setShowEnhancementPreview(false);
+    setEnhancedContentPreview('');
+    setIsEditingEnhancedContent(false);
+  };
+
+  const handleRegenerateEnhancement = () => {
+    setShowEnhancementPreview(false);
+    setEnhancedContentPreview('');
+    setIsEditingEnhancedContent(false);
+    setShowEnhancementInput(true);
+  };
+
+  // Format preview handlers
+  const handleApproveFormat = async () => {
+    if (!note || !formattedContentPreview) return;
+
+    try {
+      // Update note with formatted content
+      const updatedNote = {
+        ...note,
+        content: formattedContentPreview,
+        updatedAt: new Date().toISOString()
+      };
+
+      const saveResponse = await fetch(`/api/notes?id=${note.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedNote)
+      });
+
+      if (saveResponse.ok) {
+        // Update local note data
+        Object.assign(note, updatedNote);
+        // Force re-render
+        setMermaidError(false);
+        // Clear preview
+        setShowFormatPreview(false);
+        setFormattedContentPreview('');
+        setIsEditingFormattedContent(false);
+        console.log('✅ Note formatted and saved successfully');
+      } else {
+        const errorData = await saveResponse.json();
+        console.error('Failed to save formatted note:', errorData.error || saveResponse.statusText);
+      }
+    } catch (error) {
+      console.error('Error saving formatted note:', error);
+    }
+  };
+
+  const handleEditFormat = () => {
+    setIsEditingFormattedContent(true);
+  };
+
+  const handleSaveEditedFormat = () => {
+    // Exit edit mode to show approve option
+    setIsEditingFormattedContent(false);
+  };
+
+  const handleCancelFormat = () => {
+    setShowFormatPreview(false);
+    setFormattedContentPreview('');
+    setIsEditingFormattedContent(false);
+  };
+
+  const handleRegenerateFormat = () => {
+    setShowFormatPreview(false);
+    setFormattedContentPreview('');
+    setIsEditingFormattedContent(false);
+    // Trigger format again
+    handleFormatNotes();
+  };
+
+  // Ask AI handlers
+  const handleAskAI = () => {
+    setShowAskAIModal(true);
+    setAskAIQuery('');
+    setAskAIResponse('');
+  };
+
+  const handleCloseAskAI = () => {
+    setShowAskAIModal(false);
+    setAskAIQuery('');
+    setAskAIResponse('');
+    setIsLoadingAskAI(false);
+  };
+
+  const handleSubmitAskAI = async () => {
+    if (!askAIQuery.trim()) return;
+
+    setIsLoadingAskAI(true);
+    try {
+      const contextContent = note?.content ? `\n\nNote Context:\n${note.content.substring(0, 1000)}...` : '';
+      const prompt = `${askAIQuery.trim()}${contextContent}`;
+
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt,
+          model_id: 'gpt-4o-mini',
+          max_tokens: 2000,
+          temperature: 0.7
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const aiResponse = result.data || result.response || '';
+        setAskAIResponse(aiResponse);
+      } else {
+        setAskAIResponse('Failed to get AI response. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      setAskAIResponse('Failed to get AI response. Please try again.');
+    } finally {
+      setIsLoadingAskAI(false);
     }
   };
 
@@ -758,582 +965,463 @@ ${note.content}`;
       <div 
         ref={modalRef}
         tabIndex={-1}
-        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col outline-none"
+        className="bg-white rounded-lg shadow-xl max-w-full w-full max-h-[90vh] flex flex-col outline-none"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900 flex-1 mr-4">
-            {note.topic}
-          </h2>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleFormatNotes}
-              disabled={isFormatting}
-              className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 flex items-center space-x-1"
-            >
-              {isFormatting ? (
-                <>
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                  <span>Formatting...</span>
-                </>
-              ) : (
-                <>
-                  <span>📝</span>
-                  <span>Format Notes</span>
-                </>
-              )}
-            </button>
-            
-            <button
-              onClick={() => setShowEnhancementInput(!showEnhancementInput)}
-              disabled={isEnhancing}
-              className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 disabled:opacity-50 flex items-center space-x-1"
-            >
-              {isEnhancing ? (
-                <>
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                  <span>Enhancing...</span>
-                </>
-              ) : (
-                <>
-                  <span>⚡</span>
-                  <span>Enhance with AI</span>
-                </>
-              )}
-            </button>
-            
-            <button
-              onClick={() => onEdit(note)}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-            >
-              Edit
-            </button>
-            
-            <button
-              onClick={() => setShowKeyboardHelp(!showKeyboardHelp)}
-              className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 flex items-center space-x-1"
-              title="Keyboard Shortcuts"
-            >
-              <span>⌨️</span>
-              <span>Shortcuts</span>
-            </button>
-            
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-            >
-              ×
-            </button>
-          </div>
-        </div>
+        <NotesModalHeader
+          note={note}
+          isFormatting={isFormatting}
+          handleFormatNotes={handleFormatNotes}
+          isEnhancing={isEnhancing}
+          showEnhancementInput={showEnhancementInput}
+          setShowEnhancementInput={setShowEnhancementInput}
+          onEdit={onEdit}
+          onClose={onClose}
+          showKeyboardHelp={showKeyboardHelp}
+          setShowKeyboardHelp={setShowKeyboardHelp}
+          handleAskAI={handleAskAI}
+        />
 
         {/* Keyboard Shortcuts Help */}
-        {showKeyboardHelp && (
-          <div className="p-4 bg-gray-50 border-b">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">⌨️ Keyboard Shortcuts</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2">Keywords (Mac)</h4>
-                <div className="space-y-1 text-gray-600">
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + 1-9</kbd> Open keyword 1-9</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + 0</kbd> Open keyword 10</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + K</kbd> Expand/collapse keywords</div>
+        {showKeyboardHelp && <KeyboardShortcutsHelp />}
+
+        {/* Enhancement Input */}
+        {showEnhancementInput && <EnhancementInput
+          enhancementRequirements={enhancementRequirements}
+          setEnhancementRequirements={setEnhancementRequirements}
+          showEnhancementInput={showEnhancementInput}
+          setShowEnhancementInput={setShowEnhancementInput}
+          isEnhancing={isEnhancing}
+          handleEnhanceNotes={handleEnhanceNotes}
+        />}
+
+        {/* Enhancement Preview */}
+        {showEnhancementPreview && (
+          <div className="border-t border-gray-200 bg-yellow-50">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">🔍</span>
+                  <h3 className="text-lg font-semibold text-gray-900">Additional Content Preview</h3>
+                  <span className="px-2 py-1 bg-yellow-200 text-yellow-800 text-xs rounded">
+                    Choose where to add this content
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleAddToTop}
+                    className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center space-x-1"
+                  >
+                    <span>⬆️</span>
+                    <span>Add to Top</span>
+                  </button>
+                  <button
+                    onClick={handleAddToBottom}
+                    className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center space-x-1"
+                  >
+                    <span>⬇️</span>
+                    <span>Add to Bottom</span>
+                  </button>
+                  <button
+                    onClick={handleEditEnhancement}
+                    className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center space-x-1"
+                  >
+                    <span>✏️</span>
+                    <span>Edit First</span>
+                  </button>
+                  <button
+                    onClick={handleRegenerateEnhancement}
+                    className="px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center space-x-1"
+                  >
+                    <span>🔄</span>
+                    <span>Regenerate</span>
+                  </button>
+                  <button
+                    onClick={handleCancelEnhancement}
+                    className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center space-x-1"
+                  >
+                    <span>✕</span>
+                    <span>Cancel</span>
+                  </button>
                 </div>
               </div>
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2">Actions (Mac)</h4>
-                <div className="space-y-1 text-gray-600">
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + F</kbd> Format notes</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + E</kbd> Enhance with AI</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + T</kbd> Back to top</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + C</kbd> Toggle table of contents</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">⌘ + H</kbd> Toggle this help</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Escape</kbd> Close modal/dialog</div>
+              
+              {isEditingEnhancedContent ? (
+                <div className="space-y-4">
+                  <textarea
+                    value={enhancedContentPreview}
+                    onChange={(e) => setEnhancedContentPreview(e.target.value)}
+                    className="w-full h-96 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                    placeholder="Edit the enhanced content..."
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleSaveEditedEnhancement}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Done Editing
+                    </button>
+                    <button
+                      onClick={() => setIsEditingEnhancedContent(false)}
+                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                    >
+                      Cancel Edit
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2">Alternative (All OS)</h4>
-                <div className="space-y-1 text-gray-600">
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + 1-9</kbd> Keywords</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + 0</kbd> Keyword 10</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + F</kbd> Format</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + E</kbd> Enhance</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + T</kbd> Top</div>
-                  <div><kbd className="px-1 py-0.5 bg-gray-200 rounded">Ctrl + Shift + C</kbd> TOC</div>
+              ) : (
+                <div className="max-h-96 overflow-y-auto border border-gray-300 rounded p-4 bg-white">
+                  <div className="prose prose-sm max-w-none">
+                    <MemoizedReactMarkdown>{enhancedContentPreview}</MemoizedReactMarkdown>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Enhancement Input */}
-        {showEnhancementInput && (
-          <div className="p-4 bg-purple-50 border-b">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={enhancementRequirements}
-                onChange={(e) => setEnhancementRequirements(e.target.value)}
-                placeholder="Optional: Specific requirements for enhancement..."
-                className="flex-1 px-3 py-2 border border-purple-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <button
-                onClick={handleEnhanceNotes}
-                disabled={isEnhancing}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
-              >
-                Enhance
-              </button>
-              <button
-                onClick={() => setShowEnhancementInput(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
+        {/* Format Preview */}
+        {showFormatPreview && (
+          <div className="border-t border-gray-200 bg-blue-50">
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">📝</span>
+                  <h3 className="text-lg font-semibold text-gray-900">Formatted Content Preview</h3>
+                  <span className="px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded">
+                    Review the formatted content
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleApproveFormat}
+                    className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center space-x-1"
+                  >
+                    <span>✅</span>
+                    <span>Apply Format</span>
+                  </button>
+                  <button
+                    onClick={handleEditFormat}
+                    className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center space-x-1"
+                  >
+                    <span>✏️</span>
+                    <span>Edit First</span>
+                  </button>
+                  <button
+                    onClick={handleRegenerateFormat}
+                    className="px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center space-x-1"
+                  >
+                    <span>🔄</span>
+                    <span>Regenerate</span>
+                  </button>
+                  <button
+                    onClick={handleCancelFormat}
+                    className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center space-x-1"
+                  >
+                    <span>✕</span>
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </div>
+              
+              {isEditingFormattedContent ? (
+                <div className="space-y-4">
+                  <textarea
+                    value={formattedContentPreview}
+                    onChange={(e) => setFormattedContentPreview(e.target.value)}
+                    className="w-full h-96 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                    placeholder="Edit the formatted content..."
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleSaveEditedFormat}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Done Editing
+                    </button>
+                    <button
+                      onClick={() => setIsEditingFormattedContent(false)}
+                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                    >
+                      Cancel Edit
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="max-h-96 overflow-y-auto border border-gray-300 rounded p-4 bg-white">
+                  <div className="prose prose-sm max-w-none">
+                    <MemoizedReactMarkdown>{formattedContentPreview}</MemoizedReactMarkdown>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Keywords Section */}
-        <div className="p-4 bg-gray-50 border-b">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <h3 className="text-sm font-medium text-gray-700">Keywords</h3>
-              <span className="text-xs text-gray-500">(⌘ + 1-9, 0)</span>
-            </div>
-            {keywords.length > 12 && (
-              <button
-                onClick={() => setIsKeywordsExpanded(!isKeywordsExpanded)}
-                className="text-xs text-blue-600 hover:text-blue-800"
-              >
-                {isKeywordsExpanded ? 'Show Less' : `Show More (${keywords.length - 12} hidden)`}
-              </button>
-            )}
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            {isLoadingKeywords ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="text-sm text-gray-600">Generating keywords...</span>
-              </div>
-            ) : (
-              <>
-                {(isKeywordsExpanded ? keywords : keywords.slice(0, 12)).map((keyword, index) => {
-                  // Get display number (1-9, then 0 for 10th)
-                  const displayIndex = index < 9 ? index + 1 : (index === 9 ? 0 : null);
-                  const showNumber = displayIndex !== null;
-                  
-                  return (
-                    <div key={index} className="relative group">
-                      {editingKeywordIndex === index ? (
-                        <div className="flex items-center space-x-1">
-                          <input
-                            type="text"
-                            value={editingKeywordValue}
-                            onChange={(e) => setEditingKeywordValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleSaveKeywordEdit();
-                              if (e.key === 'Escape') handleCancelKeywordEdit();
-                            }}
-                            className="px-2 py-1 text-xs border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            autoFocus
-                          />
-                          <button
-                            onClick={handleSaveKeywordEdit}
-                            className="text-green-600 hover:text-green-800 text-xs"
-                          >
-                            ✓
-                          </button>
-                          <button
-                            onClick={handleCancelKeywordEdit}
-                            className="text-red-600 hover:text-red-800 text-xs"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleKeywordClick(keyword)}
-                          className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded hover:bg-indigo-200 transition-colors relative flex items-center space-x-1"
-                        >
-                          {showNumber && (
-                            <span className="inline-flex items-center justify-center w-4 h-4 bg-indigo-600 text-white text-xs rounded-full font-bold mr-1">
-                              {displayIndex}
-                            </span>
-                          )}
-                          <span>{keyword}</span>
-                          <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditKeyword(index);
-                              }}
-                              className="w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-blue-600"
-                            >
-                              ✎
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteKeyword(index);
-                              }}
-                              className="w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center hover:bg-red-600"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-                
-                {isAddingKeyword ? (
-                  <div className="flex items-center space-x-1">
-                    <input
-                      type="text"
-                      value={newKeyword}
-                      onChange={(e) => setNewKeyword(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleAddKeyword();
-                        if (e.key === 'Escape') {
-                          setIsAddingKeyword(false);
-                          setNewKeyword('');
-                        }
-                      }}
-                      placeholder="keyword1, keyword2, ..."
-                      className="px-2 py-1 text-xs border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                      autoFocus
-                    />
-                    <button
-                      onClick={handleAddKeyword}
-                      className="text-green-600 hover:text-green-800 text-xs"
-                    >
-                      ✓
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsAddingKeyword(false);
-                        setNewKeyword('');
-                      }}
-                      className="text-red-600 hover:text-red-800 text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setIsAddingKeyword(true)}
-                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200 transition-colors"
-                  >
-                    + Add
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        <KeywordsSection
+          keywords={keywords}
+          isLoadingKeywords={isLoadingKeywords}
+          isKeywordsExpanded={isKeywordsExpanded}
+          setIsKeywordsExpanded={setIsKeywordsExpanded}
+          editingKeywordIndex={editingKeywordIndex}
+          editingKeywordValue={editingKeywordValue}
+          onEditingKeywordChange={setEditingKeywordValue}
+          newKeyword={newKeyword}
+          isAddingKeyword={isAddingKeyword}
+          handleKeywordClick={handleKeywordClick}
+          handleEditKeyword={handleEditKeyword}
+          handleSaveKeywordEdit={handleSaveKeywordEdit}
+          handleCancelKeywordEdit={handleCancelKeywordEdit}
+          handleDeleteKeyword={handleDeleteKeyword}
+          setNewKeyword={setNewKeyword}
+          setIsAddingKeyword={setIsAddingKeyword}
+          handleAddKeyword={handleAddKeyword}
+        />
 
         {/* Table of Contents */}
-        {tableOfContents.length > 0 && (
-          <div className="border-b bg-gray-50">
-            <button
-              onClick={() => setShowTableOfContents(!showTableOfContents)}
-              className="w-full px-6 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center justify-between"
-            >
-              <span className="flex items-center space-x-2">
-                <span>📋</span>
-                <span>Table of Contents ({tableOfContents.length} sections)</span>
-              </span>
-              <span className={`transform transition-transform ${showTableOfContents ? 'rotate-180' : ''}`}>
-                ▼
-              </span>
-            </button>
-            
-            {showTableOfContents && (
-              <div className="px-6 pb-4 max-h-60 overflow-y-auto">
-                <ul className="space-y-1">
-                  {tableOfContents.map((heading, index) => (
-                    <li key={index} style={{ marginLeft: `${(heading.level - 1) * 16}px` }}>
-                      <a
-                        href={`#${heading.id}`}
-                                                 onClick={(e) => {
-                           e.preventDefault();
-                           const element = document.getElementById(heading.id);
-                           if (element && contentRef.current) {
-                             const containerRect = contentRef.current.getBoundingClientRect();
-                             const elementRect = element.getBoundingClientRect();
-                             const scrollTop = contentRef.current.scrollTop;
-                             const offsetTop = elementRect.top - containerRect.top + scrollTop - 20;
-                             
-                             contentRef.current.scrollTo({ 
-                               top: Math.max(0, offsetTop), 
-                               behavior: 'smooth' 
-                             });
-                             
-                             // Update URL hash for bookmarking
-                             window.history.replaceState(null, '', `#${heading.id}`);
-                           }
-                         }}
-                        className="text-blue-600 hover:text-blue-800 text-sm hover:underline block py-1"
-                      >
-                        {heading.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
+        {tableOfContents.length > 0 &&
+          <TableOfContents
+            tableOfContents={tableOfContents}
+            showTableOfContents={showTableOfContents}
+            toggleTableOfContents={() => setShowTableOfContents(!showTableOfContents)}
+            contentRef={contentRef}
+          />
+        }
 
         {/* Content */}
-        <div 
-          ref={contentRef}
-          className="flex-1 overflow-y-auto p-6 relative"
-          onClick={handleLinkClick}
-        >
-          <div className="prose prose-sm max-w-none">
-            <MemoizedReactMarkdown
-              components={{
-                code({ node, inline, className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const language = match ? match[1] : '';
+        <NotesContent
+          note={note}
+          contentRef={contentRef}
+          handleLinkClick={handleLinkClick}
+          selectedText={selectedText}
+          selectionPosition={selectionPosition}
+          handleExplainSelection={handleExplainSelection}
+          showBackToTop={showBackToTop}
+          scrollToTop={scrollToTop}
+          generateHeadingId={generateHeadingId}
+        />
 
-                  if (language === 'mermaid') {
-                    return (
-                      <MermaidDiagram
-                        code={String(children).replace(/\n$/, '')}
-                      />
-                    );
-                  }
-
-                  return (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  );
-                },
-                h1: ({ children, ...props }) => {
-                  const id = generateHeadingId(String(children));
-                  return <h1 id={id} {...props}>{children}</h1>;
-                },
-                h2: ({ children, ...props }) => {
-                  const id = generateHeadingId(String(children));
-                  return <h2 id={id} {...props}>{children}</h2>;
-                },
-                h3: ({ children, ...props }) => {
-                  const id = generateHeadingId(String(children));
-                  return <h3 id={id} {...props}>{children}</h3>;
-                },
-                h4: ({ children, ...props }) => {
-                  const id = generateHeadingId(String(children));
-                  return <h4 id={id} {...props}>{children}</h4>;
-                },
-                h5: ({ children, ...props }) => {
-                  const id = generateHeadingId(String(children));
-                  return <h5 id={id} {...props}>{children}</h5>;
-                },
-                h6: ({ children, ...props }) => {
-                  const id = generateHeadingId(String(children));
-                  return <h6 id={id} {...props}>{children}</h6>;
-                },
-                blockquote: ({ children, ...props }) => (
-                  <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 py-2" {...props}>
-                    {children}
-                  </blockquote>
-                ),
-                hr: ({ ...props }) => (
-                  <hr className="my-8 border-gray-300" {...props} />
-                ),
-                em: ({ children, ...props }) => (
-                  <em className="font-medium text-blue-600" {...props}>{children}</em>
-                ),
-                strong: ({ children, ...props }) => (
-                  <strong className="font-bold text-gray-900" {...props}>{children}</strong>
-                )
-              }}
-            >
-              {note.content}
-            </MemoizedReactMarkdown>
-          </div>
-
-          {/* Text Selection Menu */}
-          {selectedText && selectionPosition && (
-            <div
-              className="fixed bg-white border border-gray-300 rounded shadow-lg p-2 z-50"
-              style={{
-                left: selectionPosition.x,
-                top: selectionPosition.y - 50
-              }}
-            >
-              <button
-                onClick={handleExplainSelection}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center space-x-1"
-              >
-                <span>🔍</span>
-                <span>Explain with AI</span>
-              </button>
-            </div>
-          )}
-
-          {/* Back to Top Button */}
-          {showBackToTop && (
-            <button
-              onClick={scrollToTop}
-              className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 z-40"
-            >
-              ↑
-            </button>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t bg-gray-50 text-sm text-gray-600">
-          <div className="flex justify-between items-center">
-            <span>Created: {new Date(note.createdAt).toLocaleDateString()}</span>
-            <span>Updated: {new Date(note.updatedAt).toLocaleDateString()}</span>
-          </div>
-        </div>
+        {/* Back to Top Button */}
+        {showBackToTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 z-40"
+          >
+            ↑
+          </button>
+        )}
+        <NotesFooter note={note} />
       </div>
 
-      {/* Keyword Explanation Modal */}
-      {showKeywordModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Keyword: {selectedKeyword}
-              </h3>
-              <div className="flex items-center space-x-2">
-                {!isLoadingExplanation && keywordExplanation && !isEditingExplanation && (
-                  <button
-                    onClick={handleEditExplanation}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center space-x-1"
-                    title="Edit explanation"
-                  >
-                    <span>✏️</span>
-                    <span>Edit</span>
-                  </button>
-                )}
-                <button
-                  onClick={retryKeywordExplanation}
-                  disabled={isLoadingExplanation}
-                  className="text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed p-1"
-                  title="Refresh explanation"
-                >
-                  🔄
-                </button>
-                <button
-                  onClick={() => {
-                    setShowKeywordModal(false);
-                    setIsEditingExplanation(false);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-                >
-                  ×
-                </button>
-              </div>
+      {/* Ask AI Modal */}
+      {showAskAIModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
+                <span>🤖</span>
+                <span>Ask AI About This Note</span>
+              </h2>
+              <button
+                onClick={handleCloseAskAI}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingExplanation ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">Loading explanation...</span>
+
+            <div className="p-6 flex-1 overflow-y-auto">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    What would you like to know about this note?
+                  </label>
+                  <textarea
+                    value={askAIQuery}
+                    onChange={(e) => setAskAIQuery(e.target.value)}
+                    placeholder="Ask any question about this note's content, request explanations, ask for examples, or get related information..."
+                    className="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        handleSubmitAskAI();
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Press Cmd/Ctrl + Enter to submit
+                  </p>
                 </div>
-              ) : explanationError ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h4 className="text-red-800 font-medium mb-2">Error Loading Explanation</h4>
-                    <p className="text-red-600 text-sm">{explanationError}</p>
-                  </div>
+
+                <div className="flex space-x-3">
                   <button
-                    onClick={retryKeywordExplanation}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center space-x-2"
+                    onClick={handleSubmitAskAI}
+                    disabled={!askAIQuery.trim() || isLoadingAskAI}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
-                    <span>🔄</span>
-                    <span>Retry</span>
+                    {isLoadingAskAI ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Asking AI...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🚀</span>
+                        <span>Ask AI</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleCloseAskAI}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                  >
+                    Cancel
                   </button>
                 </div>
-              ) : keywordExplanation ? (
-                isEditingExplanation ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-gray-700">Edit Explanation</h4>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={handleSaveExplanation}
-                          className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center space-x-1"
+
+                {askAIResponse && (
+                  <div className="mt-6 border-t pt-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                        <span>💡</span>
+                        <span>AI Response</span>
+                      </h3>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(askAIResponse);
+                          // You could add a toast notification here
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 flex items-center space-x-1"
+                        title="Copy AI response"
+                      >
+                        <span>📋</span>
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 max-h-96 overflow-y-auto border border-blue-200 shadow-sm">
+                      <div className="prose prose-sm max-w-none">
+                        <MemoizedReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[rehypeMathjax]}
+                          components={{
+                            code({ node, inline, className, children, ...props }) {
+                              const match = /language-(\w+)/.exec(className || '');
+                              const language = match ? match[1] : '';
+                              if (language === 'mermaid') {
+                                return (
+                                  <MermaidDiagram
+                                    code={String(children).replace(/\n$/, '')}
+                                  />
+                                );
+                              }
+                              return (
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            table: ({ children, ...props }) => (
+                              <div className="overflow-x-auto my-4">
+                                <table className="min-w-full border-collapse border border-gray-300" {...props}>
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children, ...props }) => (
+                              <thead className="bg-gray-100" {...props}>
+                                {children}
+                              </thead>
+                            ),
+                            tbody: ({ children, ...props }) => (
+                              <tbody {...props}>
+                                {children}
+                              </tbody>
+                            ),
+                            tr: ({ children, ...props }) => (
+                              <tr className="border-b border-gray-200 hover:bg-gray-50" {...props}>
+                                {children}
+                              </tr>
+                            ),
+                            th: ({ children, ...props }) => (
+                              <th className="border border-gray-300 px-4 py-2 text-left font-semibold bg-gray-100" {...props}>
+                                {children}
+                              </th>
+                            ),
+                            td: ({ children, ...props }) => (
+                              <td className="border border-gray-300 px-4 py-2" {...props}>
+                                {children}
+                              </td>
+                            ),
+                            blockquote: ({ children, ...props }) => (
+                              <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 py-2" {...props}>
+                                {children}
+                              </blockquote>
+                            ),
+                            hr: ({ ...props }) => (
+                              <hr className="my-8 border-gray-300" {...props} />
+                            ),
+                            em: ({ children, ...props }) => (
+                              <em className="font-medium text-blue-600" {...props}>{children}</em>
+                            ),
+                            strong: ({ children, ...props }) => (
+                              <strong className="font-bold text-gray-900" {...props}>{children}</strong>
+                            ),
+                            h1: ({ children, ...props }) => (
+                              <h1 className="text-2xl font-bold text-gray-900 mt-6 mb-4" {...props}>{children}</h1>
+                            ),
+                            h2: ({ children, ...props }) => (
+                              <h2 className="text-xl font-bold text-gray-900 mt-5 mb-3" {...props}>{children}</h2>
+                            ),
+                            h3: ({ children, ...props }) => (
+                              <h3 className="text-lg font-bold text-gray-900 mt-4 mb-2" {...props}>{children}</h3>
+                            ),
+                            ul: ({ children, ...props }) => (
+                              <ul className="list-disc pl-6 space-y-1" {...props}>{children}</ul>
+                            ),
+                            ol: ({ children, ...props }) => (
+                              <ol className="list-decimal pl-6 space-y-1" {...props}>{children}</ol>
+                            ),
+                            li: ({ children, ...props }) => (
+                              <li className="text-gray-800" {...props}>{children}</li>
+                            ),
+                            p: ({ children, ...props }) => (
+                              <p className="text-gray-800 leading-relaxed mb-3" {...props}>{children}</p>
+                            ),
+                            a: ({ children, href, ...props }) => (
+                              <a href={href} className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer" {...props}>
+                                {children}
+                              </a>
+                            )
+                          }}
                         >
-                          <span>✓</span>
-                          <span>Save</span>
-                        </button>
-                        <button
-                          onClick={handleCancelEditExplanation}
-                          className="px-3 py-1.5 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 flex items-center space-x-1"
-                        >
-                          <span>✕</span>
-                          <span>Cancel</span>
-                        </button>
+                          {askAIResponse}
+                        </MemoizedReactMarkdown>
                       </div>
                     </div>
-                    <textarea
-                      value={editingExplanationText}
-                      onChange={(e) => setEditingExplanationText(e.target.value)}
-                      className="w-full h-96 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                      placeholder="Enter your explanation in Markdown format..."
-                    />
-                    <div className="text-xs text-gray-500">
-                      Tip: You can use Markdown formatting including code blocks, lists, and even Mermaid diagrams with ```mermaid
-                    </div>
                   </div>
-                ) : (
-                  <div className="prose prose-sm max-w-none">
-                    <MemoizedReactMarkdown
-                      components={{
-                        code({ node, inline, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : '';
-
-                          if (language === 'mermaid') {
-                            return (
-                              <MermaidDiagram
-                                code={String(children).replace(/\n$/, '')}
-                              />
-                            );
-                          }
-
-                          return (
-                            <code className={className} {...props}>
-                              {children}
-                            </code>
-                          );
-                        },
-                        blockquote: ({ children, ...props }) => (
-                          <blockquote className="border-l-4 border-blue-500 pl-4 italic bg-blue-50 py-2" {...props}>
-                            {children}
-                          </blockquote>
-                        ),
-                        hr: ({ ...props }) => (
-                          <hr className="my-8 border-gray-300" {...props} />
-                        )
-                      }}
-                    >
-                      {keywordExplanation}
-                    </MemoizedReactMarkdown>
-                  </div>
-                )
-              ) : (
-                <div className="flex items-center justify-center py-8 text-gray-500">
-                  <p>No explanation available</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Keyword Explanation Modal */}
+      <KeywordExplanationModal
+        showKeywordModal={showKeywordModal}
+        selectedKeyword={selectedKeyword}
+        isLoadingExplanation={isLoadingExplanation}
+        keywordExplanation={keywordExplanation}
+        explanationError={explanationError}
+        isEditingExplanation={isEditingExplanation}
+        editingExplanationText={editingExplanationText}
+        handleEditExplanation={handleEditExplanation}
+        handleSaveExplanation={handleSaveExplanation}
+        handleCancelEditExplanation={() => { setShowKeywordModal(false); setIsEditingExplanation(false); }}
+        retryKeywordExplanation={retryKeywordExplanation}
+      />
     </div>
   );
 }; 

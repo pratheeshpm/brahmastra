@@ -87,35 +87,43 @@ if (!fs.existsSync(SCREENSHOTS_FOLDER)) {
 
 // Screenshot functionality
 const takeScreenshot = async () => {
+  console.log('🔍 takeScreenshot called, checking if already processing...');
+  
   if (isProcessingScreenshot) {
-    console.log('Screenshot already in progress, skipping...');
+    console.log('🔍 Screenshot already in progress, skipping...');
     return;
   }
 
   isProcessingScreenshot = true;
-  console.log('Taking screenshot...');
+  console.log('🔍 Starting screenshot process...');
 
   try {
     const timestamp = Date.now();
     const screenshotPath = path.join(SCREENSHOTS_FOLDER, `screenshot_${timestamp}.jpg`);
+    
+    console.log('🔍 Screenshot will be saved to:', screenshotPath);
     
     // Take screenshot using macOS screencapture command
     // -x: no sound, -C: capture cursor, -D 1: main display only, -t jpg: JPEG format
     // -r: interactive selection (removed for automation), -T 0: no delay
     const screencaptureCommand = `screencapture -x -C -D 1 -t jpg "${screenshotPath}"`;
     
+    console.log('🔍 Executing screenshot command:', screencaptureCommand);
+    
     exec(screencaptureCommand, async (error, stdout, stderr) => {
       if (error) {
-        console.error('Error taking screenshot:', error);
+        console.error('🔍 Error taking screenshot:', error);
         isProcessingScreenshot = false;
         return;
       }
 
-      console.log('Screenshot saved to:', screenshotPath);
+      console.log('🔍 Screenshot saved to:', screenshotPath);
 
       // Wait a moment for file to be written
       setTimeout(async () => {
         try {
+          console.log('🔍 Reading screenshot file...');
+          
           // Optimize the screenshot for LLM processing
           //const optimizedPath = await optimizeScreenshotForLLM(screenshotPath);
           
@@ -124,21 +132,22 @@ const takeScreenshot = async () => {
           const base64Image = imageBuffer.toString('base64');
           const dataUrl = `data:image/jpeg;base64,${base64Image}`;
 
-          console.log('Screenshot optimized and converted to base64, sending to OpenRouter...');
+          console.log('🔍 Screenshot converted to base64, length:', base64Image.length);
 
           // Send to chat service
           await sendScreenshotToChat(dataUrl,screenshotPath);  // optimizedPath);
 
         } catch (readError) {
-          console.error('Error reading screenshot file:', readError);
+          console.error('🔍 Error reading screenshot file:', readError);
         } finally {
+          console.log('🔍 Setting isProcessingScreenshot to false');
           isProcessingScreenshot = false;
         }
       }, 500); // Wait 500ms for file to be fully written
     });
 
   } catch (error) {
-    console.error('Error in screenshot process:', error);
+    console.error('🔍 Error in screenshot process:', error);
     isProcessingScreenshot = false;
   }
 };
@@ -183,8 +192,10 @@ const optimizeScreenshotForLLM = async (originalPath) => {
 // Send screenshot data to chat service via socket
 const sendScreenshotToChat = async (base64Image, screenshotPath) => {
   try {
-    console.log('Sending screenshot to chat service...');
-
+    console.log('🔍 sendScreenshotToChat called');
+    console.log('🔍 base64Image length:', base64Image?.length);
+    console.log('🔍 screenshotPath:', screenshotPath);
+    console.log('🔍 global.io exists:', !!global.io);
 
     // Create the message data structure that matches the chat service format
     const chatData = {
@@ -195,16 +206,32 @@ const sendScreenshotToChat = async (base64Image, screenshotPath) => {
       imageData: base64Image,
     };
 
-    // Emit to connected clients via socket - this will be picked up by the frontend
-    global.io && global.io.emit('screenshot_taken', chatData);
+    console.log('🔍 Created chatData:', {
+      type: chatData.type,
+      timestamp: chatData.timestamp,
+      promptLength: chatData.prompt?.length,
+      imageDataLength: chatData.imageData?.length,
+      screenshotPath: chatData.screenshotPath
+    });
 
-    console.log('Screenshot data sent to chat service via socket');
+    // Emit to connected clients via socket - this will be picked up by the frontend
+    if (global.io) {
+      console.log('🔍 Emitting screenshot_taken event to clients');
+      global.io.emit('screenshot_taken', chatData);
+      console.log('🔍 Screenshot_taken event emitted successfully');
+    } else {
+      console.error('🔍 global.io is not available');
+    }
+
+    console.log('🔍 Screenshot data sent to chat service via socket');
 
   } catch (error) {
-    console.error('Error sending screenshot to chat:', error);
-    global.io && global.io.emit('screenshot_error', {
-      error: error.message
-    });
+    console.error('🔍 Error sending screenshot to chat:', error);
+    if (global.io) {
+      global.io.emit('screenshot_error', {
+        error: error.message
+      });
+    }
   }
 };
 

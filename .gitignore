@@ -31,6 +31,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env_
+openaikeys.txt
 
 # vercel
 .vercel
@@ -44,5 +46,6 @@ pnpm-lock.yaml
 
 # cache directory
 .cache/
-//summary-cache/
+summary-cache/
 transcript-cache/
+keyword-extraction-cache/

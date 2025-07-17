@@ -1,1 +1,10 @@
-export { NotesModal } from './NotesModal'; 
+import { NotesModal } from './NotesModal';
+export { NotesModal };
+export * from './NotesModalHeader';
+export * from './KeyboardShortcutsHelp';
+export * from './EnhancementInput';
+export * from './KeywordsSection';
+export * from './TableOfContents';
+export * from './NotesContent';
+export * from './NotesFooter';
+export * from './KeywordExplanationModal'; 

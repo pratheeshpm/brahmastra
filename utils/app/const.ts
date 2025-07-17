@@ -83,7 +83,7 @@ export const AZURE_DEPLOYMENT_ID = process.env.AZURE_DEPLOYMENT_ID || 'GPT4' || 
 export const AZURE_GPT4_KEY = process.env.AZURE_GPT4_KEY || '8778e5ede6014d8a83b385c908149b12';  
 export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY// || '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'
 
-export const RECEIVER_IP =  'http://192.168.1.189:4000'
+export const RECEIVER_IP =  'http://localhost:3000'
 //'http://localhost:4000';
 
 export const KEYPRESS_COMBO = 'Control';

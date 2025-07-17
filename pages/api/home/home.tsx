@@ -80,9 +80,10 @@ let ws:WebSocket,ws2:WebSocket,wsReceiver: WebSocket,  ws3: any;
 let socket: any, selfSocket: any;//, diagramSocket: any;
 if(isBrowser){
   console.log("\n\nRECEIVER_IP-->",RECEIVER_IP)
-   socket = io(RECEIVER_IP); 
-   selfSocket = io(location.origin);
-   //diagramSocket = io(DIAGRAM_SEARCH_ENDPOINT);
+  // Temporarily disable RECEIVER_IP socket to prevent interference with screenshot functionality
+  // socket = io(RECEIVER_IP); 
+  selfSocket = io(location.origin);
+  //diagramSocket = io(DIAGRAM_SEARCH_ENDPOINT);
 }
 
 
@@ -264,7 +265,8 @@ const Home = ({
 
   useSocket('clipboardContent', data => {
     if(data){
-      socket.emit('clipboardContent',data);
+      // RECEIVER_IP feature disabled - commenting out socket emission
+      // socket && socket.emit('clipboardContent',data);
       console.log("\n\n\n\n\npratheesh🚀 ~ file: home.tsx:225 ~ useSocket ~ data:", data)
       console.log("📋 Current selectedOption:", selectedOption)
       console.log("📋 Current sysDesignCounter:", sysDesignCounter)
@@ -343,7 +345,13 @@ const Home = ({
 
   // Screenshot socket events - integrates with existing chat flow
   useSocket('screenshot_taken', data => {
-    console.log('Screenshot taken:', data);
+    console.log('🔍 Screenshot taken event received:', {
+      type: data.type,
+      timestamp: data.timestamp,
+      promptLength: data.prompt?.length,
+      hasImageData: !!data.imageData,
+      promptPreview: data.prompt?.substring(0, 100) + '...'
+    });
     
     // Store the screenshot data in the window object for ChatInput to access
     (window as any).screenshotData = {
@@ -355,9 +363,17 @@ const Home = ({
     const shouldShowPreview = data.prompt.includes('🔍 Code Analysis:') || 
                              data.prompt.includes('📸 Screenshot Analysis');
     
+    console.log('🔍 Screenshot processing decision:', {
+      shouldShowPreview,
+      promptIncludes: {
+        codeAnalysis: data.prompt.includes('🔍 Code Analysis:'),
+        screenshotAnalysis: data.prompt.includes('📸 Screenshot Analysis')
+      }
+    });
+    
     if (shouldShowPreview) {
       // For screenshot types that should show preview AND auto-execute
-      console.log('Screenshot with preview - setting prompt for ChatInput to handle');
+      console.log('🔍 Screenshot with preview - setting prompt for ChatInput to handle');
       
       // Set a flag to indicate screenshot data is ready
       (window as any).screenshotDataReady = true;
@@ -366,14 +382,15 @@ const Home = ({
       setFileContent(data.prompt);
       
       // DO NOT call executeClick() - let ChatInput handle everything
-      console.log('Screenshot data stored, ChatInput will handle the rest');
+      console.log('🔍 Screenshot data stored, ChatInput will handle the rest');
     } else {
       // For regular screenshots, use the old behavior with auto-execution
+      console.log('🔍 Regular screenshot - using old behavior with auto-execution');
       setFileContent(data.prompt);
       executeClick();
     }
     
-    console.log('Screenshot data stored, prompt set to:', data.prompt);
+    console.log('🔍 Screenshot data stored, prompt set to:', data.prompt?.substring(0, 100) + '...');
   });
 
   useSocket('screenshot_error', data => {

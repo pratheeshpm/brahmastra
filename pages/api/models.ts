@@ -45,6 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
         { id: "deepseek/deepseek-r1-0528-qwen3-8b:free", name: 'DeepSeek R1 0528 Qwen3 8B', supportsImages: false },
         { id: "mistralai/ministral-8b", name: 'Mistral 8B', supportsImages: false },
         { id: 'deepseek/deepseek-v3-base:free', name: 'DeepSeek V3 Base', supportsImages: false },
+        { id: 'meta-llama/llama-3.2-90b-vision-instruct', name: 'Llama 3.2 90B Vision Instruct', supportsImages: true },
       ];
 
       return new Response(JSON.stringify(openRouterModels), {status: 200})
