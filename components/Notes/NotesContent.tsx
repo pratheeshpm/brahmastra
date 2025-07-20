@@ -15,6 +15,12 @@ interface NotesContentProps {
   showBackToTop: boolean;
   scrollToTop: () => void;
   generateHeadingId: (text: string) => string;
+  fontSize: string;
+  lineHeight: string;
+  fontFamily: string;
+  zoom: number;
+  onMermaidFullscreen?: (code: string) => void;
+  onMermaidPngPreview?: (code: string) => void;
 }
 
 export const NotesContent: React.FC<NotesContentProps> = ({
@@ -27,14 +33,21 @@ export const NotesContent: React.FC<NotesContentProps> = ({
   showBackToTop,
   scrollToTop,
   generateHeadingId,
+  fontSize,
+  lineHeight,
+  fontFamily,
+  zoom,
+  onMermaidFullscreen,
+  onMermaidPngPreview,
 }) => {
   return (
     <div
       ref={contentRef}
       className="flex-1 overflow-y-auto p-6 relative"
       onClick={handleLinkClick}
+      style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
     >
-      <div className="prose prose-lg max-w-none">
+      <div className={`prose prose-lg max-w-none ${fontSize} ${lineHeight} ${fontFamily}`}>
         <MemoizedReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[rehypeMathjax]}
@@ -46,6 +59,8 @@ export const NotesContent: React.FC<NotesContentProps> = ({
                 return (
                   <MermaidDiagram
                     code={String(children).replace(/\n$/, '')}
+                    onFullscreenClick={onMermaidFullscreen}
+                    onPngPreviewClick={onMermaidPngPreview}
                   />
                 );
               }
@@ -135,7 +150,7 @@ export const NotesContent: React.FC<NotesContentProps> = ({
               <li className="text-gray-800" {...props}>{children}</li>
             ),
             p: ({ children, ...props }) => (
-              <p className="text-gray-800 leading-relaxed mb-3" {...props}>{children}</p>
+              <p className="text-gray-800 mb-2" {...props}>{children}</p>
             ),
             a: ({ children, href, ...props }) => (
               <a href={href} className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer" {...props}>

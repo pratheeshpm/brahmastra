@@ -4,9 +4,11 @@ import { IconDownload, IconFileText, IconMaximize, IconX, IconZoomIn, IconZoomOu
 interface MermaidDiagramProps {
   code: string;
   id?: string;
+  onFullscreenClick?: (code: string) => void;
+  onPngPreviewClick?: (code: string) => void;
 }
 
-export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
+export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id, onFullscreenClick, onPngPreviewClick }) => {
   const elementRef = useRef<HTMLDivElement>(null);
   const fullscreenRef = useRef<HTMLDivElement>(null);
   const diagramContentRef = useRef<HTMLDivElement>(null);
@@ -431,7 +433,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
               alignItems: 'center',
               minHeight: '200px'
             }}
-            onClick={openFullscreen}
+            onClick={() => onFullscreenClick ? onFullscreenClick(code) : openFullscreen()}
             title="Click to open in fullscreen"
           />
           {isLoaded && (
@@ -440,7 +442,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    openFullscreen();
+                    onFullscreenClick ? onFullscreenClick(code) : openFullscreen();
                   }}
                   className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
                   title="Open in fullscreen"
@@ -451,7 +453,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, id }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    downloadAsPNG();
+                    onPngPreviewClick ? onPngPreviewClick(code) : downloadAsPNG();
                   }}
                   className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
                   title="Preview PNG (with SVG fallback)"

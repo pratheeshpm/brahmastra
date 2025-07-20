@@ -17,6 +17,8 @@ interface KeywordExplanationModalProps {
   handleSaveExplanation: () => void;
   handleCancelEditExplanation: () => void;
   retryKeywordExplanation: () => void;
+  onMermaidFullscreen?: (code: string) => void;
+  onMermaidPngPreview?: (code: string) => void;
 }
 
 export const KeywordExplanationModal: React.FC<KeywordExplanationModalProps> = ({
@@ -30,7 +32,9 @@ export const KeywordExplanationModal: React.FC<KeywordExplanationModalProps> = (
   handleEditExplanation,
   handleSaveExplanation,
   handleCancelEditExplanation,
-  retryKeywordExplanation
+  retryKeywordExplanation,
+  onMermaidFullscreen,
+  onMermaidPngPreview
 }) => {
   if (!showKeywordModal) return null;
   return (
@@ -132,6 +136,8 @@ export const KeywordExplanationModal: React.FC<KeywordExplanationModalProps> = (
                         return (
                           <MermaidDiagram
                             code={String(children).replace(/\n$/, '')}
+                            onFullscreenClick={onMermaidFullscreen}
+                            onPngPreviewClick={onMermaidPngPreview}
                           />
                         );
                       }

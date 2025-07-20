@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perplexity Search API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .search-form {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #response {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .example-queries {
+            margin: 20px 0;
+        }
+        
+        .example-query {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .example-query:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .metrics {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .metric {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .metric strong {
+            color: #667eea;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .cost-tracker {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .cost-total {
+            font-weight: bold;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        .stop-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            margin-left: 10px;
+        }
+        
+        .stop-btn:hover {
+            background: linear-gradient(45deg, #c82333, #a71e2a);
+        }
+        
+        .advanced-controls {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .control-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .toggle-section {
+            margin: 10px 0;
+        }
+        
+        .toggle-section summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            padding: 10px 0;
+        }
+        
+        .range-display {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Perplexity Search API Test</h1>
+        
+        <div class="search-form">
+            <div class="form-group">
+                <label for="queryInput">Search Query:</label>
+                <input type="text" id="queryInput" placeholder="Enter your search query..." 
+                       value="What are the latest AI developments in 2024?">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="modelSelect">Model:</label>
+                    <select id="modelSelect" onchange="updateCostEstimate()">
+                        <option value="perplexity/sonar-pro">Sonar Pro (8k output) - $3/$15 per 1M tokens</option>
+                        <option value="perplexity/sonar">Sonar (4k output) - $1/$1 per 1M tokens</option>
+                        <option value="perplexity/sonar-deep-research">Sonar Deep Research - $2/$8 per 1M tokens</option>
+                        <option value="perplexity/sonar-reasoning">Sonar Reasoning - $1/$5 per 1M tokens</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="maxTokensSlider">Max Tokens: <span class="range-display" id="maxTokensDisplay">4000</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="maxTokensSlider" class="slider" min="100" max="8000" value="4000" 
+                               oninput="updateMaxTokens(this.value)" onchange="updateCostEstimate()">
+                    </div>
+                    <small style="color: #666;">Lower tokens = Lower cost, faster response</small>
+                </div>
+                
+                <div class="control-item">
+                    <label for="temperatureSlider">Temperature: <span class="range-display" id="temperatureDisplay">0.7</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="temperatureSlider" class="slider" min="0" max="2" step="0.1" value="0.7" 
+                               oninput="updateTemperature(this.value)">
+                    </div>
+                    <small style="color: #666;">Lower = More focused, Higher = More creative</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="domainFilter">Search Specific Websites (comma-separated):</label>
+                <input type="text" id="domainFilter" placeholder="e.g. wikipedia.org, github.com, stackoverflow.com">
+                <small style="color: #666; font-size: 12px;">Use "-" prefix to exclude domains (e.g., -reddit.com)</small>
+            </div>
+            
+            <details class="toggle-section">
+                <summary>🎛️ Advanced Controls</summary>
+                <div class="advanced-controls">
+                    <div class="control-group">
+                        <div class="control-item">
+                            <label for="recencyFilter">Recency Filter:</label>
+                            <select id="recencyFilter">
+                                <option value="">No filter</option>
+                                <option value="hour">Past hour</option>
+                                <option value="day">Past day</option>
+                                <option value="week">Past week</option>
+                                <option value="month">Past month</option>
+                            </select>
+                            <small style="color: #666;">Newer sources may cost slightly more</small>
+                        </div>
+                        
+                        <div class="control-item">
+                            <label for="contextSize">Search Context Size:</label>
+                            <select id="contextSize">
+                                <option value="low">Low (Cost optimized)</option>
+                                <option value="medium" selected>Medium (Balanced)</option>
+                                <option value="high">High (Comprehensive)</option>
+                            </select>
+                            <small style="color: #666;">Higher context = Better quality, higher cost</small>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-item">
+                            <label>Response Options:</label>
+                            <div style="margin-top: 10px;">
+                                <label>
+                                    <input type="checkbox" id="returnCitations" checked> Include Citations & Links
+                                </label>
+                                <br>
+                                <label>
+                                    <input type="checkbox" id="returnImages"> Include Images
+                                </label>
+                                <br>
+                                <label>
+                                    <input type="checkbox" id="returnRelatedQuestions"> Related Questions
+                                </label>
+                                <br>
+                                <label>
+                                    <input type="checkbox" id="enableStreaming" checked> Enable Streaming
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="control-item">
+                            <label for="topP">Top P (Nucleus Sampling): <span class="range-display" id="topPDisplay">1.0</span></label>
+                            <div class="slider-container">
+                                <input type="range" id="topPSlider" class="slider" min="0.1" max="1.0" step="0.1" value="1.0" 
+                                       oninput="updateTopP(this.value)">
+                            </div>
+                            <small style="color: #666;">Lower = More focused vocabulary</small>
+                            
+                            <label for="frequencyPenalty" style="margin-top: 15px; display: block;">Frequency Penalty: <span class="range-display" id="frequencyPenaltyDisplay">0.0</span></label>
+                            <div class="slider-container">
+                                <input type="range" id="frequencyPenaltySlider" class="slider" min="-2.0" max="2.0" step="0.1" value="0.0" 
+                                       oninput="updateFrequencyPenalty(this.value)">
+                            </div>
+                            <small style="color: #666;">Positive = Reduce repetition</small>
+                        </div>
+                    </div>
+                </div>
+            </details>
+            
+            <div class="example-queries">
+                <strong>Example queries:</strong><br>
+                <span class="example-query" onclick="setQueryWithSettings('What are the latest developments in artificial intelligence?', 'perplexity/sonar-pro', 'wikipedia.org,arxiv.org', 'month')">AI Research (Academic Sources)</span>
+                <span class="example-query" onclick="setQueryWithSettings('Current weather in New York City', 'perplexity/sonar', 'weather.com,accuweather.com', 'hour')">Weather (Weather Sites)</span>
+                <span class="example-query" onclick="setQueryWithSettings('OpenRouter API pricing and models', 'perplexity/sonar', 'openrouter.ai', '')">OpenRouter Info (Official Site)</span>
+                <span class="example-query" onclick="setQueryWithSettings('Best programming practices for React', 'perplexity/sonar-pro', 'github.com,stackoverflow.com,-reddit.com', 'week')">Programming (Exclude Reddit)</span>
+                <span class="example-query" onclick="setQueryWithSettings('Latest news about climate change', 'perplexity/sonar', 'reuters.com,ap.org,bbc.com', 'day')">News (Trusted Sources)</span>
+                <span class="example-query" onclick="testCitations()">📚 Test Citations (Non-streaming)</span>
+            </div>
+            
+            <button onclick="startSearch()" id="searchBtn">🚀 Start Search</button>
+            <button onclick="stopSearch()" id="stopBtn" class="stop-btn" style="display: none;">⏹️ Stop Search</button>
+            <button onclick="clearResponse()" id="clearBtn">🗑️ Clear Response</button>
+        </div>
+        
+        <div id="statusDiv"></div>
+        
+        <div id="costTracker" class="cost-tracker" style="display: none;">
+            <h4>💰 Cost Estimate</h4>
+            <div class="cost-item">
+                <span>Estimated Input Cost:</span>
+                <span id="inputCost">$0.000</span>
+            </div>
+            <div class="cost-item">
+                <span>Estimated Output Cost:</span>
+                <span id="outputCost">$0.000</span>
+            </div>
+            <div class="cost-item cost-total">
+                <span>Total Estimated Cost:</span>
+                <span id="totalCost">$0.000</span>
+            </div>
+            <small style="color: #666;">*Estimates based on standard rates. Actual costs may vary.</small>
+        </div>
+        
+        <div id="metricsDiv" class="metrics" style="display: none;"></div>
+        
+        <div id="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentEventSource = null;
+        let currentStreamReader = null;
+        let startTime = null;
+        let responseLength = 0;
+        let estimatedInputTokens = 0;
+        let estimatedOutputTokens = 0;
+        
+        // Model pricing (input/output per million tokens)
+        const modelPricing = {
+            'perplexity/sonar-pro': { input: 3, output: 15 },
+            'perplexity/sonar': { input: 1, output: 1 },
+            'perplexity/sonar-deep-research': { input: 2, output: 8 },
+            'perplexity/sonar-reasoning': { input: 1, output: 5 }
+        };
+        
+        function setQuery(query) {
+            document.getElementById('queryInput').value = query;
+        }
+        
+        function setQueryWithSettings(query, model, domains, recency) {
+            document.getElementById('queryInput').value = query;
+            document.getElementById('modelSelect').value = model;
+            document.getElementById('domainFilter').value = domains;
+            document.getElementById('recencyFilter').value = recency;
+            // Enable citations by default for examples
+            document.getElementById('returnCitations').checked = true;
+            updateCostEstimate();
+        }
+        
+        // Slider update functions
+        function updateMaxTokens(value) {
+            document.getElementById('maxTokensDisplay').textContent = value;
+            updateCostEstimate();
+        }
+        
+        function updateTemperature(value) {
+            document.getElementById('temperatureDisplay').textContent = value;
+        }
+        
+        function updateTopP(value) {
+            document.getElementById('topPDisplay').textContent = value;
+        }
+        
+        function updateFrequencyPenalty(value) {
+            document.getElementById('frequencyPenaltyDisplay').textContent = value;
+        }
+        
+        // Cost estimation function
+        function updateCostEstimate() {
+            const query = document.getElementById('queryInput').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            const maxTokens = parseInt(document.getElementById('maxTokensSlider').value);
+            
+            if (!query || !modelPricing[model]) {
+                document.getElementById('costTracker').style.display = 'none';
+                return;
+            }
+            
+            // Rough estimate: 1 token ≈ 4 characters for English
+            estimatedInputTokens = Math.ceil(query.length / 4) + 50; // +50 for system prompt
+            estimatedOutputTokens = maxTokens;
+            
+            const pricing = modelPricing[model];
+            const inputCost = (estimatedInputTokens * pricing.input) / 1000000;
+            const outputCost = (estimatedOutputTokens * pricing.output) / 1000000;
+            const totalCost = inputCost + outputCost;
+            
+            document.getElementById('inputCost').textContent = `$${inputCost.toFixed(6)}`;
+            document.getElementById('outputCost').textContent = `$${outputCost.toFixed(6)}`;
+            document.getElementById('totalCost').textContent = `$${totalCost.toFixed(6)}`;
+            document.getElementById('costTracker').style.display = 'block';
+        }
+        
+        // Stop search function
+        function stopSearch() {
+            if (currentStreamReader) {
+                currentStreamReader.cancel();
+                currentStreamReader = null;
+            }
+            
+            showStatus('🛑 Search stopped by user', 'error');
+            document.getElementById('searchBtn').disabled = false;
+            document.getElementById('stopBtn').style.display = 'none';
+            
+            const duration = Date.now() - startTime;
+            updateMetrics(duration, responseLength);
+        }
+        
+        // Function to get full citations using non-streaming request
+        async function getFullCitations() {
+            const query = document.getElementById('queryInput').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            const maxTokens = parseInt(document.getElementById('maxTokensSlider').value);
+            const temperature = parseFloat(document.getElementById('temperatureSlider').value);
+            const domainFilter = document.getElementById('domainFilter').value.trim();
+            const recencyFilter = document.getElementById('recencyFilter').value;
+            
+            if (!query) {
+                showStatus('❌ No query to get citations for', 'error');
+                return;
+            }
+            
+            showStatus('🔍 Fetching full citations...', 'loading');
+            
+            const requestBody = {
+                query: query,
+                model: model,
+                max_tokens: Math.min(maxTokens, 1000), // Limit tokens for citation request
+                temperature: temperature,
+                return_citations: true,
+                stream: false // Non-streaming for citations
+            };
+            
+            // Add domain filter if specified
+            if (domainFilter) {
+                requestBody.search_domain_filter = domainFilter.split(',').map(d => d.trim()).filter(d => d);
+            }
+            
+            // Add recency filter if specified
+            if (recencyFilter) {
+                requestBody.search_recency_filter = recencyFilter;
+            }
+            
+            try {
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + prompt('Enter your OpenRouter API key for direct citation fetching:'),
+                        'HTTP-Referer': 'https://localhost:3000',
+                        'X-Title': 'Citation Fetch',
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a helpful AI assistant that searches the web and provides comprehensive, accurate, and up-to-date information with detailed citations.'
+                            },
+                            {
+                                role: 'user',
+                                content: query
+                            }
+                        ],
+                        max_tokens: requestBody.max_tokens,
+                        temperature: temperature,
+                        stream: false,
+                        return_citations: true,
+                        search_domain_filter: requestBody.search_domain_filter,
+                        search_recency_filter: requestBody.search_recency_filter
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.citations && data.citations.length > 0) {
+                    const responseDiv = document.getElementById('response');
+                    let citationsHtml = '\n\n📚 **Full Citations:**\n';
+                    data.citations.forEach((url, index) => {
+                        citationsHtml += `[${index + 1}] <a href="${url}" target="_blank" style="color: #667eea; text-decoration: none;">${url}</a>\n`;
+                    });
+                    
+                    // Also check for annotations
+                    if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.annotations) {
+                        citationsHtml += '\n**Detailed Sources:**\n';
+                        data.choices[0].message.annotations.forEach((ann, index) => {
+                            if (ann.type === 'url_citation' && ann.url_citation) {
+                                citationsHtml += `[${index + 1}] ${ann.url_citation.title || 'Source'}\n`;
+                                citationsHtml += `    🔗 <a href="${ann.url_citation.url}" target="_blank" style="color: #667eea;">${ann.url_citation.url}</a>\n`;
+                            }
+                        });
+                    }
+                    
+                    responseDiv.innerHTML += citationsHtml;
+                    responseDiv.scrollTop = responseDiv.scrollHeight;
+                    showStatus('✅ Citations fetched successfully!', 'success');
+                } else {
+                    showStatus('❌ No citations found in response', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Citation fetch error:', error);
+                showStatus(`❌ Failed to fetch citations: ${error.message}`, 'error');
+            }
+        }
+        
+        function showStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function updateMetrics(duration, length, tokensUsed = null) {
+            const metricsDiv = document.getElementById('metricsDiv');
+            metricsDiv.style.display = 'flex';
+            
+            let metricsHTML = `
+                <div class="metric"><strong>Duration:</strong> ${duration}ms</div>
+                <div class="metric"><strong>Response Length:</strong> ${length} chars</div>
+                <div class="metric"><strong>Speed:</strong> ${(length / (duration / 1000)).toFixed(2)} chars/sec</div>
+            `;
+            
+            if (tokensUsed) {
+                metricsHTML += `<div class="metric"><strong>Tokens:</strong> ${tokensUsed}</div>`;
+            }
+            
+            metricsDiv.innerHTML = metricsHTML;
+        }
+        
+        function clearResponse() {
+            document.getElementById('response').style.display = 'none';
+            document.getElementById('response').innerHTML = '';
+            document.getElementById('statusDiv').innerHTML = '';
+            document.getElementById('metricsDiv').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'none';
+            responseLength = 0;
+            
+            if (currentEventSource) {
+                currentEventSource.close();
+                currentEventSource = null;
+            }
+            
+            if (currentStreamReader) {
+                currentStreamReader.cancel();
+                currentStreamReader = null;
+            }
+            
+            document.getElementById('searchBtn').disabled = false;
+        }
+        
+        function startSearch() {
+            const query = document.getElementById('queryInput').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            const maxTokens = parseInt(document.getElementById('maxTokensSlider').value);
+            const temperature = parseFloat(document.getElementById('temperatureSlider').value);
+            const domainFilter = document.getElementById('domainFilter').value.trim();
+            const recencyFilter = document.getElementById('recencyFilter').value;
+            const returnCitations = document.getElementById('returnCitations').checked;
+            const returnImages = document.getElementById('returnImages').checked;
+            const returnRelatedQuestions = document.getElementById('returnRelatedQuestions').checked;
+            const enableStreaming = document.getElementById('enableStreaming').checked;
+            const contextSize = document.getElementById('contextSize').value;
+            const topP = parseFloat(document.getElementById('topPSlider').value);
+            const frequencyPenalty = parseFloat(document.getElementById('frequencyPenaltySlider').value);
+            
+            if (!query) {
+                showStatus('❌ Please enter a search query', 'error');
+                return;
+            }
+            
+            // Clear previous response
+            clearResponse();
+            
+            // Show response div and disable button
+            document.getElementById('response').style.display = 'block';
+            document.getElementById('response').innerHTML = '';
+            document.getElementById('searchBtn').disabled = true;
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            
+            // Start timing
+            startTime = Date.now();
+            responseLength = 0;
+            
+            showStatus(`🚀 Starting Perplexity search... (${enableStreaming ? 'Streaming' : 'Non-streaming'} mode)`, 'loading');
+            
+            // Prepare request body
+            const requestBody = {
+                query: query,
+                model: model,
+                max_tokens: maxTokens,
+                temperature: temperature,
+                return_citations: returnCitations,
+                return_images: returnImages,
+                return_related_questions: returnRelatedQuestions,
+                top_p: topP,
+                frequency_penalty: frequencyPenalty,
+                stream: enableStreaming,
+                web_search_options: {
+                    search_context_size: contextSize
+                }
+            };
+            
+            // Add domain filter if specified
+            if (domainFilter) {
+                requestBody.search_domain_filter = domainFilter.split(',').map(d => d.trim()).filter(d => d);
+            }
+            
+            // Add recency filter if specified
+            if (recencyFilter) {
+                requestBody.search_recency_filter = recencyFilter;
+            }
+            
+            console.log('📤 Request body:', requestBody);
+            
+            // Make the API call using fetch with streaming
+            fetch('/api/perplexity-search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Handle streaming response
+                const reader = response.body.getReader();
+                currentStreamReader = reader; // Store for potential cancellation
+                const decoder = new TextDecoder();
+                
+                function readStream() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            console.log('✅ Stream completed');
+                            const duration = Date.now() - startTime;
+                            updateMetrics(duration, responseLength);
+                            showStatus('✅ Search completed successfully!', 'success');
+                            document.getElementById('searchBtn').disabled = false;
+                            document.getElementById('stopBtn').style.display = 'none';
+                            currentStreamReader = null;
+                            return;
+                        }
+                        
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n');
+                        
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                const data = line.slice(6);
+                                
+                                if (data.trim()) {
+                                    try {
+                                        const parsed = JSON.parse(data);
+                                        handleStreamMessage(parsed);
+                                    } catch (parseError) {
+                                        console.warn('⚠️ Could not parse:', data);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        return readStream();
+                    });
+                }
+                
+                return readStream();
+            })
+            .catch(error => {
+                console.error('❌ Search failed:', error);
+                showStatus(`❌ Search failed: ${error.message}`, 'error');
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('stopBtn').style.display = 'none';
+                currentStreamReader = null;
+            });
+        }
+        
+        function handleStreamMessage(message) {
+            const responseDiv = document.getElementById('response');
+            
+            switch (message.type) {
+                case 'start':
+                    console.log('🚀', message.message);
+                    showStatus(`🔍 ${message.message}`, 'loading');
+                    break;
+                    
+                case 'content':
+                    responseDiv.innerHTML += message.content;
+                    responseLength += message.content.length;
+                    responseDiv.scrollTop = responseDiv.scrollHeight;
+                    showStatus('📝 Receiving response...', 'loading');
+                    break;
+                    
+                case 'citations':
+                    console.log('📚 Citations received:', message.citations);
+                    if (message.citations && message.citations.length > 0) {
+                        let citationsHtml = '\n\n📚 **Sources:**\n';
+                        message.citations.forEach((citation, index) => {
+                            const title = citation.title || citation.url || `Source ${index + 1}`;
+                            citationsHtml += `[${index + 1}] ${title}\n`;
+                            if (citation.url) {
+                                citationsHtml += `   🔗 <a href="${citation.url}" target="_blank" style="color: #667eea; text-decoration: none;">${citation.url}</a>\n`;
+                            }
+                        });
+                        responseDiv.innerHTML += citationsHtml;
+                        responseDiv.scrollTop = responseDiv.scrollHeight;
+                    }
+                    break;
+                    
+                case 'usage':
+                    console.log('📊 Usage info:', message.usage);
+                    break;
+                    
+                case 'end':
+                    console.log('✅', message.message);
+                    const duration = Date.now() - startTime;
+                    updateMetrics(duration, responseLength);
+                    showStatus('✅ Search completed successfully!', 'success');
+                    document.getElementById('searchBtn').disabled = false;
+                    document.getElementById('stopBtn').style.display = 'none';
+                    
+                    // Add citation notice based on streaming mode
+                    if (enableStreaming && !responseDiv.innerHTML.includes('📚 **Sources:**')) {
+                        const citationNotice = '\n\n📚 **Note about Citations:**\n' +
+                            'Streaming mode provides fast responses but may have limited citation details.\n' +
+                            'For full citation details with URLs:\n' +
+                            '• Disable "Enable Streaming" for complete citations\n' +
+                            '• Or use the "Get Full Citations" button below\n\n' +
+                            '<button onclick="getFullCitations()" style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin: 10px 0;">🔗 Get Full Citations</button>';
+                        responseDiv.innerHTML += citationNotice;
+                    } else if (!enableStreaming && !responseDiv.innerHTML.includes('📚 **Sources:**')) {
+                        const citationNotice = '\n\n📚 **Citation Status:**\n' +
+                            'Non-streaming mode was used for better citation support, but no citations were found in this response.';
+                        responseDiv.innerHTML += citationNotice;
+                    }
+                    break;
+                    
+                case 'error':
+                    console.error('❌', message.error);
+                    showStatus(`❌ Error: ${message.error}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                    document.getElementById('stopBtn').style.display = 'none';
+                    break;
+                    
+                default:
+                    console.log('📦 Unknown message type:', message.type);
+            }
+        }
+        
+        // Test citations function
+        function testCitations() {
+            document.getElementById('queryInput').value = 'What are the latest developments in quantum computing in 2024?';
+            document.getElementById('modelSelect').value = 'perplexity/sonar-pro';
+            document.getElementById('enableStreaming').checked = false; // Disable streaming for citations
+            document.getElementById('returnCitations').checked = true;
+            updateCostEstimate();
+            showStatus('📚 Testing citations with non-streaming mode...', 'success');
+            
+            // Automatically start the search
+            setTimeout(() => {
+                startSearch();
+            }, 500);
+        }
+        
+        // Allow Enter key to trigger search
+        document.getElementById('queryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startSearch();
+            }
+        });
+        
+        // Update cost estimate when query changes
+        document.getElementById('queryInput').addEventListener('input', updateCostEstimate);
+        
+        // Initial setup
+        updateCostEstimate();
+        showStatus('Ready to search! Enter a query and click "Start Search"', 'success');
+    </script>
+</body>
+</html> 

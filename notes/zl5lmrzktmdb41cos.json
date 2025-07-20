@@ -1,0 +1,8 @@
+{
+  "id": "zl5lmrzktmdb41cos",
+  "topic": "Mermaid Diagram Test",
+  "content": "# Mermaid Diagram Test\n\n## Test Cases\n\n### 1. Basic Flowchart\n```mermaid\ngraph TD\n    A[Start] --> B{Is it working?}\n    B -->|Yes| C[Great!]\n    B -->|No| D[Debug]\n    D --> B\n    C --> E[End]\n```\n\n### 2. Sequence Diagram\n```mermaid\nsequenceDiagram\n    participant A as Alice\n    participant B as Bob\n    A->>B: Hello Bob, how are you?\n    B-->>A: I'm good thanks!\n    A->>B: Great to hear!\n```\n\n## Expected Functionality\n\n1. **Inline Display**: All diagrams should render properly in the notes\n2. **Fullscreen Mode**: Click the maximize button to view in fullscreen\n3. **PNG Preview**: Click \"Preview\" to see PNG version in a modal\n4. **Downloads**: Should be able to download as PNG, SVG, or Mermaid code\n5. **Zoom & Pan**: In fullscreen mode, should support zooming and panning\n6. **ESC Key**: Should close fullscreen or preview modals\n7. **Z-Index**: Modals should appear above the notes modal (z-index 9999)",
+  "createdAt": "2025-07-20T03:21:29.980Z",
+  "updatedAt": "2025-07-20T03:21:29.980Z",
+  "keywords": []
+}

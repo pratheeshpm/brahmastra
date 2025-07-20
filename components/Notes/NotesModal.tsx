@@ -12,6 +12,7 @@ import { TableOfContents } from './TableOfContents';
 import { NotesContent } from './NotesContent';
 import { NotesFooter } from './NotesFooter';
 import { KeywordExplanationModal } from './KeywordExplanationModal';
+import { MermaidModal } from './MermaidModal';
 
 interface Note {
   id: string;
@@ -20,6 +21,9 @@ interface Note {
   createdAt: string;
   updatedAt: string;
   keywords?: string[];
+  isSystemDesign?: boolean;
+  designType?: 'backend' | 'frontend';
+  folderName?: string;
 }
 
 interface NotesModalProps {
@@ -71,6 +75,45 @@ export const NotesModal: React.FC<NotesModalProps> = ({
   const [askAIResponse, setAskAIResponse] = useState<string>('');
   const [isLoadingAskAI, setIsLoadingAskAI] = useState(false);
   const [showAskAIModal, setShowAskAIModal] = useState(false);
+  
+  // Reading preferences state
+  const [showReadingPreferences, setShowReadingPreferences] = useState(false);
+  const [fontSize, setFontSize] = useState('text-base');
+  const [lineHeight, setLineHeight] = useState('leading-normal');
+  const [fontFamily, setFontFamily] = useState('font-sans');
+  const [zoom, setZoom] = useState(1.0);
+
+  // Mermaid modal state
+  const [showMermaidModal, setShowMermaidModal] = useState(false);
+  const [mermaidModalCode, setMermaidModalCode] = useState('');
+  const [mermaidModalMode, setMermaidModalMode] = useState<'fullscreen' | 'png' | null>(null);
+
+  // Reading preferences handlers
+  const handleResetReadingPreferences = () => {
+    setFontSize('text-base');
+    setLineHeight('leading-normal');
+    setFontFamily('font-sans');
+    setZoom(1.0);
+  };
+
+  // Mermaid modal handlers
+  const handleMermaidFullscreen = (code: string) => {
+    setMermaidModalCode(code);
+    setMermaidModalMode('fullscreen');
+    setShowMermaidModal(true);
+  };
+
+  const handleMermaidPngPreview = (code: string) => {
+    setMermaidModalCode(code);
+    setMermaidModalMode('png');
+    setShowMermaidModal(true);
+  };
+
+  const closeMermaidModal = () => {
+    setShowMermaidModal(false);
+    setMermaidModalCode('');
+    setMermaidModalMode(null);
+  };
 
   const contentRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -147,7 +190,9 @@ export const NotesModal: React.FC<NotesModalProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Handle Escape key
       if (e.key === 'Escape') {
-        if (showKeywordModal) {
+        if (showMermaidModal) {
+          closeMermaidModal();
+        } else if (showKeywordModal) {
           setShowKeywordModal(false);
         } else if (showEnhancementPreview) {
           handleCancelEnhancement();
@@ -279,7 +324,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showKeywordModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp, showEnhancementPreview, showFormatPreview, showAskAIModal]);
+  }, [isOpen, showKeywordModal, showMermaidModal, onClose, keywords, editingKeywordIndex, isAddingKeyword, showEnhancementInput, showTableOfContents, isKeywordsExpanded, showKeyboardHelp, showEnhancementPreview, showFormatPreview, showAskAIModal]);
 
   // Text selection handler
   useEffect(() => {
@@ -979,10 +1024,156 @@ Generate additional content:`;
           showKeyboardHelp={showKeyboardHelp}
           setShowKeyboardHelp={setShowKeyboardHelp}
           handleAskAI={handleAskAI}
+          showReadingPreferences={showReadingPreferences}
+          setShowReadingPreferences={setShowReadingPreferences}
         />
 
         {/* Keyboard Shortcuts Help */}
         {showKeyboardHelp && <KeyboardShortcutsHelp />}
+
+        {/* Reading Preferences */}
+        {showReadingPreferences && (
+          <div className="px-6 py-4 bg-white border-b border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Font Size */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Font Size
+                </label>
+                <select
+                  value={fontSize}
+                  onChange={(e) => setFontSize(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="text-xs">Extra Small (12px)</option>
+                  <option value="text-sm">Small (14px)</option>
+                  <option value="text-base">Normal (16px)</option>
+                  <option value="text-lg">Large (18px)</option>
+                  <option value="text-xl">Extra Large (20px)</option>
+                  <option value="text-2xl">2X Large (24px)</option>
+                </select>
+              </div>
+
+              {/* Line Height */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Line Spacing
+                </label>
+                <select
+                  value={lineHeight}
+                  onChange={(e) => setLineHeight(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="leading-tight">Tight (1.25)</option>
+                  <option value="leading-snug">Snug (1.375)</option>
+                  <option value="leading-normal">Normal (1.5)</option>
+                  <option value="leading-relaxed">Relaxed (1.625)</option>
+                  <option value="leading-loose">Loose (2.0)</option>
+                </select>
+              </div>
+
+              {/* Font Family */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Font Family
+                </label>
+                <select
+                  value={fontFamily}
+                  onChange={(e) => setFontFamily(e.target.value)}
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="font-sans">Sans Serif (System)</option>
+                  <option value="font-serif">Serif (Georgia)</option>
+                  <option value="font-mono">Monospace (Code)</option>
+                  <option value="font-inter">Inter</option>
+                  <option value="font-roboto">Roboto</option>
+                </select>
+              </div>
+
+              {/* Zoom */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Zoom Level
+                </label>
+                <select
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="0.8">80%</option>
+                  <option value="0.9">90%</option>
+                  <option value="1.0">100%</option>
+                  <option value="1.1">110%</option>
+                  <option value="1.2">120%</option>
+                  <option value="1.3">130%</option>
+                  <option value="1.4">140%</option>
+                  <option value="1.5">150%</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
+              <div className="text-xs text-gray-500">
+                Adjust settings for better reading experience
+              </div>
+              <button
+                onClick={handleResetReadingPreferences}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              >
+                Reset to Default
+              </button>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="text-xs font-medium text-gray-700 mb-2">Quick Presets:</div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    setFontSize('text-sm');
+                    setLineHeight('leading-tight');
+                    setZoom(0.9);
+                  }}
+                  className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+                >
+                  📝 Compact
+                </button>
+                <button
+                  onClick={() => {
+                    setFontSize('text-base');
+                    setLineHeight('leading-normal');
+                    setZoom(1.0);
+                  }}
+                  className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors"
+                >
+                  📖 Balanced
+                </button>
+                <button
+                  onClick={() => {
+                    setFontSize('text-lg');
+                    setLineHeight('leading-relaxed');
+                    setZoom(1.2);
+                  }}
+                  className="px-2 py-1 text-xs bg-purple-50 text-purple-700 rounded hover:bg-purple-100 transition-colors"
+                >
+                  👀 Comfortable
+                </button>
+                <button
+                  onClick={() => {
+                    setFontSize('text-xl');
+                    setLineHeight('leading-loose');
+                    setZoom(1.3);
+                  }}
+                  className="px-2 py-1 text-xs bg-orange-50 text-orange-700 rounded hover:bg-orange-100 transition-colors"
+                >
+                  🔍 Large Text
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhancement Input */}
         {showEnhancementInput && <EnhancementInput
@@ -1199,6 +1390,12 @@ Generate additional content:`;
           showBackToTop={showBackToTop}
           scrollToTop={scrollToTop}
           generateHeadingId={generateHeadingId}
+          fontSize={fontSize}
+          lineHeight={lineHeight}
+          fontFamily={fontFamily}
+          zoom={zoom}
+          onMermaidFullscreen={handleMermaidFullscreen}
+          onMermaidPngPreview={handleMermaidPngPreview}
         />
 
         {/* Back to Top Button */}
@@ -1313,6 +1510,8 @@ Generate additional content:`;
                                 return (
                                   <MermaidDiagram
                                     code={String(children).replace(/\n$/, '')}
+                                    onFullscreenClick={handleMermaidFullscreen}
+                                    onPngPreviewClick={handleMermaidPngPreview}
                                   />
                                 );
                               }
@@ -1421,6 +1620,16 @@ Generate additional content:`;
         handleSaveExplanation={handleSaveExplanation}
         handleCancelEditExplanation={() => { setShowKeywordModal(false); setIsEditingExplanation(false); }}
         retryKeywordExplanation={retryKeywordExplanation}
+        onMermaidFullscreen={handleMermaidFullscreen}
+        onMermaidPngPreview={handleMermaidPngPreview}
+      />
+
+      {/* Mermaid Modal */}
+      <MermaidModal
+        isOpen={showMermaidModal}
+        onClose={closeMermaidModal}
+        mermaidCode={mermaidModalCode}
+        mode={mermaidModalMode}
       />
     </div>
   );

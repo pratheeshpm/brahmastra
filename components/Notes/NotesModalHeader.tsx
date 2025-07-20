@@ -12,6 +12,8 @@ interface NotesModalHeaderProps {
   showKeyboardHelp: boolean;
   setShowKeyboardHelp: (value: boolean) => void;
   handleAskAI: () => void;
+  showReadingPreferences: boolean;
+  setShowReadingPreferences: (value: boolean) => void;
 }
 
 export const NotesModalHeader: React.FC<NotesModalHeaderProps> = ({
@@ -26,6 +28,8 @@ export const NotesModalHeader: React.FC<NotesModalHeaderProps> = ({
   showKeyboardHelp,
   setShowKeyboardHelp,
   handleAskAI,
+  showReadingPreferences,
+  setShowReadingPreferences,
 }) => {
   return (
     <div className="flex items-center justify-between p-6 border-b">
@@ -73,6 +77,18 @@ export const NotesModalHeader: React.FC<NotesModalHeaderProps> = ({
         >
           <span>🤖</span>
           <span>Ask AI</span>
+        </button>
+        <button
+          onClick={() => setShowReadingPreferences(!showReadingPreferences)}
+          className={`px-3 py-1.5 text-sm rounded flex items-center space-x-1 transition-colors ${
+            showReadingPreferences 
+              ? 'bg-orange-600 text-white hover:bg-orange-700' 
+              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+          }`}
+          title="Reading Preferences"
+        >
+          <span>👁️</span>
+          <span>Reading</span>
         </button>
         <button
           onClick={() => onEdit(note)}

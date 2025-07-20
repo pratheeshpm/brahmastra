@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Debug Test</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>WebSocket Screenshot Event Debug</h1>
+    <button onclick="triggerScreenshot()">Trigger Screenshot</button>
+    <div id="log"></div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += '<div>' + new Date().toISOString() + ': ' + message + '</div>';
+            console.log(message);
+        }
+
+        // Test both socket connection methods
+        log('🔍 Testing WebSocket connections...');
+
+        // Method 1: useSocket style (global socket)
+        const globalSocket = io({
+            timeout: 45000,
+            autoConnect: true,
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 10000,
+            randomizationFactor: 0.5,
+            transports: ['websocket', 'polling'],
+            upgrade: true,
+            rememberUpgrade: true,
+            forceNew: false,
+            multiplex: true,
+        });
+
+        // Method 2: selfSocket style (location.origin)
+        const selfSocket = io(location.origin, {
+            timeout: 45000,
+            autoConnect: true,
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 10000,
+            randomizationFactor: 0.5,
+            transports: ['websocket', 'polling'],
+            upgrade: true,
+            rememberUpgrade: true,
+            forceNew: false,
+            multiplex: true,
+        });
+
+        // Add listeners for global socket
+        globalSocket.on('connect', () => {
+            log('✅ GlobalSocket connected: ' + globalSocket.id);
+        });
+
+        globalSocket.on('screenshot_taken', (data) => {
+            log('🎉 GlobalSocket received screenshot_taken event!');
+            log('📋 Data type: ' + data.type);
+            log('📋 Has image data: ' + !!data.imageData);
+            log('📋 Image data length: ' + (data.imageData ? data.imageData.length : 0));
+        });
+
+        // Add listeners for self socket
+        selfSocket.on('connect', () => {
+            log('✅ SelfSocket connected: ' + selfSocket.id);
+        });
+
+        selfSocket.on('screenshot_taken', (data) => {
+            log('🎉 SelfSocket received screenshot_taken event!');
+            log('📋 Data type: ' + data.type);
+            log('📋 Has image data: ' + !!data.imageData);
+            log('📋 Image data length: ' + (data.imageData ? data.imageData.length : 0));
+        });
+
+        // Function to trigger screenshot
+        function triggerScreenshot() {
+            log('📸 Triggering screenshot via API...');
+            fetch('/api/screenshot', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    log('✅ Screenshot API response: ' + JSON.stringify(data));
+                })
+                .catch(error => {
+                    log('❌ Screenshot API error: ' + error);
+                });
+        }
+
+        log('⏳ Waiting for WebSocket connections and events...');
+    </script>
+</body>
+</html> 

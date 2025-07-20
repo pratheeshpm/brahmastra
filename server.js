@@ -34,7 +34,10 @@ const readline = require('readline');
 var fs = require('fs');
 const filePath = 'transcript_' + Date.now() + '.txt';
     // Create the prompt that will be sent to the chat
-    const screenshotPrompt = `📸 Screenshot Analysis Request
+    const screenshotPrompt =`📸 Screenshot Analysis Request
+Please analyze this screenshot and you would see a coding question in that:
+ give me the best solution for it, cover all the edge cases`
+    /*  `📸 Screenshot Analysis Request
 Please analyze this screenshot and you would see a coding question in that:
  1. please give the most optimized solution code in javascript with proper comments and explanation and should include all edge cases and corner cases handled.
  2. Optimal Technique and its brief explanation with a sample data example flowing thru the code [E.g., "Sliding Window with Hash Map ..."]
@@ -46,7 +49,7 @@ If you dont see any question, predict the next step in the flow of the question,
 If not, then extract the text in the main area of the image and give it
 
 
-[Image data will be included in the chat request]`;
+[Image data will be included in the chat request]`; */
 
 // New prompt for Ctrl+O - Code output prediction
 const codeOutputPredictionPrompt = `🔍 Code Analysis: Predict the output of this code or identify errors and provide corrections. Include step-by-step execution flow and reasoning.`;
