@@ -85,6 +85,44 @@ npm run dev
 
 You should be able to start chatting.
 
+## Project Structure
+
+This project is organized with the following key directories:
+
+### 📁 Core Directories
+- **`components/`** - React components for UI elements (Chat, Sidebar, Settings, etc.)
+- **`pages/`** - Next.js pages and API routes
+- **`utils/`** - Utility functions and helpers
+- **`types/`** - TypeScript type definitions
+- **`hooks/`** - Custom React hooks
+- **`services/`** - Service layer for external integrations
+
+### 🛠️ Development & Automation
+- **`scripts/`** - Shell scripts for automation tasks
+  - PDF generation scripts for system design documentation
+  - Link fixing and maintenance utilities
+  - Development and testing automation
+- **`tests/`** - Testing and debugging files
+  - WebSocket connection testing
+  - Screenshot functionality testing
+  - API integration testing
+  - Debug and diagnostic tools
+
+### 📚 Documentation & Resources
+- **`backend-system-design/`** - Backend system design case studies (30 cases)
+- **`frontend-system-design/`** - Frontend system design case studies (21 cases)
+- **`docs/`** - Additional documentation
+- **`notes/`** - Development notes and cached data
+
+### 🔧 Cache & Generated Files
+- **`summary-cache/`** - Cached video summaries
+- **`keyword-explanations-cache/`** - Cached keyword explanations
+- **`transcript-cache/`** - Cached video transcripts
+
+For detailed information about scripts and tests, see:
+- [`scripts/README.md`](scripts/README.md) - Available automation scripts
+- [`tests/README.md`](tests/README.md) - Testing tools and procedures
+
 ## Configuration
 
 When deploying the application, the following environment variables can be set:

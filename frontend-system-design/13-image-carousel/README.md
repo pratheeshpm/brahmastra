@@ -4,6 +4,12 @@
 ## 📋 Table of Contents
 
 - [Image Carousel Component with Animations and Touch Support](#image-carousel-component-with-animations-and-touch-support)
+  - [Table of Contents](#table-of-contents)
+  - [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+    - [Problem Understanding](#problem-understanding)
+    - [Functional Requirements](#functional-requirements)
+    - [Non-Functional Requirements](#non-functional-requirements)
+    - [Key Assumptions](#key-assumptions)
   - [High-Level Design (HLD)](#high-level-design-hld)
     - [System Architecture Overview](#system-architecture-overview)
     - [Carousel Data Model](#carousel-data-model)
@@ -44,16 +50,90 @@
 
 ---
 
+## Table of Contents
+1. [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+2. [High-Level Design (HLD)](#high-level-design-hld)
+3. [Low-Level Design (LLD)](#low-level-design-lld)
+4. [Core Algorithms](#core-algorithms)
+5. [Component Architecture](#component-architecture)
+6. [Advanced Features](#advanced-features)
+7. [Performance Optimizations](#performance-optimizations)
+8. [Security Considerations](#security-considerations)
+9. [Accessibility Implementation](#accessibility-implementation)
+10. [Testing Strategy](#testing-strategy)
+11. [Trade-offs and Considerations](#trade-offs-and-considerations)
+
+---
+
+## Clarify the Problem and Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+### Problem Understanding
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+Design a flexible and performant image carousel component that provides smooth animations, touch/swipe support, and excellent user experience across all devices and input methods. The component should be reusable, accessible, and capable of handling various content types while maintaining consistent performance with large image sets.
+
+### Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Navigation Controls**: Previous/next buttons, dot indicators, thumbnail navigation
+- **Touch Gestures**: Swipe navigation, pinch-to-zoom, long press interactions
+- **Keyboard Support**: Arrow keys, Enter/Space, Tab navigation, focus management
+- **Autoplay Features**: Auto-advance with pause on hover/focus, configurable timing
+- **Image Support**: Multiple formats (JPEG, PNG, WebP, GIF), lazy loading, responsive images
+- **Customization**: Transition effects, animation timing, layout options, theming
+- **Content Flexibility**: Images, videos, mixed content, custom slide components
+- **Responsive Design**: Adaptive layout for different screen sizes and orientations
+
+### Non-Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Performance**: <16ms frame time, 60fps animations, <200ms image load time
+- **Accessibility**: WCAG 2.1 AA compliance, screen reader support, keyboard navigation
+- **Cross-platform**: Consistent experience across desktop, tablet, mobile devices
+- **Browser Support**: Modern browsers with graceful degradation for older versions
+- **Memory Efficiency**: Optimal memory usage for large image sets, proper cleanup
+- **Bundle Size**: Lightweight component, tree-shakeable, minimal dependencies
+- **Touch Responsiveness**: <100ms touch response time, smooth gesture tracking
+
+### Key Assumptions
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- Typical carousel size: 5-50 images, maximum 200 images
+- Image sizes: 100KB-2MB per image, various aspect ratios
+- Usage patterns: Browse-focused with occasional deep exploration
+- Device capabilities: Modern smartphones to high-end desktops
+- Network conditions: 3G to high-speed connections
+- User interactions: Mix of touch, mouse, and keyboard navigation
+- Content types: Primarily images with occasional video or rich media
+
+---
+
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +178,7 @@ graph TB
 
 ### Carousel Data Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -136,14 +216,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Touch Gesture Recognition
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -169,7 +249,7 @@ graph TD
 
 ### Animation State Machine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -194,7 +274,7 @@ stateDiagram-v2
 
 ### Image Loading Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -231,14 +311,14 @@ flowchart TD
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Touch Gesture Recognition Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -291,7 +371,7 @@ function processTouchMove(touch):
 
 ### 2. Smooth Animation Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -345,7 +425,7 @@ function animateTransition(fromIndex, toIndex, duration):
 
 ### 3. Image Preloading Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -394,7 +474,7 @@ function adaptiveImageLoading(image, viewport):
 
 ### 4. Responsive Layout Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -444,7 +524,7 @@ function getLayoutConfig(screenWidth):
 
 ### 5. Accessibility Navigation Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -486,14 +566,14 @@ function announceSlideChange(direction):
 
 ## Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Carousel Component Hierarchy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -525,7 +605,7 @@ graph TD
 
 ### State Management Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -560,16 +640,450 @@ graph LR
     Preload --> Cache
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**ImageCarousel.jsx**
+
+**What this code does:**
+• **Main Purpose**: Feature-rich image carousel with autoplay, gestures, and fullscreen support
+• **Interactive Controls**: Supports swipe gestures, keyboard navigation, and touch interactions
+• **Key Functions**:
+  - `useImagePreloader()` - Preloads adjacent images for smooth transitions
+  - `useSwipeGestures()` - Handles touch/mouse swipe for navigation
+  - `handleAutoplay()` - Manages automatic slideshow progression
+  - `toggleFullscreen()` - Enters/exits fullscreen viewing mode
+  - `goToSlide()` - Navigates to specific slide with animation
+  - Thumbnail navigation and indicator dots
+
+```jsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { CarouselProvider } from './CarouselContext';
+import CarouselContainer from './CarouselContainer';
+import { useImagePreloader } from './hooks/useImagePreloader';
+import { useSwipeGestures } from './hooks/useSwipeGestures';
+
+const ImageCarousel = ({ 
+  images = [], 
+  initialIndex = 0,
+  autoplay = false,
+  autoplayInterval = 3000,
+  showThumbnails = true,
+  showIndicators = true,
+  showControls = true,
+  loop = true,
+  swipeEnabled = true,
+  lazy = true,
+  aspectRatio = '16:9'
+}) => {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isPlaying, setIsPlaying] = useState(autoplay);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [direction, setDirection] = useState('next');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [loadedImages, setLoadedImages] = useState(new Set());
+  
+  const carouselRef = useRef(null);
+  const autoplayTimerRef = useRef(null);
+  const touchStartRef = useRef(null);
+  
+  const { preloadImages } = useImagePreloader();
+  const { onTouchStart, onTouchMove, onTouchEnd } = useSwipeGestures({
+    onSwipeLeft: () => goToNext(),
+    onSwipeRight: () => goToPrevious(),
+    enabled: swipeEnabled
+  });
+
+  // Preload images
+  useEffect(() => {
+    if (lazy) {
+      preloadImages(images, currentIndex, 2); // Preload 2 images ahead/behind
+    } else {
+      preloadImages(images);
+    }
+  }, [images, currentIndex, lazy, preloadImages]);
+
+  // Handle autoplay
+  useEffect(() => {
+    if (isPlaying && images.length > 1) {
+      autoplayTimerRef.current = setInterval(() => {
+        goToNext();
+      }, autoplayInterval);
+    } else {
+      clearInterval(autoplayTimerRef.current);
+    }
+
+    return () => clearInterval(autoplayTimerRef.current);
+  }, [isPlaying, autoplayInterval, images.length]);
+
+  // Pause autoplay on user interaction
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (isPlaying) {
+        setIsPlaying(false);
+        setTimeout(() => setIsPlaying(autoplay), 5000); // Resume after 5s
+      }
+    };
+
+    const carousel = carouselRef.current;
+    if (carousel) {
+      carousel.addEventListener('mouseenter', handleUserInteraction);
+      carousel.addEventListener('focus', handleUserInteraction);
+      
+      return () => {
+        carousel.removeEventListener('mouseenter', handleUserInteraction);
+        carousel.removeEventListener('focus', handleUserInteraction);
+      };
+    }
+  }, [isPlaying, autoplay]);
+
+  const goToSlide = useCallback((index, slideDirection = 'next') => {
+    if (isTransitioning) return;
+    
+    const newIndex = Math.max(0, Math.min(images.length - 1, index));
+    
+    if (newIndex !== currentIndex) {
+      setDirection(slideDirection);
+      setIsTransitioning(true);
+      setCurrentIndex(newIndex);
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 300); // Match transition duration
+    }
+  }, [currentIndex, images.length, isTransitioning]);
+
+  const goToNext = useCallback(() => {
+    if (currentIndex < images.length - 1) {
+      goToSlide(currentIndex + 1, 'next');
+    } else if (loop) {
+      goToSlide(0, 'next');
+    }
+  }, [currentIndex, images.length, loop, goToSlide]);
+
+  const goToPrevious = useCallback(() => {
+    if (currentIndex > 0) {
+      goToSlide(currentIndex - 1, 'prev');
+    } else if (loop) {
+      goToSlide(images.length - 1, 'prev');
+    }
+  }, [currentIndex, images.length, loop, goToSlide]);
+
+  const togglePlay = useCallback(() => {
+    setIsPlaying(!isPlaying);
+  }, [isPlaying]);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!isFullscreen) {
+      if (carouselRef.current?.requestFullscreen) {
+        carouselRef.current.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+    setIsFullscreen(!isFullscreen);
+  }, [isFullscreen]);
+
+  const handleImageLoad = useCallback((index) => {
+    setLoadedImages(prev => new Set(prev).add(index));
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        goToPrevious();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        goToNext();
+        break;
+      case ' ':
+        e.preventDefault();
+        togglePlay();
+        break;
+      case 'Escape':
+        if (isFullscreen) {
+          toggleFullscreen();
+        }
+        break;
+    }
+  }, [goToPrevious, goToNext, togglePlay, isFullscreen, toggleFullscreen]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const canGoNext = currentIndex < images.length - 1 || loop;
+  const canGoPrevious = currentIndex > 0 || loop;
+
+  const value = {
+    images,
+    currentIndex,
+    direction,
+    isPlaying,
+    isFullscreen,
+    isTransitioning,
+    loadedImages,
+    canGoNext,
+    canGoPrevious,
+    showThumbnails,
+    showIndicators,
+    showControls,
+    aspectRatio,
+    goToSlide,
+    goToNext,
+    goToPrevious,
+    togglePlay,
+    toggleFullscreen,
+    onImageLoad: handleImageLoad
+  };
+
+  return (
+    <CarouselProvider value={value}>
+      <div
+        ref={carouselRef}
+        className={`image-carousel ${isFullscreen ? 'fullscreen' : ''}`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        tabIndex={0}
+      >
+        <CarouselContainer />
+      </div>
+    </CarouselProvider>
+  );
+};
+
+export default ImageCarousel;
+```
+
+**CarouselContainer.jsx**
+```jsx
+import React, { useContext } from 'react';
+import { CarouselContext } from './CarouselContext';
+import CarouselTrack from './CarouselTrack';
+import CarouselControls from './CarouselControls';
+import CarouselIndicators from './CarouselIndicators';
+import ThumbnailStrip from './ThumbnailStrip';
+
+const CarouselContainer = () => {
+  const { 
+    showControls, 
+    showIndicators, 
+    showThumbnails, 
+    aspectRatio 
+  } = useContext(CarouselContext);
+
+  const aspectRatioStyle = {
+    aspectRatio: aspectRatio.replace(':', '/')
+  };
+
+  return (
+    <div className="carousel-container">
+      <div className="carousel-main" style={aspectRatioStyle}>
+        <CarouselTrack />
+        {showControls && <CarouselControls />}
+        {showIndicators && <CarouselIndicators />}
+      </div>
+      
+      {showThumbnails && <ThumbnailStrip />}
+    </div>
+  );
+};
+
+export default CarouselContainer;
+```
+
+**CarouselTrack.jsx**
+```jsx
+import React, { useContext, useRef, useEffect } from 'react';
+import { CarouselContext } from './CarouselContext';
+import CarouselSlide from './CarouselSlide';
+
+const CarouselTrack = () => {
+  const { 
+    images, 
+    currentIndex, 
+    direction, 
+    isTransitioning 
+  } = useContext(CarouselContext);
+  
+  const trackRef = useRef(null);
+
+  useEffect(() => {
+    if (trackRef.current) {
+      const translateX = -currentIndex * 100;
+      trackRef.current.style.transform = `translateX(${translateX}%)`;
+    }
+  }, [currentIndex]);
+
+  return (
+    <div className="carousel-track-container">
+      <div 
+        ref={trackRef}
+        className={`carousel-track ${isTransitioning ? 'transitioning' : ''} ${direction}`}
+      >
+        {images.map((image, index) => (
+          <CarouselSlide
+            key={`${image.id || index}-${image.src}`}
+            image={image}
+            index={index}
+            isActive={index === currentIndex}
+            isVisible={Math.abs(index - currentIndex) <= 1}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CarouselTrack;
+```
+
+**CarouselSlide.jsx**
+```jsx
+import React, { useContext, useState } from 'react';
+import { CarouselContext } from './CarouselContext';
+import LazyImage from './LazyImage';
+
+const CarouselSlide = ({ image, index, isActive, isVisible }) => {
+  const { onImageLoad } = useContext(CarouselContext);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const handleImageLoad = () => {
+    setIsLoaded(true);
+    onImageLoad(index);
+  };
+
+  return (
+    <div 
+      className={`carousel-slide ${isActive ? 'active' : ''}`}
+      role="tabpanel"
+      aria-label={`Slide ${index + 1} of ${image.length}`}
+    >
+      {isVisible && (
+        <>
+          <LazyImage
+            src={image.src}
+            alt={image.alt || `Slide ${index + 1}`}
+            onLoad={handleImageLoad}
+            className="slide-image"
+          />
+          
+          {!isLoaded && (
+            <div className="slide-loading">
+              <div className="loading-spinner" />
+            </div>
+          )}
+          
+          {image.caption && (
+            <div className="slide-caption">
+              <h3>{image.title}</h3>
+              <p>{image.caption}</p>
+            </div>
+          )}
+          
+          {image.overlay && (
+            <div className="slide-overlay">
+              {image.overlay}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default CarouselSlide;
+```
+
+**LazyImage.jsx**
+```jsx
+import React, { useState, useRef, useEffect } from 'react';
+
+const LazyImage = ({ src, alt, onLoad, className, placeholder }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const [error, setError] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleLoad = () => {
+    setIsLoaded(true);
+    onLoad?.();
+  };
+
+  const handleError = () => {
+    setError(true);
+  };
+
+  return (
+    <div ref={imgRef} className={`lazy-image-container ${className}`}>
+      {isInView && (
+        <>
+          <img
+            src={src}
+            alt={alt}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`lazy-image ${isLoaded ? 'loaded' : ''}`}
+            style={{ display: error ? 'none' : 'block' }}
+          />
+          
+          {error && (
+            <div className="image-error">
+              <span>Failed to load image</span>
+            </div>
+          )}
+          
+          {!isLoaded && !error && (
+            <div className="image-placeholder">
+              {placeholder || <div className="placeholder-shimmer" />}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default LazyImage;
+```
+
 ## Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Autoplay with Smart Pausing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -607,7 +1121,7 @@ graph TB
 
 ### Gesture Customization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -639,16 +1153,197 @@ flowchart TD
     K --> O
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface CarouselImage {
+  id: string;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  caption?: string;
+  thumbnailSrc?: string;
+  srcSet?: string[];
+  sizes?: string;
+  blurDataURL?: string;
+  metadata?: ImageMetadata;
+}
+
+interface CarouselState {
+  currentIndex: number;
+  images: CarouselImage[];
+  isAutoPlaying: boolean;
+  isLoading: boolean;
+  direction: 'prev' | 'next';
+  touchStartX: number;
+  isDragging: boolean;
+  dragOffset: number;
+  zoomLevel: number;
+  isZoomed: boolean;
+}
+
+interface CarouselSettings {
+  autoPlay: boolean;
+  autoPlayInterval: number;
+  infinite: boolean;
+  showThumbnails: boolean;
+  showDots: boolean;
+  showArrows: boolean;
+  keyboard: boolean;
+  swipe: boolean;
+  zoom: boolean;
+  fade: boolean;
+  lazy: boolean;
+}
+
+interface TouchGesture {
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+  deltaX: number;
+  deltaY: number;
+  velocity: number;
+  direction: 'left' | 'right' | 'up' | 'down';
+  distance: number;
+}
+
+interface ZoomState {
+  scale: number;
+  translateX: number;
+  translateY: number;
+  minScale: number;
+  maxScale: number;
+  centerX: number;
+  centerY: number;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface ImageCarouselProps {
+  images: CarouselImage[];
+  initialIndex?: number;
+  onImageChange?: (index: number, image: CarouselImage) => void;
+  onImageLoad?: (image: CarouselImage) => void;
+  onImageError?: (image: CarouselImage, error: Error) => void;
+  settings?: Partial<CarouselSettings>;
+  className?: string;
+  style?: React.CSSProperties;
+  width?: number | string;
+  height?: number | string;
+}
+
+interface CarouselControlsProps {
+  currentIndex: number;
+  totalImages: number;
+  onPrevious: () => void;
+  onNext: () => void;
+  onGoTo: (index: number) => void;
+  showArrows?: boolean;
+  showDots?: boolean;
+  showCounter?: boolean;
+  disabled?: boolean;
+}
+
+interface ThumbnailStripProps {
+  images: CarouselImage[];
+  currentIndex: number;
+  onThumbnailClick: (index: number) => void;
+  thumbnailSize?: 'sm' | 'md' | 'lg';
+  orientation?: 'horizontal' | 'vertical';
+  maxVisible?: number;
+  showScrollbar?: boolean;
+}
+
+interface ZoomControlsProps {
+  zoomLevel: number;
+  minZoom: number;
+  maxZoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onResetZoom: () => void;
+  onFitToContainer: () => void;
+  showControls?: boolean;
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Image Management
+- `loadImage(src: string)` - Preload image with caching and error handling
+- `preloadImages(indices: number[])` - Preload multiple images for smooth navigation
+- `optimizeImage(image, size)` - Get optimized image URL for current viewport
+- `generateThumbnail(image, size)` - Generate thumbnail with specified dimensions
+- `validateImageSrc(src)` - Validate image URL and check accessibility
+
+#### Carousel Navigation
+- `goToSlide(index: number)` - Navigate to specific slide with animation
+- `nextSlide()` - Move to next slide with wrap-around support
+- `previousSlide()` - Move to previous slide with wrap-around support
+- `startAutoPlay()` - Begin automatic slide progression
+- `stopAutoPlay()` - Stop automatic slide progression and preserve state
+
+#### Touch & Gesture Controls
+- `enableSwipeGestures()` - Activate touch/mouse swipe navigation
+- `disableSwipeGestures()` - Disable gesture controls temporarily
+- `configureTouchSensitivity(threshold)` - Set swipe distance threshold
+- `enableKeyboardNavigation()` - Activate arrow key and space bar controls
+- `handlePinchZoom(event)` - Process pinch-to-zoom gesture events
+
+#### Zoom & Transform
+- `zoomIn(factor?: number)` - Increase zoom level with optional factor
+- `zoomOut(factor?: number)` - Decrease zoom level with bounds checking
+- `resetZoom()` - Reset zoom to original scale and center position
+- `fitToContainer()` - Scale image to fit container dimensions
+- `panImage(deltaX, deltaY)` - Pan zoomed image within viewport bounds
+
+#### Performance & Loading
+- `setLazyLoading(enabled: boolean)` - Configure lazy loading behavior
+- `prefetchImages(strategy)` - Prefetch images with specified strategy
+- `measurePerformance()` - Get timing metrics for carousel operations
+- `optimizeForDevice()` - Apply device-specific performance settings
+- `clearImageCache()` - Clear cached images to free memory
+
+#### Events & Callbacks
+- `addEventListener(event, callback)` - Subscribe to carousel events
+- `removeEventListener(event, callback)` - Unsubscribe from events
+- `onSlideChange(callback)` - Register slide change event handler
+- `onImageLoad(callback)` - Register image load completion handler
+- `onZoomChange(callback)` - Register zoom level change handler
+
+#### Configuration
+- `updateSettings(settings)` - Update carousel configuration dynamically
+- `getSettings()` - Get current carousel configuration
+- `resetToDefaults()` - Reset all settings to default values
+- `exportConfiguration()` - Export current settings as JSON
+- `importConfiguration(config)` - Import and apply configuration
+
+---
+
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Memory Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -672,7 +1367,7 @@ ImageCache = {
 
 ### Animation Performance
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -702,7 +1397,7 @@ PerformanceMonitor = {
 
 ### Network Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -716,14 +1411,14 @@ PerformanceMonitor = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Content Security
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -760,7 +1455,7 @@ graph TB
 
 ### Data Protection
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -774,14 +1469,14 @@ graph TB
 
 ## Accessibility Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Screen Reader Support
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -811,7 +1506,7 @@ stateDiagram-v2
 
 ### Keyboard Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -825,14 +1520,14 @@ stateDiagram-v2
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Unit Testing Focus Areas
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -851,7 +1546,7 @@ stateDiagram-v2
 
 ### Integration Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -870,7 +1565,7 @@ stateDiagram-v2
 
 ### End-to-End Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -883,14 +1578,14 @@ stateDiagram-v2
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance vs Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -901,7 +1596,7 @@ stateDiagram-v2
 
 ### Accessibility vs UX
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -912,7 +1607,7 @@ stateDiagram-v2
 
 ### Scalability Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

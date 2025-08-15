@@ -34,14 +34,14 @@
 
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -132,7 +132,7 @@ graph TB
 
 ### Cache Operation Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -186,14 +186,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Consistent Hashing for Sharding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -225,7 +225,7 @@ graph TD
 
 ### Multi-Level Cache Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -259,7 +259,7 @@ flowchart TD
 
 ### Cache Consistency Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -282,14 +282,14 @@ stateDiagram-v2
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Consistent Hashing with Virtual Nodes
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -487,7 +487,7 @@ function migrateKeyBatch(task):
 
 ### 2. Advanced Eviction Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -644,7 +644,7 @@ class AdaptiveLRUCache:
 
 ### 3. Cache Warming and Prefetching Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -871,7 +871,7 @@ function prefetchRelatedKeys(key, data):
 
 ### 4. Multi-Tier Cache Coherence Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1059,7 +1059,7 @@ class CacheCoherenceManager:
 
 ### 5. Performance Monitoring and Auto-Scaling
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1236,14 +1236,14 @@ class CacheAutoScaler:
 
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Memory Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1260,7 +1260,7 @@ MemoryConfig = {
 
 ### Network Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1273,14 +1273,14 @@ MemoryConfig = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Cache Security Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1315,14 +1315,14 @@ graph TB
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1335,7 +1335,7 @@ graph TB
 
 ### Reliability Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1348,14 +1348,14 @@ graph TB
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Consistency vs Performance
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1366,7 +1366,7 @@ graph TB
 
 ### Memory vs Network
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1377,7 +1377,7 @@ graph TB
 
 ### Scalability vs Complexity
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

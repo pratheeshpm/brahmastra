@@ -34,14 +34,14 @@
 
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -139,7 +139,7 @@ graph TB
 
 ### Recommendation Pipeline Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -196,14 +196,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Feature Engineering Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -246,7 +246,7 @@ graph TD
 
 ### Model Ensemble Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -280,7 +280,7 @@ flowchart TD
 
 ### Real-time Serving Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -304,14 +304,14 @@ stateDiagram-v2
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Advanced Collaborative Filtering Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -484,7 +484,7 @@ class NeuralCollaborativeFiltering:
 
 ### 2. Content-Based Filtering with Deep Learning
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -686,7 +686,7 @@ class ContentBasedRecommender:
 
 ### 3. Deep Learning Recommendation Models
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -878,7 +878,7 @@ class TransformerRecommender:
 
 ### 4. Hybrid Ensemble Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1107,7 +1107,7 @@ class HybridEnsembleRecommender:
 
 ### 5. Real-time Personalization Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1286,14 +1286,14 @@ class RealTimePersonalizationEngine:
 
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Real-time Serving Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1324,7 +1324,7 @@ ServingOptimization = {
 
 ### Model Training Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1337,14 +1337,14 @@ ServingOptimization = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Recommendation Security Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1379,14 +1379,14 @@ graph TB
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### A/B Testing Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1399,7 +1399,7 @@ graph TB
 
 ### Model Evaluation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1412,14 +1412,14 @@ graph TB
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Accuracy vs Explainability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1430,7 +1430,7 @@ graph TB
 
 ### Personalization vs Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1441,7 +1441,7 @@ graph TB
 
 ### Exploration vs Exploitation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

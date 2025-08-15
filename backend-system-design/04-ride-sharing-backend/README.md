@@ -52,14 +52,14 @@
 
 ## Requirements Gathering
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -99,7 +99,7 @@
 
 ### Non-Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -135,14 +135,14 @@
 
 ## Traffic Estimation & Capacity Planning
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### User Base Analysis
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -155,7 +155,7 @@
 
 ### Traffic Calculations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -230,14 +230,14 @@ Cache Infrastructure:
 
 ## Database Schema Design
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### User Management Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -323,7 +323,7 @@ CREATE TABLE vehicles (
 
 ### Trip Management Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -413,7 +413,7 @@ CREATE TABLE location_updates (
 
 ### Pricing and Payment Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -457,14 +457,14 @@ CREATE TABLE surge_pricing (
 
 ## Sample API Endpoints
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### User Registration & Authentication
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -500,7 +500,7 @@ Response (201 Created):
 
 ### Ride Booking APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -544,7 +544,7 @@ Response (201 Created):
 
 ### Real-time Location Updates
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -576,7 +576,7 @@ Response (200 OK):
 
 ### Driver Matching & Trip Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -638,7 +638,7 @@ Response (200 OK):
 
 ### Trip Tracking & Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -678,7 +678,7 @@ Response (200 OK):
 
 ### Payment & Fare Calculation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -710,7 +710,7 @@ Response (200 OK):
 
 ### Rating & Review APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -745,7 +745,7 @@ Response (201 Created):
 
 ### WebSocket Real-time Updates
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -789,14 +789,14 @@ ws.onmessage = (event) => {
 
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -880,7 +880,7 @@ graph TB
 
 ### Ride Request Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -921,14 +921,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Driver-Rider Matching Algorithm Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -965,7 +965,7 @@ graph TD
 
 ### Dynamic Pricing Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -999,7 +999,7 @@ flowchart TD
 
 ### Real-time Location Tracking
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1029,14 +1029,14 @@ stateDiagram-v2
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Driver-Rider Matching Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1168,7 +1168,7 @@ function executeMatching(rideRequest):
 
 ### 2. Dynamic Pricing Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1295,7 +1295,7 @@ function optimizePricing(location, timeOfDay, weatherConditions, historicalData)
 
 ### 3. Route Optimization and ETA Calculation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1392,7 +1392,7 @@ function reoptimizeRoute(tripId, currentLocation, destination, context):
 
 ### 4. Real-time Location Processing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1479,7 +1479,7 @@ function processLocationTriggers(driverId, currentLocation, previousLocation):
 
 ### 5. Fraud Detection and Risk Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1571,14 +1571,14 @@ function analyzeTripForFraud(tripId):
 
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Location Data Processing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1601,7 +1601,7 @@ GeospatialIndex = {
 
 ### Database Scaling
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1614,14 +1614,14 @@ GeospatialIndex = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Data Protection Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1657,14 +1657,14 @@ graph TB
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Load Testing Scenarios
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1683,14 +1683,14 @@ graph TB
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Scalability vs Accuracy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1701,7 +1701,7 @@ graph TB
 
 ### Privacy vs Functionality
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1712,7 +1712,7 @@ graph TB
 
 ### Cost vs Performance
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

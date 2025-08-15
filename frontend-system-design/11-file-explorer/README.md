@@ -4,6 +4,12 @@
 ## 📋 Table of Contents
 
 - [File Explorer/Folder-Tree Navigation UI](#file-explorerfolder-tree-navigation-ui)
+  - [Table of Contents](#table-of-contents)
+  - [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+    - [Problem Understanding](#problem-understanding)
+    - [Functional Requirements](#functional-requirements)
+    - [Non-Functional Requirements](#non-functional-requirements)
+    - [Key Assumptions](#key-assumptions)
   - [High-Level Design (HLD)](#high-level-design-hld)
     - [System Architecture Overview](#system-architecture-overview)
     - [File System Data Model](#file-system-data-model)
@@ -44,16 +50,90 @@
 
 ---
 
+## Table of Contents
+1. [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+2. [High-Level Design (HLD)](#high-level-design-hld)
+3. [Low-Level Design (LLD)](#low-level-design-lld)
+4. [Core Algorithms](#core-algorithms)
+5. [Component Architecture](#component-architecture)
+6. [Advanced Features](#advanced-features)
+7. [Performance Optimizations](#performance-optimizations)
+8. [Security Considerations](#security-considerations)
+9. [Accessibility Implementation](#accessibility-implementation)
+10. [Testing Strategy](#testing-strategy)
+11. [Trade-offs and Considerations](#trade-offs-and-considerations)
+
+---
+
+## Clarify the Problem and Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+### Problem Understanding
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+Design a comprehensive file explorer and folder-tree navigation interface that enables users to browse, manage, and organize files and directories efficiently, similar to Windows Explorer, macOS Finder, or cloud storage interfaces like Google Drive or Dropbox. The system must handle large directory structures, provide intuitive navigation, and support various file operations while maintaining excellent performance.
+
+### Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Tree Navigation**: Expandable folder tree with lazy loading and infinite scroll
+- **File Operations**: Create, rename, delete, copy, move, upload, download files/folders
+- **Multi-view Support**: List view, grid view, thumbnail view with sorting options
+- **Search & Filtering**: Real-time search, advanced filters, faceted navigation
+- **File Preview**: Thumbnail generation, quick preview for images, documents, videos
+- **Selection Management**: Multi-select, bulk operations, keyboard shortcuts
+- **Drag & Drop**: Intuitive file/folder movement and organization
+- **Context Menus**: Right-click menus with relevant actions and shortcuts
+
+### Non-Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Performance**: <200ms directory loading, <100ms search results, smooth 60fps scrolling
+- **Scalability**: Handle directories with 100K+ files, deep folder hierarchies (20+ levels)
+- **Responsiveness**: Adaptive UI for desktop, tablet, and mobile devices
+- **Accessibility**: Full keyboard navigation, screen reader support, WCAG 2.1 AA compliance
+- **Offline Support**: Cache frequently accessed directories, offline file operations
+- **Memory Efficiency**: Efficient rendering of large file lists without memory leaks
+- **Cross-browser**: Consistent experience across modern browsers
+
+### Key Assumptions
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- Typical directory size: 100-1000 files, maximum 100K files per directory
+- Folder depth: Average 5-10 levels, maximum 20 levels
+- File types: Mixed content including documents, images, videos, archives
+- User interactions: Browse-heavy with occasional file operations
+- Network latency: 50-500ms depending on connection quality
+- Storage backends: Local filesystem, cloud storage APIs, or network drives
+- Device types: Desktop (primary), tablets and mobile (secondary)
+
+---
+
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +178,7 @@ graph TB
 
 ### File System Data Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -143,14 +223,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Tree Virtualization Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -174,7 +254,7 @@ graph TD
 
 ### File System Navigation State Machine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -204,7 +284,7 @@ stateDiagram-v2
 
 ### Drag and Drop File Operations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -238,14 +318,14 @@ flowchart TD
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Tree Virtualization Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -293,7 +373,7 @@ function flattenVisibleNodes(root, filter?):
 
 ### 2. Lazy Loading Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -332,7 +412,7 @@ function loadDirectory(path, options):
 
 ### 3. File Search Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -384,7 +464,7 @@ function searchFiles(criteria):
 
 ### 4. Thumbnail Generation Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -429,7 +509,7 @@ function generateThumbnail(request):
 
 ### 5. File System Operations Queue
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -474,14 +554,14 @@ function executeOperations(operations):
 
 ## Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### File Explorer Component Hierarchy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -516,7 +596,7 @@ graph TD
 
 ### State Management Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -552,16 +632,409 @@ graph LR
     Search --> Filter
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**FileExplorer.jsx**
+
+**What this code does:**
+• **Main Purpose**: File system explorer with navigation, operations, and clipboard functionality
+• **File Operations**: Handles CRUD operations on files and folders with navigation history
+• **Key Functions**:
+  - `loadDirectory()` - Fetches and caches directory contents
+  - `navigateTo()` - Changes current path with history tracking
+  - `updateDirectoryTree()` - Builds hierarchical folder structure
+  - `handleFileOperation()` - Processes cut, copy, paste operations
+  - `handleSearch()` - Filters files based on search criteria
+  - Clipboard management for file operations
+
+```jsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { FileSystemProvider } from './FileSystemContext';
+import ExplorerLayout from './ExplorerLayout';
+import { useFileSystem } from './hooks/useFileSystem';
+
+const FileExplorer = ({ initialPath = '/' }) => {
+  const [currentPath, setCurrentPath] = useState(initialPath);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'grid', 'table'
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [directoryTree, setDirectoryTree] = useState({});
+  const [fileCache, setFileCache] = useState(new Map());
+  const [clipboard, setClipboard] = useState({ items: [], operation: null }); // 'cut' or 'copy'
+  const [history, setHistory] = useState({ back: [], forward: [] });
+  
+  const { 
+    listDirectory, 
+    createFolder, 
+    deleteItems, 
+    moveItems, 
+    copyItems,
+    renameItem,
+    getFileInfo 
+  } = useFileSystem();
+
+  useEffect(() => {
+    loadDirectory(currentPath);
+  }, [currentPath]);
+
+  const loadDirectory = async (path) => {
+    try {
+      const items = await listDirectory(path);
+      setFileCache(prev => new Map(prev).set(path, items));
+      
+      // Update directory tree
+      updateDirectoryTree(path, items.filter(item => item.type === 'directory'));
+    } catch (error) {
+      console.error('Failed to load directory:', error);
+    }
+  };
+
+  const updateDirectoryTree = (path, directories) => {
+    setDirectoryTree(prev => ({
+      ...prev,
+      [path]: directories.map(dir => ({
+        ...dir,
+        path: `${path}/${dir.name}`.replace(/\/+/g, '/')
+      }))
+    }));
+  };
+
+  const navigateTo = useCallback((newPath) => {
+    if (newPath !== currentPath) {
+      setHistory(prev => ({
+        back: [...prev.back, currentPath],
+        forward: []
+      }));
+      setCurrentPath(newPath);
+      setSelectedItems([]);
+    }
+  }, [currentPath]);
+
+  const navigateBack = useCallback(() => {
+    if (history.back.length > 0) {
+      const previousPath = history.back[history.back.length - 1];
+      setHistory(prev => ({
+        back: prev.back.slice(0, -1),
+        forward: [currentPath, ...prev.forward]
+      }));
+      setCurrentPath(previousPath);
+    }
+  }, [history.back, currentPath]);
+
+  const navigateForward = useCallback(() => {
+    if (history.forward.length > 0) {
+      const nextPath = history.forward[0];
+      setHistory(prev => ({
+        back: [...prev.back, currentPath],
+        forward: prev.forward.slice(1)
+      }));
+      setCurrentPath(nextPath);
+    }
+  }, [history.forward, currentPath]);
+
+  const handleItemSelect = useCallback((item, isMultiSelect = false) => {
+    if (isMultiSelect) {
+      setSelectedItems(prev => {
+        const isSelected = prev.some(selected => selected.path === item.path);
+        if (isSelected) {
+          return prev.filter(selected => selected.path !== item.path);
+        } else {
+          return [...prev, item];
+        }
+      });
+    } else {
+      setSelectedItems([item]);
+    }
+  }, []);
+
+  const handleItemDoubleClick = useCallback((item) => {
+    if (item.type === 'directory') {
+      navigateTo(item.path);
+    } else {
+      // Open file (could trigger preview or download)
+      window.open(`/api/files/download?path=${encodeURIComponent(item.path)}`);
+    }
+  }, [navigateTo]);
+
+  const handleCreateFolder = useCallback(async (name) => {
+    try {
+      const newFolderPath = `${currentPath}/${name}`.replace(/\/+/g, '/');
+      await createFolder(newFolderPath);
+      loadDirectory(currentPath);
+    } catch (error) {
+      console.error('Failed to create folder:', error);
+    }
+  }, [currentPath, createFolder]);
+
+  const handleDelete = useCallback(async (items = selectedItems) => {
+    try {
+      await deleteItems(items.map(item => item.path));
+      loadDirectory(currentPath);
+      setSelectedItems([]);
+    } catch (error) {
+      console.error('Failed to delete items:', error);
+    }
+  }, [selectedItems, currentPath, deleteItems]);
+
+  const handleCopy = useCallback(() => {
+    setClipboard({
+      items: selectedItems,
+      operation: 'copy'
+    });
+  }, [selectedItems]);
+
+  const handleCut = useCallback(() => {
+    setClipboard({
+      items: selectedItems,
+      operation: 'cut'
+    });
+  }, [selectedItems]);
+
+  const handlePaste = useCallback(async () => {
+    if (clipboard.items.length === 0) return;
+
+    try {
+      const destinationPath = currentPath;
+      const sourcePaths = clipboard.items.map(item => item.path);
+
+      if (clipboard.operation === 'copy') {
+        await copyItems(sourcePaths, destinationPath);
+      } else if (clipboard.operation === 'cut') {
+        await moveItems(sourcePaths, destinationPath);
+        setClipboard({ items: [], operation: null });
+      }
+
+      loadDirectory(currentPath);
+    } catch (error) {
+      console.error('Failed to paste items:', error);
+    }
+  }, [clipboard, currentPath, copyItems, moveItems]);
+
+  const handleRename = useCallback(async (item, newName) => {
+    try {
+      const newPath = `${item.path.split('/').slice(0, -1).join('/')}/${newName}`;
+      await renameItem(item.path, newPath);
+      loadDirectory(currentPath);
+    } catch (error) {
+      console.error('Failed to rename item:', error);
+    }
+  }, [currentPath, renameItem]);
+
+  const getCurrentDirectoryItems = () => {
+    const items = fileCache.get(currentPath) || [];
+    
+    let filteredItems = items;
+    
+    // Apply search filter
+    if (searchQuery) {
+      filteredItems = items.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    filteredItems.sort((a, b) => {
+      let comparison = 0;
+      
+      // Directories first
+      if (a.type === 'directory' && b.type !== 'directory') return -1;
+      if (a.type !== 'directory' && b.type === 'directory') return 1;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'size':
+          comparison = (a.size || 0) - (b.size || 0);
+          break;
+        case 'modified':
+          comparison = new Date(a.modified) - new Date(b.modified);
+          break;
+        default:
+          comparison = a.name.localeCompare(b.name);
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+    
+    return filteredItems;
+  };
+
+  const value = {
+    currentPath,
+    selectedItems,
+    viewMode,
+    sortBy,
+    sortOrder,
+    searchQuery,
+    directoryTree,
+    clipboard,
+    history,
+    currentItems: getCurrentDirectoryItems(),
+    navigateTo,
+    navigateBack,
+    navigateForward,
+    onItemSelect: handleItemSelect,
+    onItemDoubleClick: handleItemDoubleClick,
+    onCreateFolder: handleCreateFolder,
+    onDelete: handleDelete,
+    onCopy: handleCopy,
+    onCut: handleCut,
+    onPaste: handlePaste,
+    onRename: handleRename,
+    setViewMode,
+    setSortBy,
+    setSortOrder,
+    setSearchQuery
+  };
+
+  return (
+    <FileSystemProvider value={value}>
+      <div className="file-explorer">
+        <ExplorerLayout />
+      </div>
+    </FileSystemProvider>
+  );
+};
+
+export default FileExplorer;
+```
+
+**ExplorerLayout.jsx**
+```jsx
+import React, { useContext } from 'react';
+import { FileSystemContext } from './FileSystemContext';
+import NavigationSidebar from './NavigationSidebar';
+import MainContentView from './MainContentView';
+import PreviewPanel from './PreviewPanel';
+
+const ExplorerLayout = () => {
+  const { selectedItems } = useContext(FileSystemContext);
+
+  return (
+    <div className="explorer-layout">
+      <div className="sidebar-section">
+        <NavigationSidebar />
+      </div>
+      
+      <div className="main-section">
+        <MainContentView />
+      </div>
+      
+      {selectedItems.length === 1 && (
+        <div className="preview-section">
+          <PreviewPanel item={selectedItems[0]} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ExplorerLayout;
+```
+
+**MainContentView.jsx**
+```jsx
+import React, { useContext } from 'react';
+import { FileSystemContext } from './FileSystemContext';
+import ActionToolbar from './ActionToolbar';
+import BreadcrumbNav from './BreadcrumbNav';
+import FileListView from './FileListView';
+import FileGridView from './FileGridView';
+import FileTableView from './FileTableView';
+
+const MainContentView = () => {
+  const { viewMode, currentItems } = useContext(FileSystemContext);
+
+  const renderContentView = () => {
+    switch (viewMode) {
+      case 'grid':
+        return <FileGridView items={currentItems} />;
+      case 'table':
+        return <FileTableView items={currentItems} />;
+      case 'list':
+      default:
+        return <FileListView items={currentItems} />;
+    }
+  };
+
+  return (
+    <div className="main-content-view">
+      <ActionToolbar />
+      <BreadcrumbNav />
+      
+      <div className="content-area">
+        {renderContentView()}
+      </div>
+    </div>
+  );
+};
+
+export default MainContentView;
+```
+
+**FileListView.jsx**
+```jsx
+import React, { useContext } from 'react';
+import { FixedSizeList as VirtualList } from 'react-window';
+import { FileSystemContext } from './FileSystemContext';
+import FileListItem from './FileListItem';
+
+const FileListView = ({ items }) => {
+  const { onItemSelect, onItemDoubleClick } = useContext(FileSystemContext);
+
+  const ItemRenderer = ({ index, style }) => (
+    <div style={style}>
+      <FileListItem
+        item={items[index]}
+        onSelect={onItemSelect}
+        onDoubleClick={onItemDoubleClick}
+      />
+    </div>
+  );
+
+  return (
+    <div className="file-list-view">
+      {items.length === 0 ? (
+        <div className="empty-directory">
+          <div className="empty-state">
+            <h3>This folder is empty</h3>
+            <p>Drag files here or create a new folder</p>
+          </div>
+        </div>
+      ) : (
+        <VirtualList
+          height={600}
+          itemCount={items.length}
+          itemSize={40}
+          overscanCount={10}
+        >
+          {ItemRenderer}
+        </VirtualList>
+      )}
+    </div>
+  );
+};
+
+export default FileListView;
+```
+
 ## Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Multi-pane Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -594,7 +1067,7 @@ graph TB
 
 ### File Type Associations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -627,16 +1100,184 @@ flowchart TD
     G --> O
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface FileSystemItem {
+  id: string;
+  name: string;
+  type: 'file' | 'folder';
+  path: string;
+  parentId?: string;
+  size: number;
+  mimeType?: string;
+  createdAt: Date;
+  modifiedAt: Date;
+  permissions: FilePermissions;
+  metadata: FileMetadata;
+  isHidden: boolean;
+}
+
+interface FilePermissions {
+  read: boolean;
+  write: boolean;
+  execute: boolean;
+  owner: string;
+  group?: string;
+  public?: boolean;
+}
+
+interface FileMetadata {
+  checksum?: string;
+  encoding?: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
+  tags?: string[];
+  description?: string;
+  version?: number;
+}
+
+interface FolderNode {
+  item: FileSystemItem;
+  children?: FolderNode[];
+  isExpanded: boolean;
+  isLoading: boolean;
+  hasMoreChildren: boolean;
+  depth: number;
+}
+
+interface FileSystemState {
+  currentPath: string;
+  selectedItems: string[];
+  clipboard: ClipboardItem[];
+  viewMode: 'list' | 'grid' | 'tree';
+  sortBy: SortOption;
+  showHidden: boolean;
+  searchQuery: string;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface FileExplorerProps {
+  rootPath?: string;
+  onFileSelect: (file: FileSystemItem) => void;
+  onFolderChange: (path: string) => void;
+  onFileAction: (action: string, items: FileSystemItem[]) => void;
+  allowMultiSelect?: boolean;
+  allowUpload?: boolean;
+  allowDelete?: boolean;
+  showPreview?: boolean;
+  customActions?: FileAction[];
+}
+
+interface FileTreeProps {
+  nodes: FolderNode[];
+  selectedPath?: string;
+  onNodeSelect: (node: FolderNode) => void;
+  onNodeExpand: (nodeId: string) => void;
+  onNodeCollapse: (nodeId: string) => void;
+  virtualScrolling?: boolean;
+  maxDepth?: number;
+  showIcons?: boolean;
+}
+
+interface FileListProps {
+  items: FileSystemItem[];
+  selectedIds: string[];
+  onItemSelect: (item: FileSystemItem) => void;
+  onItemDoubleClick: (item: FileSystemItem) => void;
+  onSelectionChange: (selectedIds: string[]) => void;
+  viewMode: 'list' | 'grid';
+  sortBy: SortOption;
+  showThumbnails?: boolean;
+}
+
+interface FileUploadProps {
+  onUpload: (files: File[], targetPath: string) => void;
+  onProgress: (progress: UploadProgress) => void;
+  allowedTypes?: string[];
+  maxFileSize?: number;
+  maxFiles?: number;
+  showProgress?: boolean;
+  dragAndDrop?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### File System Navigation
+- `GET /api/files/browse` - Browse directory contents with pagination and filtering
+- `GET /api/files/tree` - Get folder tree structure with lazy loading support
+- `GET /api/files/search` - Search files and folders with advanced criteria
+- `GET /api/files/:id/info` - Get detailed file information and metadata
+- `POST /api/files/recent` - Get recently accessed files and folders
+
+#### File Operations
+- `POST /api/files/upload` - Upload files with progress tracking and validation
+- `GET /api/files/:id/download` - Download file with resume capability
+- `PUT /api/files/:id/rename` - Rename file or folder with conflict detection
+- `DELETE /api/files/:id` - Delete file or folder (move to trash or permanent)
+- `POST /api/files/copy` - Copy files and folders to target location
+
+#### Folder Management
+- `POST /api/folders` - Create new folder with permissions and metadata
+- `PUT /api/folders/:id/move` - Move folder to different location in hierarchy
+- `GET /api/folders/:id/size` - Calculate total size of folder and contents
+- `POST /api/folders/:id/compress` - Create archive of folder contents
+- `POST /api/folders/:id/extract` - Extract archive to target folder
+
+#### File Preview & Thumbnails
+- `GET /api/files/:id/preview` - Get file preview for supported formats
+- `GET /api/files/:id/thumbnail` - Get generated thumbnail image
+- `POST /api/files/:id/generate-preview` - Generate preview for file type
+- `GET /api/files/:id/metadata` - Extract and return file metadata
+- `GET /api/files/:id/content` - Get file content for text-based files
+
+#### Permissions & Sharing
+- `GET /api/files/:id/permissions` - Get file or folder permission settings
+- `PUT /api/files/:id/permissions` - Update access permissions for item
+- `POST /api/files/:id/share` - Create shareable link with expiration
+- `GET /api/files/shared` - Get files shared with current user
+- `DELETE /api/files/:id/share` - Revoke sharing access for file
+
+#### File System Operations
+- `POST /api/files/batch` - Execute multiple file operations in single request
+- `GET /api/files/stats` - Get file system usage statistics
+- `POST /api/files/backup` - Create backup of selected files and folders
+- `GET /api/files/versions` - Get version history for file
+- `POST /api/files/:id/restore` - Restore file from version history
+
+#### Search & Indexing
+- `POST /api/search/index` - Trigger file content indexing for search
+- `GET /api/search/suggestions` - Get search suggestions based on content
+- `POST /api/search/advanced` - Advanced search with multiple criteria
+- `GET /api/search/saved` - Get saved search queries and filters
+- `POST /api/search/tag` - Add or remove tags from files for organization
+
+---
+
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Memory Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -660,7 +1301,7 @@ FileCache = {
 
 ### Rendering Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -681,7 +1322,7 @@ FileCache = {
 
 ### Network Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -705,14 +1346,14 @@ RequestBatcher = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Access Control
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -750,7 +1391,7 @@ graph TB
 
 ### Input Validation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -771,14 +1412,14 @@ graph TB
 
 ## Accessibility Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Keyboard Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -810,7 +1451,7 @@ stateDiagram-v2
 
 ### Screen Reader Support
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -830,14 +1471,14 @@ Space to select, F2 to rename"
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Unit Testing Focus Areas
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -856,7 +1497,7 @@ Space to select, F2 to rename"
 
 ### Integration Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -875,7 +1516,7 @@ Space to select, F2 to rename"
 
 ### End-to-End Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -888,14 +1529,14 @@ Space to select, F2 to rename"
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance vs Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -906,7 +1547,7 @@ Space to select, F2 to rename"
 
 ### Security vs Usability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -917,7 +1558,7 @@ Space to select, F2 to rename"
 
 ### Scalability Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

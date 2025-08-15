@@ -25,9 +25,13 @@
       - [Document Structure](#document-structure)
       - [Operation Structure](#operation-structure)
     - [API Design](#api-design)
-      - [WebSocket Event Protocol](#websocket-event-protocol)
-      - [REST API Endpoints](#rest-api-endpoints)
-  - [Performance and Scalability](#performance-and-scalability)
+- [WebSocket Event Protocol](#websocket-event-protocol)
+- [REST API Endpoints](#rest-api-endpoints)
+- [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+  - [Core Data Interfaces](#core-data-interfaces)
+  - [Component Props Interfaces](#component-props-interfaces)
+- [API Reference](#api-reference)
+- [Performance and Scalability](#performance-and-scalability)
     - [Client-Side Optimizations](#client-side-optimizations)
       - [Virtual Scrolling for Large Documents](#virtual-scrolling-for-large-documents)
       - [Operation Batching Strategy](#operation-batching-strategy)
@@ -70,14 +74,14 @@
 
 ## Clarify the Problem and Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Problem Understanding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -85,7 +89,7 @@ Design a real-time collaborative text editor enabling multiple users to simultan
 
 ### Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +102,7 @@ Design a real-time collaborative text editor enabling multiple users to simultan
 
 ### Non-Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -110,7 +114,7 @@ Design a real-time collaborative text editor enabling multiple users to simultan
 
 ### Key Assumptions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -124,14 +128,14 @@ Design a real-time collaborative text editor enabling multiple users to simultan
 
 ## High-Level Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Diagram
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -199,7 +203,7 @@ graph TB
 
 ### Data Flow Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -236,14 +240,14 @@ sequenceDiagram
 
 ## UI/UX and Component Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Frontend Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -307,9 +311,251 @@ graph TD
     DOC_STORE --> SYNC_QUEUE
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**DocumentContainer.jsx**
+
+**What this code does:**
+• **Main Purpose**: Real-time collaborative text editor with conflict resolution
+• **WebSocket Management**: Handles live synchronization between multiple users
+• **Key Functions**:
+  - `handleRemoteOperation()` - Applies incoming operations from other users using OT
+  - `handleLocalChange()` - Detects local edits and broadcasts to other users
+  - `sendOperation()` - Transmits user operations via WebSocket
+  - `generateOperation()` - Creates operation objects from content changes
+  - `applyOperation()` - Applies operational transforms to editor content
+
+```jsx
+// Imports: React hooks, Draft.js editor, context provider, child components
+// File Structure: ./CollaborationContext, ./DocumentHeader, ./EditorToolbar, ./CollaborationSidebar, ./CursorOverlay
+
+// States: editorState, activeUsers[], operations[], isConnected
+// Refs: editorRef, wsRef
+// Functions: handleRemoteOperation(), handleLocalChange(), sendOperation()
+// WebSocket: Connection to ws://localhost:8080/documents/{documentId}
+// OT Functions: applyOperation(), generateOperation()
+// Renders: CollaborationProvider wrapping document header, toolbar, editor with cursor overlay, sidebar
+
+// Component logic, state management, WebSocket setup, OT operations, render JSX
+```
+
+**EditorToolbar.jsx**
+
+**What this code does:**
+• **States**: None (controlled by parent)
+• **Functions**: `handleStyleToggle()`, `handleBlockToggle()`, `hasInlineStyle()`, `getBlockType()`
+• **Draft.js Integration**: Uses RichUtils for text formatting
+• **Renders**: Toolbar with formatting buttons (bold, italic, headings, lists)
+
+```jsx
+import React from 'react';
+import { RichUtils } from 'draft-js';
+
+const EditorToolbar = ({ editorState, onStateChange }) => {
+  const handleStyleToggle = (style) => {
+    onStateChange(RichUtils.toggleInlineStyle(editorState, style));
+  };
+
+  const handleBlockToggle = (blockType) => {
+    onStateChange(RichUtils.toggleBlockType(editorState, blockType));
+  };
+
+  const currentStyle = editorState.getCurrentInlineStyle();
+  const selection = editorState.getSelection();
+  const blockType = editorState
+    .getCurrentContent()
+    .getBlockForKey(selection.getStartKey())
+    .getType();
+
+  return (
+    <div className="editor-toolbar">
+      <div className="toolbar-group">
+        <button
+          className={currentStyle.has('BOLD') ? 'active' : ''}
+          onClick={() => handleStyleToggle('BOLD')}
+        >
+          Bold
+        </button>
+        <button
+          className={currentStyle.has('ITALIC') ? 'active' : ''}
+          onClick={() => handleStyleToggle('ITALIC')}
+        >
+          Italic
+        </button>
+        <button
+          className={currentStyle.has('UNDERLINE') ? 'active' : ''}
+          onClick={() => handleStyleToggle('UNDERLINE')}
+        >
+          Underline
+        </button>
+      </div>
+      
+      <div className="toolbar-group">
+        <button
+          className={blockType === 'header-one' ? 'active' : ''}
+          onClick={() => handleBlockToggle('header-one')}
+        >
+          H1
+        </button>
+        <button
+          className={blockType === 'header-two' ? 'active' : ''}
+          onClick={() => handleBlockToggle('header-two')}
+        >
+          H2
+        </button>
+        <button
+          className={blockType === 'unordered-list-item' ? 'active' : ''}
+          onClick={() => handleBlockToggle('unordered-list-item')}
+        >
+          • List
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default EditorToolbar;
+```
+
+**CursorOverlay.jsx**
+
+**What this code does:**
+• **Main Purpose**: Real-time cursor and selection visualization for collaborative users
+• **Visual Awareness**: Shows where other users are currently working
+• **Key Functions**:
+  - `getCursorPosition()` - Calculates pixel coordinates for user cursors
+  - `renderUserCursor()` - Creates colored cursor indicators with user names
+  - `updateSelection()` - Displays other users' text selections as highlights
+  - `assignUserColor()` - Assigns unique colors to each collaborative user
+  - Dynamic positioning updates as users navigate through the document
+
+```jsx
+import React from 'react';
+
+const CursorOverlay = ({ activeUsers }) => {
+  return (
+    <div className="cursor-overlay">
+      {activeUsers.map(user => (
+        <div
+          key={user.id}
+          className="remote-cursor"
+          style={{
+            left: user.cursorPosition?.x || 0,
+            top: user.cursorPosition?.y || 0,
+            borderColor: user.color
+          }}
+        >
+          <div 
+            className="cursor-flag"
+            style={{ backgroundColor: user.color }}
+          >
+            {user.name}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default CursorOverlay;
+```
+
+**OT Engine Utilities**
+
+**What this code does:**
+• **Main Purpose**: Core Operational Transform algorithm for conflict-free collaboration
+• **Consistency Guarantee**: Ensures all users see identical final document state
+• **Key Functions**:
+  - `generateOperation()` - Creates operation objects from content changes
+  - `applyOperation()` - Applies remote operations to local document
+  - `transformOperation()` - Resolves conflicts between concurrent operations
+  - `compose()` - Combines multiple operations into a single operation
+  - `invert()` - Creates inverse operations for undo functionality
+
+```jsx
+// otEngine.js
+export const generateOperation = (oldContent, newContent) => {
+  // Simplified operation generation
+  const oldText = oldContent.getPlainText();
+  const newText = newContent.getPlainText();
+  
+  if (newText.length > oldText.length) {
+    // Insert operation
+    const insertIndex = findInsertIndex(oldText, newText);
+    const insertedText = newText.slice(insertIndex, insertIndex + (newText.length - oldText.length));
+    
+    return {
+      type: 'insert',
+      position: insertIndex,
+      content: insertedText,
+      timestamp: Date.now(),
+      clientId: getClientId()
+    };
+  } else if (newText.length < oldText.length) {
+    // Delete operation
+    const deleteIndex = findDeleteIndex(oldText, newText);
+    const deleteLength = oldText.length - newText.length;
+    
+    return {
+      type: 'delete',
+      position: deleteIndex,
+      length: deleteLength,
+      timestamp: Date.now(),
+      clientId: getClientId()
+    };
+  }
+  
+  return null;
+};
+
+export const applyOperation = (content, operation) => {
+  const text = content.getPlainText();
+  
+  switch (operation.type) {
+    case 'insert':
+      const newText = text.slice(0, operation.position) + 
+                     operation.content + 
+                     text.slice(operation.position);
+      return ContentState.createFromText(newText);
+      
+    case 'delete':
+      const deletedText = text.slice(0, operation.position) + 
+                         text.slice(operation.position + operation.length);
+      return ContentState.createFromText(deletedText);
+      
+    default:
+      return content;
+  }
+};
+
+// Transform operation based on concurrent operations
+export const transformOperation = (op1, op2) => {
+  if (op1.type === 'insert' && op2.type === 'insert') {
+    if (op1.position <= op2.position) {
+      return { ...op2, position: op2.position + op1.content.length };
+    }
+    return op2;
+  }
+  
+  if (op1.type === 'delete' && op2.type === 'insert') {
+    if (op1.position < op2.position) {
+      return { ...op2, position: op2.position - op1.length };
+    }
+    return op2;
+  }
+  
+  // Add more transformation rules...
+  return op2;
+};
+```
+
 ### State Management Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -343,14 +589,14 @@ stateDiagram-v2
 
 ## Real-Time Sync, Data Modeling & APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Operational Transform Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -383,7 +629,7 @@ Result: Both Alice and Bob consistently see " AwesomeHello World". The OT algori
 
 #### OT Algorithm Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -408,7 +654,7 @@ graph TD
 
 #### Key OT Transformation Rules
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -427,7 +673,7 @@ graph TD
 
 #### Alternative: CRDT Approach
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -467,14 +713,14 @@ graph LR
 
 ### Data Models
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Document Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -498,7 +744,7 @@ Document {
 
 #### Operation Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -518,14 +764,14 @@ Operation {
 
 ### API Design
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### WebSocket Event Protocol
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -556,7 +802,7 @@ sequenceDiagram
 
 #### REST API Endpoints
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -566,25 +812,141 @@ sequenceDiagram
 - `GET /documents/:id/history` - Version history
 - `POST /documents/:id/comments` - Add comment
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface DocumentState {
+  id: string;
+  title: string;
+  content: EditorState;
+  collaborators: User[];
+  operations: Operation[];
+  version: number;
+  lastModified: Date;
+}
+
+interface Operation {
+  id: string;
+  type: 'insert' | 'delete' | 'format' | 'retain';
+  position: number;
+  content?: string;
+  attributes?: Record<string, any>;
+  author: string;
+  timestamp: Date;
+  clientId: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  color: string;
+  cursor?: CursorPosition;
+  isOnline: boolean;
+}
+
+interface CursorPosition {
+  line: number;
+  column: number;
+  selection?: {
+    start: number;
+    end: number;
+  };
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface EditorProps {
+  documentId: string;
+  initialContent?: EditorState;
+  readOnly?: boolean;
+  placeholder?: string;
+  theme?: 'light' | 'dark';
+  onDocumentChange?: (doc: DocumentState) => void;
+  onCollaboratorJoin?: (user: User) => void;
+  onError?: (error: Error) => void;
+}
+
+interface ToolbarProps {
+  editorState: EditorState;
+  onCommand: (command: string, value?: any) => void;
+  disabled?: boolean;
+  customButtons?: ToolbarButton[];
+}
+
+interface CollaborationPanelProps {
+  users: User[];
+  comments: Comment[];
+  onInviteUser?: (email: string) => void;
+  onAddComment?: (comment: CommentData) => void;
+  showPresence?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Document Management
+- `GET /api/documents` - List user's documents with pagination
+- `POST /api/documents` - Create new collaborative document
+- `GET /api/documents/:id` - Fetch document content and metadata
+- `PUT /api/documents/:id` - Update document title or settings
+- `DELETE /api/documents/:id` - Delete document and all operations
+
+#### Real-time Collaboration
+- `WS /api/documents/:id/connect` - Establish WebSocket for real-time collaboration
+- `POST /api/documents/:id/operations` - Submit operation for transformation
+- `GET /api/documents/:id/operations` - Fetch operation history with pagination
+- `POST /api/documents/:id/cursor` - Update user cursor position
+
+#### Sharing & Permissions
+- `POST /api/documents/:id/share` - Generate shareable link with permissions
+- `PUT /api/documents/:id/permissions` - Update document access permissions
+- `GET /api/documents/:id/collaborators` - List document collaborators
+- `DELETE /api/documents/:id/collaborators/:userId` - Remove collaborator access
+
+#### Comments & Reviews
+- `POST /api/documents/:id/comments` - Add comment to specific document position
+- `GET /api/documents/:id/comments` - Fetch comments with thread support
+- `PUT /api/comments/:commentId` - Update or resolve comment
+- `DELETE /api/comments/:commentId` - Delete comment (author only)
+
+#### Version History
+- `GET /api/documents/:id/versions` - List document version snapshots
+- `GET /api/documents/:id/versions/:versionId` - Fetch specific version content
+- `POST /api/documents/:id/restore/:versionId` - Restore document to previous version
+
 ---
 
 ## Performance and Scalability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Client-Side Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Virtual Scrolling for Large Documents
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -605,7 +967,7 @@ graph TD
 
 #### Operation Batching Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -630,14 +992,14 @@ timeline
 
 ### Server-Side Scaling
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Document Sharding Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -679,7 +1041,7 @@ graph TB
 
 #### Caching Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -707,14 +1069,14 @@ graph LR
 
 ## Security and Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Authentication & Authorization Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -740,14 +1102,14 @@ sequenceDiagram
 
 ### Data Protection Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### End-to-End Encryption Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -768,7 +1130,7 @@ graph TD
 
 ### Input Sanitization Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -791,21 +1153,21 @@ graph LR
 
 ## Testing, Monitoring, and Maintainability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Testing Pyramid
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -833,7 +1195,7 @@ graph TD
 
 ### Monitoring Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -873,7 +1235,7 @@ graph TB
 
 ### Key Metrics to Monitor
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -897,14 +1259,14 @@ graph TB
 
 ## Trade-offs, Deep Dives, and Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### OT vs CRDT Comparison
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -920,14 +1282,14 @@ graph TB
 
 ### Scalability Bottlenecks & Solutions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Problem: Hot Document Scaling
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -950,7 +1312,7 @@ graph TD
 
 #### Solution: Hierarchical OT
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -978,14 +1340,14 @@ graph TB
 
 ### Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Smart Auto-Save Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1004,7 +1366,7 @@ stateDiagram-v2
 
 #### Conflict-Free Comment System
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1023,7 +1385,7 @@ graph TD
 
 ### Future Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

@@ -1,0 +1,7 @@
+Problem: Create_a_React_component_with_state_management_usi
+Category: React/Frontend Problems
+Generated: 2025-08-01T06:06:06.131163
+Input Type: text
+==================================================
+
+Create a React component with state management using useState hook

@@ -1,0 +1,25 @@
+{
+  "problem_title": "two_numbers_such_that_they_add_up_to_target.",
+  "category": "javascript",
+  "category_name": "JavaScript Problems",
+  "generated_at": "2025-08-01T06:06:26.916254",
+  "input_type": "text",
+  "solution_hash": "e1d161f4",
+  "success": true,
+  "processing_time": null,
+  "iterations": null,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/javascript/2025-08-01/060626_two_numbers_such_that_they_add_up_to_target._e1d161f4_solution.js",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/javascript/2025-08-01/060626_two_numbers_such_that_they_add_up_to_target._e1d161f4_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/javascript/2025-08-01/060626_two_numbers_such_that_they_add_up_to_target._e1d161f4_metadata.json"
+  },
+  "analysis": {
+    "explanation": "Use hash map for O(n) solution",
+    "complexity_analysis": "Time: O(n), Space: O(n)",
+    "brute_force_approach": null,
+    "test_cases_covered": null
+  },
+  "execution_result": null,
+  "correction_history": []
+}

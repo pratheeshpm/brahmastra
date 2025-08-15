@@ -29,6 +29,10 @@
       - [Chat Schema](#chat-schema)
     - [WebSocket Protocol Design](#websocket-protocol-design)
       - [Custom Protocol Over WebSocket](#custom-protocol-over-websocket)
+  - [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+    - [Core Data Interfaces](#core-data-interfaces)
+    - [Component Props Interfaces](#component-props-interfaces)
+  - [API Reference](#api-reference)
   - [Performance and Scalability](#performance-and-scalability)
     - [Message Sharding Strategy](#message-sharding-strategy)
       - [Horizontal Scaling Architecture](#horizontal-scaling-architecture)
@@ -82,14 +86,14 @@
 
 ## Clarify the Problem and Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Problem Understanding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -97,7 +101,7 @@ Design a real-time chat application supporting instant messaging, group chats, m
 
 ### Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -112,7 +116,7 @@ Design a real-time chat application supporting instant messaging, group chats, m
 
 ### Non-Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -125,7 +129,7 @@ Design a real-time chat application supporting instant messaging, group chats, m
 
 ### Key Assumptions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -140,14 +144,14 @@ Design a real-time chat application supporting instant messaging, group chats, m
 
 ## High-Level Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Global System Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -225,7 +229,7 @@ graph TB
 
 ### Real-time Message Flow Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -267,14 +271,14 @@ sequenceDiagram
 
 ## UI/UX and Component Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Frontend Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -365,9 +369,477 @@ graph TD
     MESSAGE_SERVICE --> SYNC_SERVICE
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**ChatContainer.jsx**
+
+**What this code does:**
+• **Main Purpose**: Real-time chat application with WebSocket messaging
+• **State Management**: Manages chats, messages, online users, and typing indicators
+• **Key Functions**:
+  - `handleNewMessage()` - Processes incoming messages and updates chat list
+  - `handlePresenceUpdate()` - Tracks user online/offline status
+  - `handleTypingUpdate()` - Shows typing indicators from other users
+  - `sendMessage()` - Broadcasts messages via WebSocket
+  - WebSocket connection management with automatic reconnection
+
+```jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { ChatProvider } from './ChatContext';
+import ChatSidebar from './ChatSidebar';
+import ChatMainArea from './ChatMainArea';
+import ChatHeader from './ChatHeader';
+import WebSocketManager from './services/WebSocketManager';
+
+const ChatContainer = () => {
+  const [activeChat, setActiveChat] = useState(null);
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState({});
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
+  const [typingUsers, setTypingUsers] = useState({});
+  const wsManager = useRef(null);
+
+  useEffect(() => {
+    // Initialize WebSocket connection
+    wsManager.current = new WebSocketManager({
+      onMessage: handleNewMessage,
+      onPresenceUpdate: handlePresenceUpdate,
+      onTyping: handleTypingUpdate,
+      onChatUpdate: handleChatUpdate
+    });
+
+    return () => {
+      wsManager.current?.disconnect();
+    };
+  }, []);
+
+  const handleNewMessage = (message) => {
+    setMessages(prev => ({
+      ...prev,
+      [message.chatId]: [...(prev[message.chatId] || []), message]
+    }));
+    
+    // Update chat list with latest message
+    setChats(prev => prev.map(chat => 
+      chat.id === message.chatId 
+        ? { ...chat, lastMessage: message, unreadCount: chat.unreadCount + 1 }
+        : chat
+    ));
+  };
+
+  const handlePresenceUpdate = (userId, status) => {
+    setOnlineUsers(prev => {
+      const newSet = new Set(prev);
+      if (status === 'online') {
+        newSet.add(userId);
+      } else {
+        newSet.delete(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleTypingUpdate = (chatId, userId, isTyping) => {
+    setTypingUsers(prev => ({
+      ...prev,
+      [chatId]: isTyping 
+        ? [...(prev[chatId] || []), userId]
+        : (prev[chatId] || []).filter(id => id !== userId)
+    }));
+  };
+
+  const sendMessage = (content, type = 'text') => {
+    if (!activeChat) return;
+
+    const message = {
+      id: Date.now().toString(),
+      chatId: activeChat.id,
+      content,
+      type,
+      timestamp: new Date().toISOString(),
+      senderId: 'current-user'
+    };
+
+    wsManager.current?.sendMessage(message);
+    handleNewMessage(message);
+  };
+
+  return (
+    <ChatProvider value={{
+      activeChat,
+      setActiveChat,
+      chats,
+      messages: messages[activeChat?.id] || [],
+      onlineUsers,
+      typingUsers: typingUsers[activeChat?.id] || [],
+      sendMessage
+    }}>
+      <div className="chat-container">
+        <ChatSidebar chats={chats} onChatSelect={setActiveChat} />
+        <div className="main-area">
+          <ChatHeader />
+          <ChatMainArea />
+        </div>
+      </div>
+    </ChatProvider>
+  );
+};
+
+export default ChatContainer;
+```
+
+**MessageList.jsx**
+
+**What this code does:**
+• **Main Purpose**: Virtualized message list with auto-scroll and date grouping
+• **Performance**: Virtual scrolling for large message histories
+• **Key Functions**:
+  - `scrollToBottom()` - Auto-scrolls to newest messages
+  - `groupMessagesByDate()` - Organizes messages by date for display
+  - `useVirtualScroll()` - Optimizes rendering for large message lists
+  - `isAtBottom` detection - Determines when to auto-scroll
+  - Message grouping logic for consecutive messages from same user
+
+```jsx
+import React, { useEffect, useRef, useContext } from 'react';
+import { ChatContext } from './ChatContext';
+import MessageBubble from './MessageBubble';
+import TypingIndicator from './TypingIndicator';
+import { useVirtualScroll } from './hooks/useVirtualScroll';
+
+const MessageList = () => {
+  const { messages, typingUsers } = useContext(ChatContext);
+  const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
+  
+  const {
+    visibleItems,
+    scrollToIndex,
+    isAtBottom
+  } = useVirtualScroll({
+    items: messages,
+    container: containerRef.current,
+    itemHeight: 80
+  });
+
+  useEffect(() => {
+    if (isAtBottom) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const groupMessagesByDate = (messages) => {
+    const groups = {};
+    messages.forEach(message => {
+      const date = new Date(message.timestamp).toDateString();
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(message);
+    });
+    return groups;
+  };
+
+  const messageGroups = groupMessagesByDate(visibleItems);
+
+  return (
+    <div className="message-list" ref={containerRef}>
+      {Object.entries(messageGroups).map(([date, dateMessages]) => (
+        <div key={date} className="message-date-group">
+          <div className="date-divider">{date}</div>
+          {dateMessages.map((message, index) => {
+            const prevMessage = dateMessages[index - 1];
+            const isGrouped = prevMessage && 
+              prevMessage.senderId === message.senderId &&
+              (new Date(message.timestamp) - new Date(prevMessage.timestamp)) < 300000;
+
+            return (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isGrouped={isGrouped}
+              />
+            );
+          })}
+        </div>
+      ))}
+      
+      {typingUsers.length > 0 && (
+        <TypingIndicator users={typingUsers} />
+      )}
+      
+      <div ref={messagesEndRef} />
+    </div>
+  );
+};
+
+export default MessageList;
+```
+
+**MessageInput.jsx**
+
+**What this code does:**
+• **Main Purpose**: Chat input with emoji picker, file upload, and voice recording
+• **Rich Input**: Multi-line text input with formatting and media support
+• **Key Functions**:
+  - `handleSubmit()` - Sends text messages and clears input
+  - `handleTyping()` - Broadcasts typing indicators with timeout
+  - `handleEmojiSelect()` - Inserts emojis at cursor position
+  - `handleFileUpload()` - Processes different file types (image, video, document)
+  - `sendTypingStatus()` - WebSocket typing events with auto-timeout
+
+```jsx
+import React, { useState, useRef, useContext } from 'react';
+import { ChatContext } from './ChatContext';
+import EmojiPicker from './EmojiPicker';
+import AttachmentPicker from './AttachmentPicker';
+import VoiceRecorder from './VoiceRecorder';
+
+const MessageInput = () => {
+  const { sendMessage, activeChat } = useContext(ChatContext);
+  const [message, setMessage] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const inputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (message.trim()) {
+      sendMessage(message);
+      setMessage('');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+    handleTyping();
+  };
+
+  const handleTyping = () => {
+    // Send typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Send start typing event
+    sendTypingStatus(true);
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTypingStatus(false);
+    }, 3000);
+  };
+
+  const sendTypingStatus = (isTyping) => {
+    // WebSocket typing event would be sent here
+    console.log('Typing status:', isTyping);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    const start = inputRef.current.selectionStart;
+    const end = inputRef.current.selectionEnd;
+    const newMessage = message.slice(0, start) + emoji + message.slice(end);
+    setMessage(newMessage);
+    setShowEmojiPicker(false);
+    
+    // Restore cursor position
+    setTimeout(() => {
+      inputRef.current.setSelectionRange(start + emoji.length, start + emoji.length);
+      inputRef.current.focus();
+    }, 0);
+  };
+
+  const handleFileUpload = (files) => {
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith('image/')) {
+        sendMessage(file, 'image');
+      } else if (file.type.startsWith('video/')) {
+        sendMessage(file, 'video');
+      } else {
+        sendMessage(file, 'document');
+      }
+    });
+  };
+
+  return (
+    <div className="message-input-container">
+      <form onSubmit={handleSubmit} className="message-input-form">
+        <div className="input-actions">
+          <AttachmentPicker onFileSelect={handleFileUpload} />
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="emoji-button"
+          >
+            😊
+          </button>
+        </div>
+        
+        <textarea
+          ref={inputRef}
+          value={message}
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
+          placeholder="Type a message..."
+          className="message-input"
+          rows="1"
+          disabled={!activeChat}
+        />
+        
+        <div className="send-actions">
+          {message.trim() ? (
+            <button type="submit" className="send-button">
+              Send
+            </button>
+          ) : (
+            <VoiceRecorder
+              isRecording={isRecording}
+              onStartRecording={() => setIsRecording(true)}
+              onStopRecording={(audioBlob) => {
+                setIsRecording(false);
+                sendMessage(audioBlob, 'audio');
+              }}
+            />
+          )}
+        </div>
+      </form>
+      
+      {showEmojiPicker && (
+        <EmojiPicker
+          onEmojiSelect={handleEmojiSelect}
+          onClose={() => setShowEmojiPicker(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default MessageInput;
+```
+
+**WebSocket Service**
+```jsx
+**WebSocketManager Service**
+
+**What this code does:**
+• **Main Purpose**: WebSocket connection management with reconnection logic
+• **Message Routing**: Handles different message types (message, presence, typing)
+• **Key Functions**:
+  - `connect()` - Establishes WebSocket connection with error handling
+  - `handleMessage()` - Routes incoming messages by type to appropriate handlers
+  - `sendMessage()` - Sends chat messages through WebSocket
+  - `handleReconnect()` - Implements exponential backoff reconnection strategy
+  - `sendTypingStatus()` - Broadcasts typing indicators to other users
+
+// services/WebSocketManager.js
+class WebSocketManager {
+  constructor(options) {
+    this.options = options;
+    this.ws = null;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+    this.reconnectDelay = 1000;
+    this.connect();
+  }
+
+  connect() {
+    try {
+      this.ws = new WebSocket('ws://localhost:8080/chat');
+      
+      this.ws.onopen = () => {
+        console.log('WebSocket connected');
+        this.reconnectAttempts = 0;
+      };
+
+      this.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        this.handleMessage(data);
+      };
+
+      this.ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        this.handleReconnect();
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    } catch (error) {
+      console.error('WebSocket connection failed:', error);
+      this.handleReconnect();
+    }
+  }
+
+  handleMessage(data) {
+    switch (data.type) {
+      case 'message':
+        this.options.onMessage?.(data.payload);
+        break;
+      case 'presence':
+        this.options.onPresenceUpdate?.(data.userId, data.status);
+        break;
+      case 'typing':
+        this.options.onTyping?.(data.chatId, data.userId, data.isTyping);
+        break;
+      case 'chat_update':
+        this.options.onChatUpdate?.(data.payload);
+        break;
+    }
+  }
+
+  sendMessage(message) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'message',
+        payload: message
+      }));
+    }
+  }
+
+  sendTypingStatus(chatId, isTyping) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'typing',
+        chatId,
+        isTyping
+      }));
+    }
+  }
+
+  handleReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      setTimeout(() => {
+        console.log(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        this.connect();
+      }, this.reconnectDelay * this.reconnectAttempts);
+    }
+  }
+
+  disconnect() {
+    this.ws?.close();
+  }
+}
+
+export default WebSocketManager;
+```
+
 ### State Management Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -406,7 +878,7 @@ graph TD
 
 ### Responsive Design Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -451,35 +923,35 @@ graph LR
 
 ## Real-Time Sync, Data Modeling & APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Message Ordering and Consistency Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Vector Clock Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ```mermaid
 graph TD
-    A[User A sends message<br/>Vector: [A:1, B:0, C:0]] --> B[User B receives<br/>Updates vector: [A:1, B:0, C:0]]
-    B --> C[User B sends message<br/>Vector: [A:1, B:1, C:0]]
-    C --> D[User C receives both<br/>Vector: [A:1, B:1, C:0]]
-    D --> E[User C sends message<br/>Vector: [A:1, B:1, C:1]]
+    A["User A sends message<br/>Vector: [A:1, B:0, C:0]"] --> B["User B receives<br/>Updates vector: [A:1, B:0, C:0]"]
+    B --> C["User B sends message<br/>Vector: [A:1, B:1, C:0]"]
+    C --> D["User C receives both<br/>Vector: [A:1, B:1, C:0]"]
+    D --> E["User C sends message<br/>Vector: [A:1, B:1, C:1]"]
     
-    F[Concurrent message from A<br/>Vector: [A:2, B:0, C:0]] --> G[Conflict detection<br/>Compare vectors]
-    G --> H[Apply ordering rules<br/>User ID, timestamp]
-    H --> I[Consistent message order<br/>across all clients]
+    F["Concurrent message from A<br/>Vector: [A:2, B:0, C:0]"] --> G["Conflict detection<br/>Compare vectors"]
+    G --> H["Apply ordering rules<br/>User ID, timestamp"]
+    H --> I["Consistent message order<br/>across all clients"]
     
     style G fill:#ffcccc
     style H fill:#ffffcc
@@ -488,7 +960,7 @@ graph TD
 
 #### Message Delivery Guarantees
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -512,14 +984,14 @@ stateDiagram-v2
 
 ### Real-time Presence Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Presence State Machine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -549,7 +1021,7 @@ stateDiagram-v2
 
 #### Presence Synchronization Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -589,14 +1061,14 @@ sequenceDiagram
 
 ### Data Models
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Message Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -630,7 +1102,7 @@ Message {
 
 #### Chat Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -661,14 +1133,14 @@ Chat {
 
 ### WebSocket Protocol Design
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Custom Protocol Over WebSocket
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -700,25 +1172,168 @@ sequenceDiagram
     C->>WS: RETRY {original_message}
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface Message {
+  id: string;
+  chatId: string;
+  senderId: string;
+  content: MessageContent;
+  timestamp: Date;
+  editedAt?: Date;
+  replyTo?: string;
+  reactions: Reaction[];
+  status: 'sending' | 'sent' | 'delivered' | 'read';
+  isDeleted: boolean;
+}
+
+interface MessageContent {
+  type: 'text' | 'image' | 'video' | 'audio' | 'file' | 'location';
+  text?: string;
+  media?: MediaAttachment;
+  location?: GeoLocation;
+  mentions?: string[];
+}
+
+interface Chat {
+  id: string;
+  type: 'direct' | 'group' | 'channel';
+  name?: string;
+  description?: string;
+  avatarUrl?: string;
+  participants: Participant[];
+  lastMessage?: Message;
+  unreadCount: number;
+  isMuted: boolean;
+  isPinned: boolean;
+}
+
+interface User {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+  status: 'online' | 'offline' | 'away' | 'busy';
+  lastSeen?: Date;
+  isTyping?: boolean;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface ChatListProps {
+  chats: Chat[];
+  selectedChatId?: string;
+  onChatSelect: (chatId: string) => void;
+  onChatCreate: () => void;
+  showUnreadOnly?: boolean;
+  searchQuery?: string;
+}
+
+interface MessageListProps {
+  messages: Message[];
+  currentUserId: string;
+  onMessageReply: (message: Message) => void;
+  onMessageEdit: (messageId: string, newContent: string) => void;
+  onMessageDelete: (messageId: string) => void;
+  onReaction: (messageId: string, emoji: string) => void;
+  virtualScrolling?: boolean;
+}
+
+interface MessageInputProps {
+  chatId: string;
+  replyingTo?: Message;
+  onSendMessage: (content: MessageContent) => void;
+  onTypingStart: () => void;
+  onTypingStop: () => void;
+  onFileUpload: (files: File[]) => void;
+  placeholder?: string;
+  maxLength?: number;
+}
+
+interface UserPresenceProps {
+  users: User[];
+  onUserClick?: (userId: string) => void;
+  showOnlineOnly?: boolean;
+  maxVisible?: number;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Chat Management
+- `GET /api/chats` - Get user's chat list with pagination and filtering
+- `POST /api/chats` - Create new chat (direct message or group)
+- `GET /api/chats/:id` - Get chat details with participant information
+- `PUT /api/chats/:id` - Update chat settings (name, description, avatar)
+- `DELETE /api/chats/:id` - Delete or leave chat with archive option
+
+#### Message Operations
+- `GET /api/chats/:id/messages` - Get chat messages with pagination and search
+- `POST /api/chats/:id/messages` - Send new message with media attachments
+- `PUT /api/messages/:id` - Edit message content (within edit time limit)
+- `DELETE /api/messages/:id` - Delete message for self or all participants
+- `POST /api/messages/:id/reactions` - Add or remove emoji reaction
+
+#### Real-time Communication
+- `WS /api/chat/connect` - Establish WebSocket connection for real-time messaging
+- `WS SEND_MESSAGE` - Send message through WebSocket with delivery confirmation
+- `WS TYPING_START/STOP` - Broadcast typing indicators to chat participants
+- `WS PRESENCE_UPDATE` - Update and broadcast user online status
+- `WS MESSAGE_READ` - Mark messages as read with read receipts
+
+#### Media & File Sharing
+- `POST /api/media/upload` - Upload media files with progress tracking
+- `GET /api/media/:id` - Download media file with access control
+- `POST /api/files/share` - Share files with virus scanning and preview generation
+- `GET /api/files/:id/preview` - Get file preview thumbnail or metadata
+- `DELETE /api/media/:id` - Delete uploaded media file
+
+#### User & Presence
+- `GET /api/users/search` - Search users for adding to chats
+- `PUT /api/users/status` - Update user presence status and activity
+- `GET /api/users/:id/profile` - Get user profile information
+- `POST /api/users/block` - Block or unblock user from messaging
+- `GET /api/users/contacts` - Get user's contact list with sync support
+
+#### Group Chat Features
+- `POST /api/chats/:id/participants` - Add participants to group chat
+- `DELETE /api/chats/:id/participants/:userId` - Remove participant from group
+- `PUT /api/chats/:id/participants/:userId/role` - Update participant role/permissions
+- `GET /api/chats/:id/invite-link` - Generate invite link for group chat
+- `POST /api/chats/:id/pin-message` - Pin important message in group chat
+
 ---
 
 ## Performance and Scalability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Message Sharding Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Horizontal Scaling Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -759,14 +1374,14 @@ graph TB
 
 ### WebSocket Connection Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Connection Pooling and Load Balancing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -825,14 +1440,14 @@ graph TD
 
 ### Caching Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Level Caching Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -869,14 +1484,14 @@ graph LR
 
 ### Database Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Message Storage Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -890,10 +1505,10 @@ graph TD
     end
     
     subgraph "Query Optimization"
-        INDEX1[Primary Key: (chat_id, timestamp)]
-        INDEX2[Secondary Index: sender_id]
-        INDEX3[Search Index: content_text]
-        BLOOM[Bloom Filter: message existence]
+        INDEX1["Primary Key: (chat_id, timestamp)"]
+        INDEX2["Secondary Index: sender_id"]
+        INDEX3["Search Index: content_text"]
+        BLOOM["Bloom Filter: message existence"]
     end
     
     subgraph "Compression Strategy"
@@ -918,21 +1533,21 @@ graph TD
 
 ## Security and Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### End-to-End Encryption Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Signal Protocol Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -975,7 +1590,7 @@ graph TD
 
 #### Message Encryption Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1009,14 +1624,14 @@ sequenceDiagram
 
 ### Authentication and Authorization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Factor Authentication Flow
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1054,14 +1669,14 @@ stateDiagram-v2
 
 ### Privacy and Data Protection
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Data Minimization Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1109,21 +1724,21 @@ graph TD
 
 ## Testing, Monitoring, and Maintainability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Real-time System Testing Approach
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1176,14 +1791,14 @@ graph TD
 
 ### Monitoring and Observability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Real-time Metrics Dashboard
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1232,14 +1847,14 @@ graph TB
 
 ### Error Handling and Recovery
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Circuit Breaker Pattern Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1275,14 +1890,14 @@ stateDiagram-v2
 
 ## Trade-offs, Deep Dives, and Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Real-time Protocol Comparison
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1298,14 +1913,14 @@ stateDiagram-v2
 
 ### Message Storage Trade-offs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### SQL vs NoSQL for Messages
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1328,14 +1943,14 @@ graph LR
 
 ### Scaling Challenges and Solutions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Hot Chat Problem
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1359,7 +1974,7 @@ graph TD
 
 #### Global Consistency vs Performance
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1389,14 +2004,14 @@ graph TD
 
 ### Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### AI-Powered Chat Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1437,7 +2052,7 @@ graph TD
 
 #### Advanced Presence System
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1470,14 +2085,14 @@ stateDiagram-v2
 
 ### Future Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Next-Generation Chat Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

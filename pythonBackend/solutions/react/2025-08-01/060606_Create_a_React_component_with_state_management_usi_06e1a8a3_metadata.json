@@ -1,0 +1,25 @@
+{
+  "problem_title": "Create_a_React_component_with_state_management_usi",
+  "category": "react",
+  "category_name": "React/Frontend Problems",
+  "generated_at": "2025-08-01T06:06:06.131213",
+  "input_type": "text",
+  "solution_hash": "06e1a8a3",
+  "success": true,
+  "processing_time": null,
+  "iterations": null,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/react/2025-08-01/060606_Create_a_React_component_with_state_management_usi_06e1a8a3_solution.html",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/react/2025-08-01/060606_Create_a_React_component_with_state_management_usi_06e1a8a3_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/react/2025-08-01/060606_Create_a_React_component_with_state_management_usi_06e1a8a3_metadata.json"
+  },
+  "analysis": {
+    "explanation": "Simple stateful component",
+    "complexity_analysis": null,
+    "brute_force_approach": null,
+    "test_cases_covered": null
+  },
+  "execution_result": null,
+  "correction_history": []
+}

@@ -1,0 +1,23 @@
+{
+  "problem_title": "Two Sum Problem",
+  "generated_at": "2025-08-01T05:39:15.396343",
+  "input_type": "text",
+  "solution_hash": "9453184d",
+  "success": true,
+  "processing_time": 15.3,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/2025-08-01/053915_Two Sum Problem_9453184d_solution.js",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/2025-08-01/053915_Two Sum Problem_9453184d_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/2025-08-01/053915_Two Sum Problem_9453184d_metadata.json"
+  },
+  "analysis": {
+    "explanation": "Use a hash map to store numbers and their indices...",
+    "complexity_analysis": "Time Complexity: O(n), Space Complexity: O(n)",
+    "brute_force_approach": "Nested loops: O(n²) time complexity",
+    "test_cases_covered": "Empty array, no solution, duplicate numbers"
+  },
+  "execution_result": null,
+  "correction_history": []
+}

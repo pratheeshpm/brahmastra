@@ -68,14 +68,14 @@
 
 ## Clarify the Problem and Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Problem Understanding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -83,7 +83,7 @@ Design a comprehensive marketplace frontend catalog system that enables millions
 
 ### Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +98,7 @@ Design a comprehensive marketplace frontend catalog system that enables millions
 
 ### Non-Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -111,7 +111,7 @@ Design a comprehensive marketplace frontend catalog system that enables millions
 
 ### Key Assumptions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -126,14 +126,14 @@ Design a comprehensive marketplace frontend catalog system that enables millions
 
 ## High-Level Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Global E-commerce Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -224,7 +224,7 @@ graph TB
 
 ### Product Discovery & Search Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -299,14 +299,14 @@ graph TD
 
 ## UI/UX and Component Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Frontend Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -444,9 +444,584 @@ graph TD
     ADD_TO_CART --> NOTIFICATION_SERVICE
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**MarketplaceContainer.jsx**
+```jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { MarketplaceProvider } from './MarketplaceContext';
+import { CartProvider } from './CartContext';
+import Header from './Header';
+import ProductListing from './ProductListing';
+import FilterSidebar from './FilterSidebar';
+import ProductDetail from './ProductDetail';
+import { useSearchParams } from 'react-router-dom';
+
+const MarketplaceContainer = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [filters, setFilters] = useState({
+    category: searchParams.get('category') || '',
+    priceRange: [0, 1000],
+    rating: 0,
+    brand: [],
+    inStock: false
+  });
+  const [sortBy, setSortBy] = useState('relevance');
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [filters, sortBy, currentPage]);
+
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        ...filters,
+        sortBy,
+        page: currentPage,
+        limit: 20
+      });
+
+      const response = await fetch(`/api/products?${params}`);
+      const data = await response.json();
+      
+      setProducts(data.products);
+      setTotalResults(data.total);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+    
+    // Update URL params
+    const params = new URLSearchParams();
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value && value !== '' && value !== 0) {
+        params.set(key, value);
+      }
+    });
+    setSearchParams(params);
+  }, [setSearchParams]);
+
+  const handleAddToCart = useCallback((product, quantity = 1) => {
+    setCart(prev => {
+      const existingItem = prev.find(item => item.id === product.id);
+      if (existingItem) {
+        return prev.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity }];
+    });
+  }, []);
+
+  const handleToggleWishlist = useCallback((productId) => {
+    setWishlist(prev => 
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  }, []);
+
+  const updateCartQuantity = useCallback((productId, quantity) => {
+    if (quantity <= 0) {
+      setCart(prev => prev.filter(item => item.id !== productId));
+    } else {
+      setCart(prev => prev.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      ));
+    }
+  }, []);
+
+  return (
+    <MarketplaceProvider value={{
+      products,
+      filters,
+      sortBy,
+      isLoading,
+      totalResults,
+      currentPage,
+      wishlist,
+      onFilterChange: handleFilterChange,
+      onSortChange: setSortBy,
+      onPageChange: setCurrentPage,
+      onToggleWishlist: handleToggleWishlist
+    }}>
+      <CartProvider value={{
+        cart,
+        onAddToCart: handleAddToCart,
+        onUpdateQuantity: updateCartQuantity
+      }}>
+        <div className="marketplace-container">
+          <Header />
+          
+          <main className="marketplace-main">
+            <div className="content-wrapper">
+              <FilterSidebar
+                filters={filters}
+                onFiltersChange={handleFilterChange}
+              />
+              
+              <div className="products-section">
+                <ProductListing
+                  products={products}
+                  isLoading={isLoading}
+                  totalResults={totalResults}
+                  currentPage={currentPage}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            </div>
+          </main>
+        </div>
+      </CartProvider>
+    </MarketplaceProvider>
+  );
+};
+
+export default MarketplaceContainer;
+```
+
+**ProductCard.jsx**
+
+**What this code does:**
+• **Main Purpose**: Individual product card with wishlist, cart, and quick view functionality
+• **User Interactions**: Handles add to cart, wishlist toggle, and quick view modal
+• **Key Functions**:
+  - `handleAddToCart()` - Adds product to cart with loading feedback
+  - `handleQuickView()` - Opens product quick view modal
+  - `getImageSrc()` - Provides image fallback and lazy loading
+  - `calculateDiscount()` - Computes and displays discount percentage
+  - Image loading states with skeleton placeholder
+
+```jsx
+import React, { useState, useContext } from 'react';
+import { MarketplaceContext } from './MarketplaceContext';
+import { CartContext } from './CartContext';
+import RatingStars from './RatingStars';
+import PriceDisplay from './PriceDisplay';
+import StockIndicator from './StockIndicator';
+import WishlistButton from './WishlistButton';
+import QuickViewModal from './QuickViewModal';
+
+const ProductCard = ({ product }) => {
+  const { wishlist, onToggleWishlist } = useContext(MarketplaceContext);
+  const { onAddToCart } = useContext(CartContext);
+  const [showQuickView, setShowQuickView] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  const isInWishlist = wishlist.includes(product.id);
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddToCart(product);
+    
+    // Show success feedback
+    const button = e.target;
+    const originalText = button.textContent;
+    button.textContent = 'Added!';
+    button.disabled = true;
+    
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.disabled = false;
+    }, 1500);
+  };
+
+  const handleQuickView = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowQuickView(true);
+  };
+
+  const getImageSrc = () => {
+    return product.images?.thumbnail || product.images?.small || '/placeholder-product.jpg';
+  };
+
+  const calculateDiscount = () => {
+    if (product.originalPrice && product.currentPrice) {
+      return Math.round(((product.originalPrice - product.currentPrice) / product.originalPrice) * 100);
+    }
+    return 0;
+  };
+
+  const discount = calculateDiscount();
+
+  return (
+    <>
+      <div className="product-card">
+        <div className="product-image-container">
+          {!imageLoaded && !imageError && (
+            <div className="image-skeleton" />
+          )}
+          
+          <img
+            src={getImageSrc()}
+            alt={product.name}
+            className={`product-image ${imageLoaded ? 'loaded' : ''}`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+            loading="lazy"
+          />
+          
+          {discount > 0 && (
+            <div className="discount-badge">
+              -{discount}%
+            </div>
+          )}
+          
+          <div className="product-overlay">
+            <button 
+              className="quick-view-btn"
+              onClick={handleQuickView}
+              aria-label="Quick view"
+            >
+              Quick View
+            </button>
+          </div>
+          
+          <WishlistButton
+            isInWishlist={isInWishlist}
+            onToggle={() => onToggleWishlist(product.id)}
+            className="wishlist-overlay"
+          />
+        </div>
+
+        <div className="product-info">
+          <div className="product-brand">
+            {product.brand}
+          </div>
+          
+          <h3 className="product-name">
+            {product.name}
+          </h3>
+          
+          <div className="product-rating">
+            <RatingStars 
+              rating={product.rating} 
+              size="small"
+            />
+            <span className="review-count">
+              ({product.reviewCount})
+            </span>
+          </div>
+          
+          <PriceDisplay
+            currentPrice={product.currentPrice}
+            originalPrice={product.originalPrice}
+            currency={product.currency}
+          />
+          
+          <StockIndicator
+            stock={product.stock}
+            lowStockThreshold={10}
+          />
+          
+          <div className="product-actions">
+            <button
+              className="add-to-cart-btn"
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+            >
+              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick View Modal */}
+      {showQuickView && (
+        <QuickViewModal
+          product={product}
+          onClose={() => setShowQuickView(false)}
+          onAddToCart={onAddToCart}
+        />
+      )}
+    </>
+  );
+};
+
+export default ProductCard;
+```
+
+**FilterSidebar.jsx**
+
+**What this code does:**
+• **Main Purpose**: Product filtering sidebar with collapsible sections and active filter tracking
+• **Filter Management**: Handles price range, category, brand, and rating filters
+• **Key Functions**:
+  - `handleFilterUpdate()` - Updates specific filter types and triggers search
+  - `handleClearFilters()` - Resets all filters to default values
+  - `getActiveFilterCount()` - Counts active filters for badge display
+  - Collapsible interface with expand/collapse toggle
+  - Price range slider and multi-select brand filters
+
+```jsx
+import React, { useState, useCallback } from 'react';
+import PriceRangeFilter from './PriceRangeFilter';
+import CategoryFilter from './CategoryFilter';
+import BrandFilter from './BrandFilter';
+import RatingFilter from './RatingFilter';
+
+const FilterSidebar = ({ filters, onFiltersChange }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleFilterUpdate = useCallback((filterType, value) => {
+    const newFilters = {
+      ...filters,
+      [filterType]: value
+    };
+    onFiltersChange(newFilters);
+  }, [filters, onFiltersChange]);
+
+  const handleClearFilters = () => {
+    onFiltersChange({
+      category: '',
+      priceRange: [0, 1000],
+      rating: 0,
+      brand: [],
+      inStock: false
+    });
+  };
+
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (filters.category) count++;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 1000) count++;
+    if (filters.rating > 0) count++;
+    if (filters.brand.length > 0) count++;
+    if (filters.inStock) count++;
+    return count;
+  };
+
+  const activeFilterCount = getActiveFilterCount();
+
+  return (
+    <aside className={`filter-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className="filter-header">
+        <h3 className="filter-title">
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="active-filter-count">({activeFilterCount})</span>
+          )}
+        </h3>
+        
+        <div className="filter-actions">
+          {activeFilterCount > 0 && (
+            <button 
+              className="clear-filters-btn"
+              onClick={handleClearFilters}
+            >
+              Clear All
+            </button>
+          )}
+          
+          <button 
+            className="toggle-filters-btn"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? 'Expand filters' : 'Collapse filters'}
+          >
+            {isCollapsed ? '▼' : '▲'}
+          </button>
+        </div>
+      </div>
+
+      {!isCollapsed && (
+        <div className="filter-content">
+          <CategoryFilter
+            selectedCategory={filters.category}
+            onCategoryChange={(category) => handleFilterUpdate('category', category)}
+          />
+          
+          <PriceRangeFilter
+            priceRange={filters.priceRange}
+            onPriceRangeChange={(range) => handleFilterUpdate('priceRange', range)}
+            min={0}
+            max={1000}
+          />
+          
+          <BrandFilter
+            selectedBrands={filters.brand}
+            onBrandChange={(brands) => handleFilterUpdate('brand', brands)}
+          />
+          
+          <RatingFilter
+            selectedRating={filters.rating}
+            onRatingChange={(rating) => handleFilterUpdate('rating', rating)}
+          />
+          
+          <div className="filter-group">
+            <h4 className="filter-group-title">Availability</h4>
+            <label className="filter-checkbox">
+              <input
+                type="checkbox"
+                checked={filters.inStock}
+                onChange={(e) => handleFilterUpdate('inStock', e.target.checked)}
+              />
+              <span className="checkmark" />
+              In Stock Only
+            </label>
+          </div>
+        </div>
+      )}
+    </aside>
+  );
+};
+
+export default FilterSidebar;
+```
+
+**ProductListing.jsx**
+
+**What this code does:**
+• **Main Purpose**: Product listing container with grid/list view modes and pagination
+• **View Management**: Switches between different product display formats
+• **Key Functions**:
+  - `handleViewModeChange()` - Toggles between grid, list, and table views
+  - Pagination controls for navigating through product pages
+  - Loading states and empty state handling
+  - Sort controls integration for product ordering
+  - Responsive product count per page
+
+```jsx
+import React, { useState, useCallback } from 'react';
+import ProductCard from './ProductCard';
+import SortControls from './SortControls';
+import Pagination from './Pagination';
+import LoadingSpinner from './LoadingSpinner';
+
+const ProductListing = ({
+  products,
+  isLoading,
+  totalResults,
+  currentPage,
+  sortBy,
+  onSortChange,
+  onPageChange
+}) => {
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [productsPerPage] = useState(20);
+
+  const totalPages = Math.ceil(totalResults / productsPerPage);
+
+  const handleViewModeChange = useCallback((mode) => {
+    setViewMode(mode);
+  }, []);
+
+  if (isLoading && products.length === 0) {
+    return (
+      <div className="products-loading">
+        <LoadingSpinner size="large" />
+        <p>Loading products...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="product-listing">
+      {/* Results Header */}
+      <div className="listing-header">
+        <div className="results-info">
+          <h2 className="results-count">
+            {totalResults.toLocaleString()} Products Found
+          </h2>
+        </div>
+        
+        <div className="listing-controls">
+          <div className="view-mode-toggle">
+            <button
+              className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => handleViewModeChange('grid')}
+              aria-label="Grid view"
+            >
+              ⊞
+            </button>
+            <button
+              className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => handleViewModeChange('list')}
+              aria-label="List view"
+            >
+              ☰
+            </button>
+          </div>
+          
+          <SortControls
+            sortBy={sortBy}
+            onSortChange={onSortChange}
+          />
+        </div>
+      </div>
+
+      {/* Products Grid/List */}
+      {products.length === 0 ? (
+        <div className="no-products">
+          <div className="no-products-icon">🔍</div>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search criteria</p>
+        </div>
+      ) : (
+        <>
+          <div className={`products-container ${viewMode}-view`}>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                viewMode={viewMode}
+              />
+            ))}
+          </div>
+
+          {/* Loading overlay for pagination */}
+          {isLoading && (
+            <div className="loading-overlay">
+              <LoadingSpinner />
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              showPreviousNext={true}
+              showPageNumbers={true}
+              maxPageNumbers={5}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ProductListing;
+```
+
 ### Responsive E-commerce Layout
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -492,7 +1067,7 @@ graph TD
 
 ### Product Listing Virtualization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -535,21 +1110,21 @@ graph TD
 
 ## Real-Time Sync, Data Modeling & APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Search Ranking Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Signal Ranking Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -630,14 +1205,14 @@ graph TD
 
 ### Real-time Inventory Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Inventory Synchronization Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -690,14 +1265,14 @@ sequenceDiagram
 
 ### Dynamic Pricing Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Price Optimization Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -766,14 +1341,14 @@ graph TD
 
 ### Data Models
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Product Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -845,7 +1420,7 @@ Product {
 
 #### Search Index Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -877,25 +1452,186 @@ SearchDocument {
 }
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface Product {
+  id: string;
+  title: string;
+  description: string;
+  brand: string;
+  category: ProductCategory;
+  price: Price;
+  images: ProductImage[];
+  specifications: ProductSpec[];
+  variants: ProductVariant[];
+  seller: SellerInfo;
+  rating: Rating;
+  inventory: InventoryInfo;
+  shipping: ShippingInfo;
+}
+
+interface Price {
+  current: number;
+  original?: number;
+  currency: string;
+  discountPercentage?: number;
+  priceHistory?: PricePoint[];
+}
+
+interface ProductCategory {
+  id: string;
+  name: string;
+  path: string[];
+  parentId?: string;
+  level: number;
+  attributes: CategoryAttribute[];
+}
+
+interface SearchResult {
+  products: Product[];
+  totalCount: number;
+  facets: SearchFacet[];
+  suggestions: SearchSuggestion[];
+  pagination: PaginationInfo;
+  filters: ActiveFilter[];
+}
+
+interface SellerInfo {
+  id: string;
+  name: string;
+  rating: number;
+  reviewCount: number;
+  verified: boolean;
+  shippingTime: string;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface ProductCatalogProps {
+  searchQuery?: string;
+  categoryId?: string;
+  filters: ProductFilter[];
+  sortBy: SortOption;
+  onProductClick: (productId: string) => void;
+  onFilterChange: (filters: ProductFilter[]) => void;
+  onSortChange: (sort: SortOption) => void;
+  viewMode: 'grid' | 'list';
+  itemsPerPage?: number;
+}
+
+interface ProductCardProps {
+  product: Product;
+  onAddToCart: (productId: string, variant?: string) => void;
+  onAddToWishlist: (productId: string) => void;
+  onQuickView: (productId: string) => void;
+  showCompare?: boolean;
+  showWishlist?: boolean;
+  layout: 'compact' | 'detailed';
+}
+
+interface SearchBarProps {
+  value: string;
+  onSearch: (query: string) => void;
+  onSuggestionSelect: (suggestion: SearchSuggestion) => void;
+  suggestions: SearchSuggestion[];
+  placeholder?: string;
+  showFilters?: boolean;
+  categories?: ProductCategory[];
+}
+
+interface FilterSidebarProps {
+  availableFilters: FilterOption[];
+  activeFilters: ProductFilter[];
+  onFilterToggle: (filter: ProductFilter) => void;
+  onFilterClear: () => void;
+  onPriceRangeChange: (min: number, max: number) => void;
+  collapsible?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Product Catalog
+- `GET /api/products` - Search and browse products with filtering and pagination
+- `GET /api/products/:id` - Get detailed product information with variants
+- `GET /api/products/:id/recommendations` - Get related and recommended products
+- `GET /api/products/:id/reviews` - Get product reviews with rating breakdown
+- `POST /api/products/:id/reviews` - Submit product review and rating
+
+#### Search & Discovery
+- `GET /api/search` - Full-text product search with autocomplete and facets
+- `GET /api/search/suggestions` - Get search suggestions and query completions
+- `GET /api/search/trending` - Get trending search terms and popular products
+- `POST /api/search/track` - Track search queries for analytics and improvement
+- `GET /api/categories/tree` - Get complete product category hierarchy
+
+#### Inventory & Pricing
+- `GET /api/products/:id/inventory` - Check real-time product availability
+- `GET /api/products/:id/price-history` - Get product price change history
+- `POST /api/products/:id/price-alert` - Set price drop notification alerts
+- `GET /api/products/deals` - Get current deals, discounts, and promotions
+- `POST /api/products/:id/stock-notify` - Get notified when item back in stock
+
+#### Shopping Cart & Wishlist
+- `POST /api/cart/items` - Add product to shopping cart with variant selection
+- `GET /api/cart` - Get current cart items with updated pricing
+- `PUT /api/cart/items/:id` - Update cart item quantity or variant
+- `DELETE /api/cart/items/:id` - Remove item from shopping cart
+- `POST /api/wishlist/:productId` - Add or remove product from wishlist
+
+#### Seller & Marketplace
+- `GET /api/sellers/:id` - Get seller profile and performance metrics
+- `GET /api/sellers/:id/products` - Get products from specific seller
+- `GET /api/sellers/:id/reviews` - Get seller reviews and ratings
+- `POST /api/sellers/:id/follow` - Follow seller for updates and promotions
+- `GET /api/marketplace/categories` - Get marketplace category performance
+
+#### Recommendations & Personalization
+- `GET /api/recommendations/personalized` - Get ML-powered product recommendations
+- `GET /api/recommendations/trending` - Get trending products in user's region
+- `GET /api/recommendations/similar/:productId` - Get products similar to specified item
+- `POST /api/recommendations/feedback` - Provide recommendation relevance feedback
+- `GET /api/user/browsing-history` - Get user's product browsing history
+
+#### Analytics & Tracking
+- `POST /api/analytics/product-view` - Track product page views for recommendations
+- `POST /api/analytics/cart-action` - Track cart additions, removals, and checkouts
+- `GET /api/analytics/trending-products` - Get trending products by category
+- `POST /api/analytics/search-action` - Track search interactions and result clicks
+- `GET /api/analytics/conversion-funnel` - Get conversion metrics for optimization
+
 ---
 
 ## Performance and Scalability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Caching Strategy for E-commerce
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Level Caching Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -940,14 +1676,14 @@ graph LR
 
 ### Database Scaling Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Product Catalog Sharding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -990,14 +1726,14 @@ graph TB
 
 ### Search Performance Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Elasticsearch Optimization Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1040,21 +1776,21 @@ graph TD
 
 ## Security and Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### E-commerce Security Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Layer Security Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1119,14 +1855,14 @@ graph TD
 
 ### Fraud Prevention System
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Real-time Fraud Detection
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1185,21 +1921,21 @@ graph TD
 
 ## Testing, Monitoring, and Maintainability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### E-commerce Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Comprehensive Testing Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1252,14 +1988,14 @@ graph TD
 
 ### Business Metrics Monitoring
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### E-commerce KPI Dashboard
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1308,14 +2044,14 @@ graph TB
 
 ## Trade-offs, Deep Dives, and Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Search Strategy Trade-offs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1331,7 +2067,7 @@ graph TB
 
 ### Personalization vs Privacy Trade-offs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1354,14 +2090,14 @@ graph LR
 
 ### Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### AI-Powered Shopping Assistant
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1402,14 +2138,14 @@ graph TD
 
 ### Future Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Next-Generation E-commerce Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

@@ -1,0 +1,7 @@
+Problem: How_to_design_a_scalable_microservices_architectur
+Category: Web Research & Documentation
+Generated: 2025-08-01T06:12:11.388564
+Input Type: text
+==================================================
+
+How to design a scalable microservices architecture for an e-commerce platform

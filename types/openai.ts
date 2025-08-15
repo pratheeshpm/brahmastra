@@ -20,12 +20,15 @@ export enum OpenAIModelID {
   GPT_4_1_MINI = 'gpt-4.1-mini',
   GPT_4_1_NANO = 'gpt-4.1-nano',
   GPT_4_5_PREVIEW = 'gpt-4.5-preview',
+  GPT_4_5 = 'gpt-4.5',
+  GPT_5 = 'gpt-5',
   O1 = 'o1',
   O1_MINI = 'o1-mini',
   O1_PREVIEW = 'o1-preview',
   O3 = 'o3',
   O3_MINI = 'o3-mini',
   O3_PRO = 'o3-pro',
+  O4_MINI = 'o4-mini',
 
   
   // Claude Models (Anthropic)
@@ -76,6 +79,14 @@ export enum OpenAIModelID {
   // Qwen Models
   QWEN_3_235B = 'qwen/qwen-3-235b-a22b',
   QWEN_2_5_72B = 'qwen/qwen-2.5-72b-instruct',
+  
+  // Perplexity Models
+  PERPLEXITY_SONAR = 'perplexity/sonar',
+  PERPLEXITY_SONAR_PRO = 'perplexity/sonar-pro',
+  PERPLEXITY_SONAR_REASONING = 'perplexity/sonar-reasoning',
+  PERPLEXITY_SONAR_REASONING_PRO = 'perplexity/sonar-reasoning-pro',
+  PERPLEXITY_SONAR_DEEP_RESEARCH = 'perplexity/sonar-deep-research',
+  PERPLEXITY_R1_1776 = 'perplexity/r1-1776',
 }
 
 // in case the `DEFAULT_MODEL` environment variable is not set or set to an unsupported model
@@ -188,6 +199,27 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     name: 'OpenAI o3-pro',
     maxLength: 600000,
     tokenLimit: 200000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.O4_MINI]: {
+    id: OpenAIModelID.O4_MINI,
+    name: 'OpenAI o4-mini',
+    maxLength: 600000,
+    tokenLimit: 200000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GPT_4_5]: {
+    id: OpenAIModelID.GPT_4_5,
+    name: 'GPT-4.5',
+    maxLength: 384000,
+    tokenLimit: 128000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GPT_5]: {
+    id: OpenAIModelID.GPT_5,
+    name: 'GPT-5',
+    maxLength: 3000000, // 1M tokens mentioned in research
+    tokenLimit: 1000000,
     supportsImages: true,
   },
 
@@ -425,5 +457,49 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     name: 'Qwen 2.5 72B',
     maxLength: 393216,
     tokenLimit: 131072,
+  },
+  
+  // Perplexity Models
+  [OpenAIModelID.PERPLEXITY_SONAR]: {
+    id: OpenAIModelID.PERPLEXITY_SONAR,
+    name: 'Perplexity Sonar',
+    maxLength: 381216, // 127,072 tokens * ~3 chars per token
+    tokenLimit: 127072,
+    supportsImages: false,
+  },
+  [OpenAIModelID.PERPLEXITY_SONAR_PRO]: {
+    id: OpenAIModelID.PERPLEXITY_SONAR_PRO,
+    name: 'Perplexity Sonar Pro',
+    maxLength: 600000, // 200,000 tokens * ~3 chars per token
+    tokenLimit: 200000,
+    supportsImages: false,
+  },
+  [OpenAIModelID.PERPLEXITY_SONAR_REASONING]: {
+    id: OpenAIModelID.PERPLEXITY_SONAR_REASONING,
+    name: 'Perplexity Sonar Reasoning',
+    maxLength: 381000, // 127,000 tokens * ~3 chars per token
+    tokenLimit: 127000,
+    supportsImages: false,
+  },
+  [OpenAIModelID.PERPLEXITY_SONAR_REASONING_PRO]: {
+    id: OpenAIModelID.PERPLEXITY_SONAR_REASONING_PRO,
+    name: 'Perplexity Sonar Reasoning Pro',
+    maxLength: 384000, // 128,000 tokens * ~3 chars per token
+    tokenLimit: 128000,
+    supportsImages: false,
+  },
+  [OpenAIModelID.PERPLEXITY_SONAR_DEEP_RESEARCH]: {
+    id: OpenAIModelID.PERPLEXITY_SONAR_DEEP_RESEARCH,
+    name: 'Perplexity Sonar Deep Research',
+    maxLength: 384000, // estimated context
+    tokenLimit: 128000,
+    supportsImages: false,
+  },
+  [OpenAIModelID.PERPLEXITY_R1_1776]: {
+    id: OpenAIModelID.PERPLEXITY_R1_1776,
+    name: 'Perplexity R1 1776',
+    maxLength: 384000, // 128,000 tokens * ~3 chars per token
+    tokenLimit: 128000,
+    supportsImages: false,
   },
 };

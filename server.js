@@ -36,7 +36,7 @@ const filePath = 'transcript_' + Date.now() + '.txt';
     // Create the prompt that will be sent to the chat
     const screenshotPrompt =`📸 Screenshot Analysis Request
 Please analyze this screenshot and you would see a coding question in that:
- give me the best solution for it, cover all the edge cases`
+ give me the best solution for it in javascript, cover all the edge cases`
     /*  `📸 Screenshot Analysis Request
 Please analyze this screenshot and you would see a coding question in that:
  1. please give the most optimized solution code in javascript with proper comments and explanation and should include all edge cases and corner cases handled.
@@ -84,6 +84,81 @@ const sendClipboardToChat = async () => {
     console.log('✅ Clipboard content sent to chat service');
   } catch (error) {
     console.error('❌ Error sending clipboard to chat:', error);
+  }
+};
+
+// Constant string to prepend to conversations data
+const CONVERSATIONS_CONTEXT_PREFIX = "here is the ongoing conversation regarding the above chat context, analyze and answer it accordingly: ";
+
+// Function to fetch conversations from API
+const fetchConversations = async () => {
+  try {
+    console.log('📋 Fetching conversations from API...');
+    
+    // Use built-in fetch for Node 18+ or fallback to http module
+    let fetchResponse;
+    
+    if (typeof fetch !== 'undefined') {
+      // Use built-in fetch (Node 18+)
+      fetchResponse = await fetch('http://localhost:5173/api/conversations');
+    } else {
+      // Fallback to using http module for older Node versions
+      const http = require('http');
+      const url = require('url');
+      
+      fetchResponse = await new Promise((resolve, reject) => {
+        const urlParts = url.parse('http://localhost:5173/api/conversations');
+        const req = http.request({
+          hostname: urlParts.hostname,
+          port: urlParts.port,
+          path: urlParts.path,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }, (res) => {
+          let data = '';
+          res.on('data', (chunk) => data += chunk);
+          res.on('end', () => {
+            resolve({
+              ok: res.statusCode >= 200 && res.statusCode < 300,
+              status: res.statusCode,
+              json: () => Promise.resolve(JSON.parse(data))
+            });
+          });
+        });
+        
+        req.on('error', reject);
+        req.end();
+      });
+    }
+    
+    if (!fetchResponse.ok) {
+      throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+    }
+    
+    const data = await fetchResponse.json();
+    
+    console.log('📋 Conversations fetched successfully:', data.conversations?.length || 0, 'conversations');
+    
+    // Convert conversations array to JSON string for compatibility with clipboardContent handler
+    const conversationsString = JSON.stringify(data.conversations, null, 2);
+    
+    // Prepend context instruction to conversations data
+    const conversationsWithContext = CONVERSATIONS_CONTEXT_PREFIX + conversationsString;
+    
+    // Send to connected clients via socket
+    global.io && global.io.emit('clipboardContent', conversationsWithContext);
+    
+    console.log('✅ Conversations sent to chat service');
+  } catch (error) {
+    console.error('❌ Error fetching conversations:', error);
+    
+    // Send error to clients if needed
+    global.io && global.io.emit('conversationsError', {
+      error: error.message,
+      timestamp: Date.now()
+    });
   }
 };
 
@@ -372,7 +447,8 @@ const initializeGlobalFeatures = () => {
   console.log('5. 🔥 GLOBAL Ctrl+C keyboard shortcut (send clipboard to chat)');
   console.log('6. 🔥 GLOBAL Ctrl+O keyboard shortcut (code output prediction screenshot)');
   console.log('7. 🔥 GLOBAL Ctrl+N keyboard shortcut (click to next)');
-  console.log('8. Note: Cmd+C still works as normal copy (default macOS behavior)');
+  console.log('8. 🔥 GLOBAL Ctrl+L keyboard shortcut (fetch conversations)');
+  console.log('9. Note: Cmd+C still works as normal copy (default macOS behavior)');
   
   // Set up true global keyboard detection
   if (GlobalKeyboardListener) {
@@ -387,7 +463,7 @@ let keyboardListener;
 
 const startGlobalKeyboardListener = () => {
   try {
-    console.log('🎯 Setting up GLOBAL keyboard detection (Ctrl+S, Ctrl+C, Ctrl+O, Ctrl+N)...');
+    console.log('🎯 Setting up GLOBAL keyboard detection (Ctrl+S, Ctrl+C, Ctrl+O, Ctrl+N, Ctrl+L)...');
     
     // Create the global keyboard listener
     keyboardListener = new GlobalKeyboardListener({
@@ -424,7 +500,7 @@ const startGlobalKeyboardListener = () => {
       }
       
       // Reset the combo detection when keys are released
-      if (e.state === 'UP' && (e.name === 'S' || e.name === 'C' || e.name === 'O' || e.name === 'N' || e.name.includes('CTRL') || e.name.includes('META') || e.name.includes('CMD'))) {
+      if (e.state === 'UP' && (e.name === 'S' || e.name === 'C' || e.name === 'O' || e.name === 'N' || e.name === 'L' || e.name.includes('CTRL') || e.name.includes('META') || e.name.includes('CMD'))) {
         if (comboDetected) {
           if (debugMode) {
             console.log(`🔄 Reset: ${e.name} released`);
@@ -507,6 +583,24 @@ const startGlobalKeyboardListener = () => {
           simulateClickToNext();
         }
       }
+      
+      // Detect Ctrl+L combination (fetch conversations)
+      if (e.name === 'L' && e.state === 'DOWN' && !comboDetected) {
+        // Check ONLY for Control key (not Command key)
+        const isCtrlPressed = down['LEFT CTRL'] || down['RIGHT CTRL'] || down['CTRL'] || down['CONTROL'];
+        
+        if (debugMode) {
+          console.log(`🎮 L pressed - Ctrl: ${isCtrlPressed}`);
+          console.log(`🎮 Current keys down:`, Object.keys(down).filter(k => down[k]));
+        }
+        
+        if (isCtrlPressed) {
+          console.log('📋 GLOBAL Ctrl+L detected! Fetching conversations...');
+          console.log(`   Control keys pressed: ${Object.keys(down).filter(k => k.includes('CTRL')).join(', ')}`);
+          comboDetected = true;
+          fetchConversations();
+        }
+      }
     });
     
     console.log('✅ Global keyboard listener started successfully!');
@@ -514,6 +608,7 @@ const startGlobalKeyboardListener = () => {
     console.log('📋 Press Ctrl+C ANYWHERE to send clipboard content to chat!');
     console.log('🔍 Press Ctrl+O ANYWHERE to take code output prediction screenshot!');
     console.log('🔄 Press Ctrl+N ANYWHERE to simulate click to next!');
+    console.log('📋 Press Ctrl+L ANYWHERE to fetch conversations!');
     console.log('💡 Note: Cmd+C still works as normal copy (default macOS behavior)');
     console.log('⚠️  Note: On macOS, you may need to grant accessibility permissions');
     console.log('   Go to: System Preferences > Security & Privacy > Privacy > Accessibility');
@@ -621,6 +716,10 @@ rl.on('line', (input) => {
     console.log('🔄 Manual click to next trigger via console!');
     simulateClickToNext();
   }
+  if (input === 'conversations' || input === 'conv') {
+    console.log('📋 Manual fetch conversations trigger via console!');
+    fetchConversations();
+  }
   if (input === 'ctrl+s' || input === 'ctrl s') {
     console.log('🎯 Simulating Ctrl+S global shortcut detection!');
     takeScreenshot();
@@ -637,6 +736,10 @@ rl.on('line', (input) => {
     console.log('🔄 Simulating Ctrl+N global shortcut detection!');
     simulateClickToNext();
   }
+  if (input === 'ctrl+l' || input === 'ctrl l') {
+    console.log('📋 Simulating Ctrl+L global shortcut detection!');
+    fetchConversations();
+  }
   if (input === 'test') {
     console.log('🧪 Run: node test_global_keys.js');
     console.log('   This will test if global keyboard detection works on your system');
@@ -648,10 +751,12 @@ console.log('- Type "ss" to take a screenshot');
 console.log('- Type "cb" to send clipboard content to chat');
 console.log('- Type "co" to take code output prediction screenshot');
 console.log('- Type "cn" to simulate click to next');
+console.log('- Type "conv" to fetch conversations');
 console.log('- Press Ctrl+S globally for screenshot (if permissions granted)');
 console.log('- Press Ctrl+C globally for clipboard to chat (if permissions granted)');
 console.log('- Press Ctrl+O globally for code output prediction screenshot (if permissions granted)');
 console.log('- Press Ctrl+N globally for click to next (if permissions granted)');
+console.log('- Press Ctrl+L globally for fetch conversations (if permissions granted)');
 
 
 app.use(function(req, res, next) {
@@ -1021,6 +1126,32 @@ nextApp.prepare().then(() => {
     }
   });
 
+
+
+  // Simple GET endpoint for conversations
+  app.get('/api/conversations', async (req, res) => {
+    try {
+      console.log('📋 Conversations GET endpoint called');
+      await fetchConversations();
+      res.json({ success: true, message: 'Conversations fetched and sent to chat' });
+    } catch (error) {
+      console.error('Conversations API error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Shortcut simulation endpoint for Ctrl+L
+  app.post('/api/shortcut/ctrl-l', async (req, res) => {
+    try {
+      console.log('📋 Ctrl+L shortcut simulation endpoint called');
+      await fetchConversations();
+      res.json({ success: true, message: 'Ctrl+L shortcut simulated - conversations fetched' });
+    } catch (error) {
+      console.error('Shortcut simulation error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
    // Handle other API routes
    app.all('/api/*', (req, res) => {
     // Forward the request to Next.js API route handler
@@ -1067,6 +1198,7 @@ nextApp.prepare().then(() => {
     console.log('  📋 Press Ctrl+C ANYWHERE to send clipboard to chat!')
     console.log('  🔍 Press Ctrl+O ANYWHERE to take code output prediction screenshot!')
     console.log('  🔄 Press Ctrl+N ANYWHERE to simulate click to next!')
+    console.log('  📋 Press Ctrl+L ANYWHERE to fetch conversations!')
     console.log('  💡 Note: Cmd+C still works as normal copy')
   })
 

@@ -4,6 +4,12 @@
 ## 📋 Table of Contents
 
 - [Travel/Hotel Booking Website (Airbnb-like)](#travelhotel-booking-website-airbnb-like)
+  - [Table of Contents](#table-of-contents)
+  - [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+    - [Problem Understanding](#problem-understanding)
+    - [Functional Requirements](#functional-requirements)
+    - [Non-Functional Requirements](#non-functional-requirements)
+    - [Key Assumptions](#key-assumptions)
   - [High-Level Design (HLD)](#high-level-design-hld)
     - [System Architecture Overview](#system-architecture-overview)
     - [Booking Data Model](#booking-data-model)
@@ -44,16 +50,94 @@
 
 ---
 
+## Table of Contents
+1. [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+2. [High-Level Design (HLD)](#high-level-design-hld)
+3. [Low-Level Design (LLD)](#low-level-design-lld)
+4. [Core Algorithms](#core-algorithms)
+5. [Component Architecture](#component-architecture)
+6. [Advanced Features](#advanced-features)
+7. [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+8. [API Reference](#api-reference)
+9. [Performance Optimizations](#performance-optimizations)
+10. [Security Considerations](#security-considerations)
+11. [Accessibility Implementation](#accessibility-implementation)
+12. [Testing Strategy](#testing-strategy)
+13. [Trade-offs and Considerations](#trade-offs-and-considerations)
+
+---
+
+## Clarify the Problem and Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+### Problem Understanding
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+Design a comprehensive travel and accommodation booking platform that enables users to search, compare, and book properties/experiences while providing hosts with tools to manage their listings, similar to Airbnb, Booking.com, or VRBO. The system must handle complex search filters, real-time availability, dynamic pricing, and secure payment processing while delivering an intuitive user experience.
+
+### Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Property Search**: Location-based search with maps, date/guest filters, advanced criteria
+- **Listing Management**: Property creation, photo uploads, availability calendar, pricing rules
+- **Booking Flow**: Multi-step booking process, payment handling, confirmation system
+- **User Profiles**: Guest and host profiles, verification system, reviews and ratings
+- **Communication**: In-app messaging, automated notifications, booking updates
+- **Payment System**: Secure payments, multiple payment methods, refund processing
+- **Review System**: Bidirectional reviews, photo uploads, response management
+- **Map Integration**: Interactive maps, property locations, neighborhood information
+
+### Non-Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Performance**: <3s page load, <500ms search results, optimized image loading
+- **Scalability**: Handle millions of properties, concurrent bookings, peak traffic
+- **Availability**: 99.9% uptime, graceful degradation during high traffic
+- **Security**: PCI compliance, secure payment processing, data encryption
+- **Mobile Optimization**: Responsive design, progressive web app features
+- **SEO**: Server-side rendering, structured data, optimized meta tags
+- **Accessibility**: WCAG 2.1 AA compliance, screen reader support
+- **Global Support**: Multi-language, multi-currency, regional compliance
+
+### Key Assumptions
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- Property inventory: 1M+ active listings globally
+- Peak concurrent users: 100K+ during booking surges
+- Average booking value: $100-$500 per reservation
+- Search-to-booking conversion: 2-5% industry standard
+- Mobile traffic: 60-70% of total traffic
+- Geographic distribution: Global with regional peaks
+- Payment processing: Multiple currencies, international cards
+- Image storage: 10-50 high-quality photos per property
+
+---
+
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +182,7 @@ graph TB
 
 ### Booking Data Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -138,14 +222,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Property Search Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -170,7 +254,7 @@ graph TD
 
 ### Dynamic Pricing Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -202,7 +286,7 @@ flowchart TD
 
 ### Booking State Machine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -231,14 +315,14 @@ stateDiagram-v2
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Property Search and Ranking Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -295,7 +379,7 @@ function calculatePropertyScore(property, query, userHistory):
 
 ### 2. Availability Management Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -347,7 +431,7 @@ function checkAvailability(propertyId, checkIn, checkOut):
 
 ### 3. Dynamic Pricing Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -405,7 +489,7 @@ function calculateOptimalPrice(property, targetDate, factors):
 
 ### 4. Review and Rating System
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -468,7 +552,7 @@ function validateReview(review, booking):
 
 ### 5. Map-based Property Discovery
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -538,14 +622,14 @@ function clusterProperties(properties, zoomLevel):
 
 ## Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Booking Platform Component Hierarchy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -583,7 +667,7 @@ graph TD
 
 ### State Management Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -619,16 +703,439 @@ graph LR
     History --> Preferences
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**BookingPlatform.jsx**
+
+**What this code does:**
+• **Main Purpose**: Travel booking platform with property search, selection, and booking flow
+• **Search & Filter**: Handles location search, date selection, guest management, and filtering
+• **Key Functions**:
+  - `handleSearch()` - Executes property search with filters and updates map viewport
+  - `calculateBounds()` - Determines map viewport from search results
+  - `handlePropertySelect()` - Loads detailed property information
+  - `handleBookingStart()` - Initiates booking flow with selected property
+  - `calculateTotalPrice()` - Computes total booking cost including taxes
+  - `handleBookingComplete()` - Finalizes reservation and payment
+
+```jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { BookingProvider } from './BookingContext';
+import SearchInterface from './SearchInterface';
+import SearchResults from './SearchResults';
+import PropertyDetails from './PropertyDetails';
+import BookingFlow from './BookingFlow';
+import { useLocationSearch } from './hooks/useLocationSearch';
+
+const BookingPlatform = () => {
+  const [currentView, setCurrentView] = useState('search'); // 'search', 'results', 'property', 'booking'
+  const [searchQuery, setSearchQuery] = useState({
+    location: '',
+    coordinates: null,
+    checkIn: null,
+    checkOut: null,
+    guests: { adults: 2, children: 0, infants: 0 }
+  });
+  const [filters, setFilters] = useState({
+    priceRange: [0, 1000],
+    propertyTypes: [],
+    amenities: [],
+    rating: 0,
+    instantBook: false
+  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [mapViewport, setMapViewport] = useState({
+    latitude: 37.7749,
+    longitude: -122.4194,
+    zoom: 10
+  });
+  const [loading, setLoading] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    property: null,
+    dates: null,
+    guests: null,
+    totalPrice: 0
+  });
+
+  const { searchLocations } = useLocationSearch();
+
+  const handleSearch = useCallback(async (query = searchQuery) => {
+    if (!query.location || !query.checkIn || !query.checkOut) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/properties/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...query,
+          filters,
+          limit: 20
+        })
+      });
+
+      const data = await response.json();
+      setSearchResults(data.properties);
+      
+      if (data.properties.length > 0) {
+        setCurrentView('results');
+        
+        // Update map viewport to show results
+        const bounds = calculateBounds(data.properties);
+        setMapViewport(bounds);
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery, filters]);
+
+  const calculateBounds = (properties) => {
+    if (properties.length === 0) return mapViewport;
+    
+    const lats = properties.map(p => p.latitude);
+    const lngs = properties.map(p => p.longitude);
+    
+    return {
+      latitude: (Math.min(...lats) + Math.max(...lats)) / 2,
+      longitude: (Math.min(...lngs) + Math.max(...lngs)) / 2,
+      zoom: 12
+    };
+  };
+
+  const handlePropertySelect = useCallback(async (propertyId) => {
+    try {
+      const response = await fetch(`/api/properties/${propertyId}`);
+      const property = await response.json();
+      setSelectedProperty(property);
+      setCurrentView('property');
+    } catch (error) {
+      console.error('Failed to load property:', error);
+    }
+  }, []);
+
+  const handleBookingStart = useCallback((property) => {
+    setBookingData({
+      property,
+      dates: {
+        checkIn: searchQuery.checkIn,
+        checkOut: searchQuery.checkOut
+      },
+      guests: searchQuery.guests,
+      totalPrice: calculateTotalPrice(property, searchQuery)
+    });
+    setCurrentView('booking');
+  }, [searchQuery]);
+
+  const calculateTotalPrice = (property, query) => {
+    const nights = Math.ceil(
+      (new Date(query.checkOut) - new Date(query.checkIn)) / (1000 * 60 * 60 * 24)
+    );
+    const basePrice = property.pricePerNight * nights;
+    const taxes = basePrice * 0.12;
+    const serviceFee = basePrice * 0.03;
+    
+    return basePrice + taxes + serviceFee;
+  };
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const handleBookingComplete = useCallback(async (bookingDetails) => {
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookingDetails)
+      });
+
+      if (response.ok) {
+        const booking = await response.json();
+        // Redirect to confirmation page or show success message
+        console.log('Booking confirmed:', booking);
+      }
+    } catch (error) {
+      console.error('Booking failed:', error);
+    }
+  }, []);
+
+  const value = {
+    currentView,
+    searchQuery,
+    filters,
+    searchResults,
+    selectedProperty,
+    mapViewport,
+    bookingData,
+    loading,
+    setCurrentView,
+    setSearchQuery,
+    setFilters: handleFilterChange,
+    setMapViewport,
+    onSearch: handleSearch,
+    onPropertySelect: handlePropertySelect,
+    onBookingStart: handleBookingStart,
+    onBookingComplete: handleBookingComplete
+  };
+
+  return (
+    <BookingProvider value={value}>
+      <div className="booking-platform">
+        {currentView === 'search' && <SearchInterface />}
+        {currentView === 'results' && <SearchResults />}
+        {currentView === 'property' && <PropertyDetails />}
+        {currentView === 'booking' && <BookingFlow />}
+      </div>
+    </BookingProvider>
+  );
+};
+
+export default BookingPlatform;
+```
+
+**SearchInterface.jsx**
+```jsx
+import React, { useContext, useState } from 'react';
+import { BookingContext } from './BookingContext';
+import LocationSearch from './LocationSearch';
+import DateRangePicker from './DateRangePicker';
+import GuestSelector from './GuestSelector';
+
+const SearchInterface = () => {
+  const { searchQuery, setSearchQuery, onSearch, loading } = useContext(BookingContext);
+  const [errors, setErrors] = useState({});
+
+  const handleLocationChange = (location) => {
+    setSearchQuery(prev => ({
+      ...prev,
+      location: location.name,
+      coordinates: location.coordinates
+    }));
+  };
+
+  const handleDateChange = (dates) => {
+    setSearchQuery(prev => ({
+      ...prev,
+      checkIn: dates.startDate,
+      checkOut: dates.endDate
+    }));
+  };
+
+  const handleGuestChange = (guests) => {
+    setSearchQuery(prev => ({ ...prev, guests }));
+  };
+
+  const validateSearch = () => {
+    const newErrors = {};
+    
+    if (!searchQuery.location) {
+      newErrors.location = 'Please select a destination';
+    }
+    
+    if (!searchQuery.checkIn || !searchQuery.checkOut) {
+      newErrors.dates = 'Please select check-in and check-out dates';
+    }
+    
+    if (new Date(searchQuery.checkIn) >= new Date(searchQuery.checkOut)) {
+      newErrors.dates = 'Check-out date must be after check-in date';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (validateSearch()) {
+      onSearch();
+    }
+  };
+
+  return (
+    <div className="search-interface">
+      <div className="search-hero">
+        <h1>Find your perfect stay</h1>
+        <p>Discover amazing places to stay around the world</p>
+      </div>
+      
+      <form className="search-form" onSubmit={handleSubmit}>
+        <div className="search-fields">
+          <div className="field-group">
+            <label htmlFor="location">Where</label>
+            <LocationSearch
+              value={searchQuery.location}
+              onChange={handleLocationChange}
+              placeholder="Search destinations"
+              error={errors.location}
+            />
+          </div>
+          
+          <div className="field-group">
+            <label htmlFor="dates">When</label>
+            <DateRangePicker
+              startDate={searchQuery.checkIn}
+              endDate={searchQuery.checkOut}
+              onChange={handleDateChange}
+              error={errors.dates}
+            />
+          </div>
+          
+          <div className="field-group">
+            <label htmlFor="guests">Who</label>
+            <GuestSelector
+              guests={searchQuery.guests}
+              onChange={handleGuestChange}
+            />
+          </div>
+        </div>
+        
+        <button 
+          type="submit" 
+          className="search-button"
+          disabled={loading}
+        >
+          {loading ? 'Searching...' : 'Search'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default SearchInterface;
+```
+
+**SearchResults.jsx**
+```jsx
+import React, { useContext, useState } from 'react';
+import { BookingContext } from './BookingContext';
+import InteractiveMap from './InteractiveMap';
+import PropertyList from './PropertyList';
+import FiltersPanel from './FiltersPanel';
+
+const SearchResults = () => {
+  const { 
+    searchResults, 
+    filters, 
+    setFilters, 
+    mapViewport, 
+    setMapViewport,
+    onPropertySelect 
+  } = useContext(BookingContext);
+  
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+  const [showFilters, setShowFilters] = useState(false);
+
+  const filteredResults = searchResults.filter(property => {
+    // Apply filters
+    if (property.pricePerNight < filters.priceRange[0] || 
+        property.pricePerNight > filters.priceRange[1]) {
+      return false;
+    }
+    
+    if (filters.propertyTypes.length > 0 && 
+        !filters.propertyTypes.includes(property.type)) {
+      return false;
+    }
+    
+    if (filters.rating > 0 && property.rating < filters.rating) {
+      return false;
+    }
+    
+    if (filters.instantBook && !property.instantBook) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  return (
+    <div className="search-results">
+      <div className="results-header">
+        <div className="results-info">
+          <h2>{filteredResults.length} stays found</h2>
+          <button
+            className="filters-toggle"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            Filters
+          </button>
+        </div>
+        
+        <div className="view-toggle">
+          <button
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+          >
+            List
+          </button>
+          <button
+            className={viewMode === 'map' ? 'active' : ''}
+            onClick={() => setViewMode('map')}
+          >
+            Map
+          </button>
+        </div>
+      </div>
+      
+      {showFilters && (
+        <FiltersPanel
+          filters={filters}
+          onFiltersChange={setFilters}
+          onClose={() => setShowFilters(false)}
+        />
+      )}
+      
+      <div className="results-content">
+        {viewMode === 'list' ? (
+          <PropertyList
+            properties={filteredResults}
+            onPropertySelect={onPropertySelect}
+          />
+        ) : (
+          <div className="results-layout">
+            <div className="map-section">
+              <InteractiveMap
+                properties={filteredResults}
+                viewport={mapViewport}
+                onViewportChange={setMapViewport}
+                onPropertySelect={onPropertySelect}
+              />
+            </div>
+            <div className="list-section">
+              <PropertyList
+                properties={filteredResults}
+                onPropertySelect={onPropertySelect}
+                compact={true}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SearchResults;
+```
+
 ## Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Personalization Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -665,7 +1172,7 @@ graph TB
 
 ### Smart Notifications System
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -699,16 +1206,215 @@ flowchart TD
     C --> M
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface Property {
+  id: string;
+  title: string;
+  description: string;
+  type: 'hotel' | 'apartment' | 'house' | 'villa' | 'hostel';
+  location: PropertyLocation;
+  amenities: Amenity[];
+  images: PropertyImage[];
+  pricing: PricingInfo;
+  availability: AvailabilityCalendar;
+  host: HostInfo;
+  rating: PropertyRating;
+  policies: PropertyPolicies;
+}
+
+interface PropertyLocation {
+  address: string;
+  city: string;
+  country: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  neighborhood?: string;
+  landmarks?: Landmark[];
+  transportation?: TransportInfo[];
+}
+
+interface Booking {
+  id: string;
+  propertyId: string;
+  guestId: string;
+  checkIn: Date;
+  checkOut: Date;
+  guests: GuestInfo;
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  paymentInfo: PaymentInfo;
+  specialRequests?: string;
+  cancellationPolicy: CancellationPolicy;
+}
+
+interface SearchCriteria {
+  destination: string;
+  checkIn: Date;
+  checkOut: Date;
+  guests: {
+    adults: number;
+    children: number;
+    infants: number;
+  };
+  filters: SearchFilters;
+  sortBy: SortOption;
+  priceRange: [number, number];
+}
+
+interface SearchFilters {
+  propertyTypes: string[];
+  amenities: string[];
+  priceRange: [number, number];
+  rating: number;
+  instantBook: boolean;
+  superhost: boolean;
+  cancellation: 'flexible' | 'moderate' | 'strict';
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface PropertySearchProps {
+  onSearch: (criteria: SearchCriteria) => void;
+  onFiltersChange: (filters: SearchFilters) => void;
+  popularDestinations?: Destination[];
+  recentSearches?: SearchCriteria[];
+  enableMapView?: boolean;
+  showAdvancedFilters?: boolean;
+  defaultLocation?: string;
+}
+
+interface PropertyCardProps {
+  property: Property;
+  onPropertyClick: (propertyId: string) => void;
+  onFavoriteToggle: (propertyId: string) => void;
+  onShareProperty: (property: Property) => void;
+  showPricing?: boolean;
+  showHost?: boolean;
+  layout: 'grid' | 'list' | 'map';
+  isWishlisted?: boolean;
+}
+
+interface BookingFormProps {
+  property: Property;
+  selectedDates: {
+    checkIn: Date;
+    checkOut: Date;
+  };
+  onBookingSubmit: (booking: BookingData) => void;
+  onDateChange: (dates: DateRange) => void;
+  onGuestChange: (guests: GuestInfo) => void;
+  showPriceBreakdown?: boolean;
+  allowInstantBook?: boolean;
+}
+
+interface PropertyGalleryProps {
+  images: PropertyImage[];
+  onImageClick: (index: number) => void;
+  showThumbnails?: boolean;
+  enableZoom?: boolean;
+  enableFullscreen?: boolean;
+  layout: 'carousel' | 'grid' | 'masonry';
+  maxVisible?: number;
+}
+
+interface MapViewProps {
+  properties: Property[];
+  center: [number, number];
+  zoom?: number;
+  onPropertySelect: (property: Property) => void;
+  onMapMove: (bounds: MapBounds) => void;
+  showClusters?: boolean;
+  showFilters?: boolean;
+  customMarkers?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Property Search & Discovery
+- `GET /api/properties/search` - Search properties with filters, dates, and location
+- `GET /api/properties/:id` - Get detailed property information and availability
+- `GET /api/properties/featured` - Get featured properties and promotional listings
+- `GET /api/properties/recommendations` - Get personalized property recommendations
+- `POST /api/properties/save` - Save property to user's wishlist or favorites
+
+#### Availability & Pricing
+- `GET /api/properties/:id/availability` - Check property availability for date range
+- `GET /api/properties/:id/pricing` - Get dynamic pricing for specific dates
+- `POST /api/properties/:id/price-quote` - Get detailed price quote with taxes and fees
+- `GET /api/properties/:id/calendar` - Get property's availability calendar
+- `POST /api/properties/:id/block-dates` - Block dates for property (host only)
+
+#### Booking Management
+- `POST /api/bookings` - Create new booking with payment processing
+- `GET /api/bookings/:id` - Get booking details and current status
+- `PUT /api/bookings/:id` - Modify booking dates or guest information
+- `POST /api/bookings/:id/cancel` - Cancel booking and process refund
+- `GET /api/bookings/user/:userId` - Get user's booking history and upcoming trips
+
+#### Payment & Transactions
+- `POST /api/payments/intent` - Create payment intent for booking
+- `POST /api/payments/confirm` - Confirm payment and complete booking
+- `GET /api/payments/:id/status` - Get payment status and transaction details
+- `POST /api/payments/refund` - Process refund for cancelled booking
+- `GET /api/payments/methods` - Get available payment methods for region
+
+#### Reviews & Ratings
+- `GET /api/properties/:id/reviews` - Get property reviews with pagination
+- `POST /api/reviews` - Submit review and rating for completed booking
+- `PUT /api/reviews/:id` - Update or edit existing review
+- `GET /api/reviews/user/:userId` - Get reviews written by specific user
+- `POST /api/reviews/:id/helpful` - Mark review as helpful or report spam
+
+#### Host Management
+- `POST /api/properties` - Create new property listing (host only)
+- `PUT /api/properties/:id` - Update property details and amenities
+- `GET /api/properties/:id/bookings` - Get bookings for property (host only)
+- `POST /api/properties/:id/photos` - Upload property photos with optimization
+- `GET /api/host/dashboard` - Get host dashboard with analytics and earnings
+
+#### Location & Geography
+- `GET /api/locations/search` - Search locations with autocomplete
+- `GET /api/locations/:id/properties` - Get properties in specific location
+- `GET /api/locations/popular` - Get popular destinations and trending locations
+- `GET /api/locations/:id/attractions` - Get nearby attractions and landmarks
+- `POST /api/locations/geocode` - Convert address to coordinates
+
+#### User Profile & Preferences
+- `GET /api/users/:id/profile` - Get user profile and travel preferences
+- `PUT /api/users/:id/preferences` - Update travel preferences and settings
+- `GET /api/users/:id/wishlist` - Get user's saved properties and wishlist
+- `POST /api/users/:id/verify` - Verify user identity for trusted bookings
+- `GET /api/users/:id/trips` - Get user's trip history and upcoming bookings
+
+---
+
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Search Performance
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -732,7 +1438,7 @@ SearchCache = {
 
 ### Image and Media Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -753,7 +1459,7 @@ SearchCache = {
 
 ### Database Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -767,14 +1473,14 @@ SearchCache = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Payment Security
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -810,7 +1516,7 @@ graph TB
 
 ### Data Protection
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -831,14 +1537,14 @@ graph TB
 
 ## Accessibility Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Keyboard Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -868,7 +1574,7 @@ stateDiagram-v2
 
 ### Inclusive Design
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -881,14 +1587,14 @@ stateDiagram-v2
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Unit Testing Focus Areas
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -907,7 +1613,7 @@ stateDiagram-v2
 
 ### Integration Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -926,7 +1632,7 @@ stateDiagram-v2
 
 ### User Experience Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -939,14 +1645,14 @@ stateDiagram-v2
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance vs Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -957,7 +1663,7 @@ stateDiagram-v2
 
 ### Business vs User Experience
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -968,7 +1674,7 @@ stateDiagram-v2
 
 ### Scalability Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

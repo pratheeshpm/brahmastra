@@ -4,6 +4,12 @@
 ## 📋 Table of Contents
 
 - [Online Event/Calendar Management Tool](#online-eventcalendar-management-tool)
+  - [Table of Contents](#table-of-contents)
+  - [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+    - [Problem Understanding](#problem-understanding)
+    - [Functional Requirements](#functional-requirements)
+    - [Non-Functional Requirements](#non-functional-requirements)
+    - [Key Assumptions](#key-assumptions)
   - [High-Level Design (HLD)](#high-level-design-hld)
     - [System Architecture Overview](#system-architecture-overview)
     - [Calendar Data Model](#calendar-data-model)
@@ -44,16 +50,94 @@
 
 ---
 
+## Table of Contents
+1. [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+2. [High-Level Design (HLD)](#high-level-design-hld)
+3. [Low-Level Design (LLD)](#low-level-design-lld)
+4. [Core Algorithms](#core-algorithms)
+5. [Component Architecture](#component-architecture)
+6. [Advanced Features](#advanced-features)
+7. [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+8. [API Reference](#api-reference)
+9. [Performance Optimizations](#performance-optimizations)
+10. [Security Considerations](#security-considerations)
+11. [Accessibility Implementation](#accessibility-implementation)
+12. [Testing Strategy](#testing-strategy)
+13. [Trade-offs and Considerations](#trade-offs-and-considerations)
+
+---
+
+## Clarify the Problem and Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+### Problem Understanding
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+Design a comprehensive online calendar and event management system that enables users to create, organize, and share events while supporting complex scheduling scenarios, similar to Google Calendar, Outlook Calendar, or Calendly. The system must handle multiple calendars, recurring events, time zone management, and collaborative scheduling while providing an intuitive interface across devices.
+
+### Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Event Management**: Create, edit, delete events with rich details and attachments
+- **Recurring Events**: Complex recurrence patterns (daily, weekly, monthly, yearly, custom)
+- **Multiple Calendars**: Personal, shared, public calendars with different permission levels
+- **Time Zone Support**: Global time zone handling, automatic conversion, DST management
+- **Scheduling Features**: Meeting invitations, RSVP, availability checking, conflict detection
+- **Notification System**: Email reminders, push notifications, customizable alert timing
+- **Calendar Sharing**: Public/private sharing, subscription links, embedded calendars
+- **Integration**: Import/export (iCal, CSV), sync with external calendars (Google, Outlook)
+
+### Non-Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Performance**: <2s calendar load time, <100ms view switching, smooth scrolling
+- **Scalability**: Handle 10K+ events per user, millions of users, concurrent access
+- **Availability**: 99.9% uptime with offline viewing capabilities
+- **Cross-platform**: Web, mobile apps, desktop applications with sync
+- **Real-time Updates**: Live collaboration, instant event updates across devices
+- **Data Integrity**: No double-booking, consistent time calculations, reliable syncing
+- **Accessibility**: WCAG 2.1 AA compliance, keyboard navigation, screen reader support
+- **Security**: Encrypted data, secure sharing, privacy controls
+
+### Key Assumptions
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- Average events per user: 50-500 per month, maximum 10K total events
+- Peak usage: Business hours with scheduling surge periods
+- Calendar views: Month (primary), week, day, agenda views
+- Event duration: 15 minutes to multi-day events
+- Recurring events: 10-20% of all events, complex patterns supported
+- Time zones: Global user base across all time zones
+- Device usage: 60% desktop, 40% mobile for calendar management
+- Integration needs: 70% of users sync with external calendar services
+
+---
+
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +182,7 @@ graph TB
 
 ### Calendar Data Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -137,14 +221,605 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
+
+### Calendar Application Component Hierarchy
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+
+```mermaid
+graph TD
+    CalendarApp[CalendarApp] --> Header[CalendarHeader]
+    CalendarApp --> Sidebar[CalendarSidebar]
+    CalendarApp --> MainView[CalendarMainView]
+    CalendarApp --> EventModal[EventModal]
+    
+    Header --> ViewSwitcher[ViewSwitcher]
+    Header --> Navigation[DateNavigation]
+    Header --> Search[EventSearch]
+    Header --> Settings[CalendarSettings]
+    
+    Sidebar --> CalendarList[CalendarList]
+    Sidebar --> MiniCalendar[MiniCalendar]
+    Sidebar --> Filters[EventFilters]
+    
+    MainView --> MonthView[MonthView]
+    MainView --> WeekView[WeekView]
+    MainView --> DayView[DayView]
+    MainView --> AgendaView[AgendaView]
+    
+    MonthView --> MonthGrid[MonthGrid]
+    WeekView --> WeekGrid[WeekGrid]
+    DayView --> DayTimeline[DayTimeline]
+    
+    EventModal --> EventForm[EventForm]
+    EventModal --> AttendeeList[AttendeeManager]
+    EventModal --> RecurrenceEditor[RecurrenceEditor]
+```
+
+### State Management Architecture
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+
+```mermaid
+graph LR
+    subgraph "Calendar State"
+        Events[Events Collection]
+        Calendars[Calendar List]
+        View[Current View]
+        Date[Current Date]
+    end
+    
+    subgraph "UI State"
+        Selection[Selected Events]
+        Editing[Edit Mode]
+        Filters[Active Filters]
+        Loading[Loading States]
+    end
+    
+    subgraph "User State"
+        Preferences[User Preferences]
+        Timezone[User Timezone]
+        Permissions[Calendar Permissions]
+        Notifications[Notification Settings]
+    end
+    
+    Events --> Selection
+    View --> Editing
+    Calendars --> Filters
+    Preferences --> Timezone
+    Permissions --> Events
+```
+
+
+
+#### Core Data Interfaces
+
+```typescript
+interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  isAllDay: boolean;
+  location?: EventLocation;
+  attendees: Attendee[];
+  organizer: EventOrganizer;
+  recurrence?: RecurrenceRule;
+  reminders: Reminder[];
+  status: 'tentative' | 'confirmed' | 'cancelled';
+  visibility: 'public' | 'private' | 'confidential';
+  category?: string;
+  color?: string;
+}
+
+interface RecurrenceRule {
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval: number;
+  daysOfWeek?: number[];
+  dayOfMonth?: number;
+  monthOfYear?: number;
+  endDate?: Date;
+  occurrences?: number;
+  exceptions?: Date[];
+}
+
+interface Attendee {
+  id: string;
+  email: string;
+  name: string;
+  status: 'pending' | 'accepted' | 'declined' | 'tentative';
+  role: 'required' | 'optional' | 'resource';
+  responseDate?: Date;
+  comment?: string;
+}
+
+interface CalendarView {
+  type: 'month' | 'week' | 'day' | 'agenda' | 'year';
+  currentDate: Date;
+  timeZone: string;
+  workingHours: WorkingHours;
+  weekStart: number; // 0 = Sunday, 1 = Monday
+  showWeekends: boolean;
+  displayedCalendars: string[];
+}
+
+interface Calendar {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  isVisible: boolean;
+  isEditable: boolean;
+  owner: string;
+  permissions: CalendarPermissions;
+  timeZone: string;
+  type: 'personal' | 'shared' | 'public' | 'resource';
+}
+
+interface TimeSlot {
+  start: Date;
+  end: Date;
+  isAvailable: boolean;
+  isWorkingHours: boolean;
+  conflictLevel: 'none' | 'soft' | 'hard';
+  events?: CalendarEvent[];
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface CalendarGridProps {
+  view: CalendarView;
+  events: CalendarEvent[];
+  onEventClick: (event: CalendarEvent) => void;
+  onTimeSlotClick: (date: Date) => void;
+  onEventDrop: (eventId: string, newDate: Date) => void;
+  onEventResize: (eventId: string, newDuration: number) => void;
+  showTimeSlots?: boolean;
+  enableDragDrop?: boolean;
+  timeZone?: string;
+}
+
+interface EventFormProps {
+  event?: CalendarEvent;
+  onEventSave: (event: CalendarEvent) => void;
+  onEventDelete?: (eventId: string) => void;
+  onCancel: () => void;
+  availableCalendars: Calendar[];
+  suggestedTimes?: TimeSlot[];
+  conflictDetection?: boolean;
+  enableRecurrence?: boolean;
+}
+
+interface CalendarSidebarProps {
+  calendars: Calendar[];
+  onCalendarToggle: (calendarId: string) => void;
+  onCalendarCreate: (calendar: Calendar) => void;
+  onCalendarEdit: (calendar: Calendar) => void;
+  onCalendarDelete: (calendarId: string) => void;
+  showMiniCalendar?: boolean;
+  showUpcomingEvents?: boolean;
+}
+
+interface EventListProps {
+  events: CalendarEvent[];
+  onEventClick: (event: CalendarEvent) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
+  groupBy?: 'date' | 'calendar' | 'category';
+  showTimeZone?: boolean;
+  enableQuickEdit?: boolean;
+  maxVisible?: number;
+}
+
+interface TimePickerProps {
+  selectedTime: Date;
+  onTimeChange: (time: Date) => void;
+  timeZone?: string;
+  workingHours?: WorkingHours;
+  step?: number; // minutes
+  format?: '12h' | '24h';
+  showSeconds?: boolean;
+  disabled?: boolean;
+}
+```
+
+
+
+
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**CalendarApp.jsx**
+```jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { CalendarProvider } from './CalendarContext';
+import CalendarHeader from './CalendarHeader';
+import CalendarSidebar from './CalendarSidebar';
+import CalendarMainView from './CalendarMainView';
+import EventModal from './EventModal';
+import { useCalendarSync } from './hooks/useCalendarSync';
+
+const CalendarApp = ({ userId }) => {
+  const [currentView, setCurrentView] = useState('month'); // 'month', 'week', 'day', 'agenda'
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState([]);
+  const [calendars, setCalendars] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState([]);
+  const [filters, setFilters] = useState({
+    calendars: [],
+    categories: [],
+    searchQuery: ''
+  });
+  const [userPreferences, setUserPreferences] = useState({
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    startOfWeek: 1, // Monday
+    timeFormat: '24h',
+    defaultDuration: 60
+  });
+
+  const { syncCalendars, isOnline } = useCalendarSync();
+
+  useEffect(() => {
+    loadCalendars();
+    loadEvents();
+  }, [currentDate, currentView]);
+
+  const loadCalendars = async () => {
+    try {
+      const response = await fetch('/api/calendars');
+      const data = await response.json();
+      setCalendars(data.calendars);
+    } catch (error) {
+      console.error('Failed to load calendars:', error);
+    }
+  };
+
+  const loadEvents = async () => {
+    try {
+      const startDate = getViewStartDate();
+      const endDate = getViewEndDate();
+      
+      const response = await fetch(
+        `/api/events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`
+      );
+      const data = await response.json();
+      setEvents(data.events);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+    }
+  };
+
+  const getViewStartDate = () => {
+    const date = new Date(currentDate);
+    switch (currentView) {
+      case 'month':
+        return new Date(date.getFullYear(), date.getMonth(), 1);
+      case 'week':
+        const startOfWeek = new Date(date);
+        startOfWeek.setDate(date.getDate() - date.getDay() + userPreferences.startOfWeek);
+        return startOfWeek;
+      case 'day':
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      default:
+        return date;
+    }
+  };
+
+  const getViewEndDate = () => {
+    const date = new Date(currentDate);
+    switch (currentView) {
+      case 'month':
+        return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      case 'week':
+        const endOfWeek = new Date(date);
+        endOfWeek.setDate(date.getDate() - date.getDay() + userPreferences.startOfWeek + 6);
+        return endOfWeek;
+      case 'day':
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+      default:
+        return date;
+    }
+  };
+
+  const handleEventCreate = useCallback(async (eventData) => {
+    try {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...eventData,
+          timezone: userPreferences.timezone
+        })
+      });
+
+      if (response.ok) {
+        const newEvent = await response.json();
+        setEvents(prev => [...prev, newEvent]);
+        setIsEventModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Failed to create event:', error);
+    }
+  }, [userPreferences.timezone]);
+
+  const handleEventUpdate = useCallback(async (eventId, updates) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+
+      if (response.ok) {
+        const updatedEvent = await response.json();
+        setEvents(prev => prev.map(event => 
+          event.id === eventId ? updatedEvent : event
+        ));
+        setIsEventModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Failed to update event:', error);
+    }
+  }, []);
+
+  const handleEventDelete = useCallback(async (eventId) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setEvents(prev => prev.filter(event => event.id !== eventId));
+        setIsEventModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+    }
+  }, []);
+
+  const handleDateNavigation = useCallback((direction) => {
+    const newDate = new Date(currentDate);
+    
+    switch (currentView) {
+      case 'month':
+        newDate.setMonth(newDate.getMonth() + direction);
+        break;
+      case 'week':
+        newDate.setDate(newDate.getDate() + (direction * 7));
+        break;
+      case 'day':
+        newDate.setDate(newDate.getDate() + direction);
+        break;
+    }
+    
+    setCurrentDate(newDate);
+  }, [currentDate, currentView]);
+
+  const handleEventSelect = useCallback((event) => {
+    setSelectedEvent(event);
+    setIsEventModalOpen(true);
+  }, []);
+
+  const handleTimeSlotClick = useCallback((dateTime) => {
+    const newEvent = {
+      title: '',
+      start: dateTime,
+      end: new Date(dateTime.getTime() + (userPreferences.defaultDuration * 60000)),
+      calendarId: calendars[0]?.id,
+      allDay: false
+    };
+    
+    setSelectedEvent(newEvent);
+    setIsEventModalOpen(true);
+  }, [userPreferences.defaultDuration, calendars]);
+
+  const getFilteredEvents = () => {
+    return events.filter(event => {
+      // Filter by calendar
+      if (filters.calendars.length > 0 && 
+          !filters.calendars.includes(event.calendarId)) {
+        return false;
+      }
+      
+      // Filter by search query
+      if (filters.searchQuery && 
+          !event.title.toLowerCase().includes(filters.searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      return true;
+    });
+  };
+
+  const value = {
+    currentView,
+    currentDate,
+    events: getFilteredEvents(),
+    calendars,
+    selectedEvent,
+    selectedEvents,
+    filters,
+    userPreferences,
+    isOnline,
+    setCurrentView,
+    setCurrentDate,
+    setFilters,
+    setUserPreferences,
+    onEventCreate: handleEventCreate,
+    onEventUpdate: handleEventUpdate,
+    onEventDelete: handleEventDelete,
+    onEventSelect: handleEventSelect,
+    onTimeSlotClick: handleTimeSlotClick,
+    onDateNavigation: handleDateNavigation
+  };
+
+  return (
+    <CalendarProvider value={value}>
+      <div className="calendar-app">
+        <CalendarHeader />
+        
+        <div className="calendar-body">
+          <CalendarSidebar />
+          <CalendarMainView />
+        </div>
+
+        {isEventModalOpen && (
+          <EventModal
+            event={selectedEvent}
+            onClose={() => setIsEventModalOpen(false)}
+          />
+        )}
+      </div>
+    </CalendarProvider>
+  );
+};
+
+export default CalendarApp;
+```
+
+**CalendarMainView.jsx**
+```jsx
+import React, { useContext } from 'react';
+import { CalendarContext } from './CalendarContext';
+import MonthView from './MonthView';
+import WeekView from './WeekView';
+import DayView from './DayView';
+import AgendaView from './AgendaView';
+
+const CalendarMainView = () => {
+  const { currentView } = useContext(CalendarContext);
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'month':
+        return <MonthView />;
+      case 'week':
+        return <WeekView />;
+      case 'day':
+        return <DayView />;
+      case 'agenda':
+        return <AgendaView />;
+      default:
+        return <MonthView />;
+    }
+  };
+
+  return (
+    <div className="calendar-main-view">
+      {renderView()}
+    </div>
+  );
+};
+
+export default CalendarMainView;
+```
+
+**MonthView.jsx**
+```jsx
+import React, { useContext, useMemo } from 'react';
+import { CalendarContext } from './CalendarContext';
+import MonthGrid from './MonthGrid';
+
+const MonthView = () => {
+  const { 
+    currentDate, 
+    events, 
+    userPreferences, 
+    onTimeSlotClick, 
+    onEventSelect 
+  } = useContext(CalendarContext);
+
+  const monthData = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // Calculate the grid start (might include previous month days)
+    const gridStart = new Date(firstDay);
+    gridStart.setDate(gridStart.getDate() - 
+      (firstDay.getDay() - userPreferences.startOfWeek + 7) % 7);
+    
+    // Generate 6 weeks of days
+    const days = [];
+    const current = new Date(gridStart);
+    
+    for (let week = 0; week < 6; week++) {
+      const weekDays = [];
+      for (let day = 0; day < 7; day++) {
+        const dayEvents = events.filter(event => {
+          const eventDate = new Date(event.start);
+          return eventDate.toDateString() === current.toDateString();
+        });
+        
+        weekDays.push({
+          date: new Date(current),
+          isCurrentMonth: current.getMonth() === month,
+          isToday: current.toDateString() === new Date().toDateString(),
+          events: dayEvents
+        });
+        
+        current.setDate(current.getDate() + 1);
+      }
+      days.push(weekDays);
+    }
+    
+    return days;
+  }, [currentDate, events, userPreferences.startOfWeek]);
+
+  const weekdays = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const startOfWeek = userPreferences.startOfWeek;
+    return [...days.slice(startOfWeek), ...days.slice(0, startOfWeek)];
+  }, [userPreferences.startOfWeek]);
+
+  return (
+    <div className="month-view">
+      <div className="month-header">
+        <div className="weekdays">
+          {weekdays.map((day, index) => (
+            <div key={index} className="weekday">
+              {day}
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      <MonthGrid
+        monthData={monthData}
+        onTimeSlotClick={onTimeSlotClick}
+        onEventSelect={onEventSelect}
+      />
+    </div>
+  );
+};
+
+export default MonthView;
+```
+
+
+### API Reference
 
 ---
 
 
 ### Event Scheduling Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -168,7 +843,7 @@ graph TD
 
 ### Recurrence Pattern Engine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -196,7 +871,7 @@ flowchart TD
 
 ### Calendar View State Machine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -223,14 +898,14 @@ stateDiagram-v2
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Intelligent Event Scheduling Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -302,7 +977,7 @@ function findOptimalTimeSlot(request, existingEvents):
 
 ### 2. Recurrence Rule Processing (RFC 5545)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -364,7 +1039,7 @@ function generateRecurrences(startDate, rrule, maxOccurrences):
 
 ### 3. Calendar View Rendering Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -431,7 +1106,7 @@ function assignEventLanes(events):
 
 ### 4. Timezone Management Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -483,7 +1158,7 @@ function handleDSTTransition(eventTime, timezone):
 
 ### 5. Smart Notification Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -547,95 +1222,21 @@ function calculateOptimalNotificationTime(event, user):
 
 ## Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
-
-### Calendar Application Component Hierarchy
-
-[⬆️ Back to Top](#-table-of-contents)
-
----
-
-
-```mermaid
-graph TD
-    CalendarApp[CalendarApp] --> Header[CalendarHeader]
-    CalendarApp --> Sidebar[CalendarSidebar]
-    CalendarApp --> MainView[CalendarMainView]
-    CalendarApp --> EventModal[EventModal]
-    
-    Header --> ViewSwitcher[ViewSwitcher]
-    Header --> Navigation[DateNavigation]
-    Header --> Search[EventSearch]
-    Header --> Settings[CalendarSettings]
-    
-    Sidebar --> CalendarList[CalendarList]
-    Sidebar --> MiniCalendar[MiniCalendar]
-    Sidebar --> Filters[EventFilters]
-    
-    MainView --> MonthView[MonthView]
-    MainView --> WeekView[WeekView]
-    MainView --> DayView[DayView]
-    MainView --> AgendaView[AgendaView]
-    
-    MonthView --> MonthGrid[MonthGrid]
-    WeekView --> WeekGrid[WeekGrid]
-    DayView --> DayTimeline[DayTimeline]
-    
-    EventModal --> EventForm[EventForm]
-    EventModal --> AttendeeList[AttendeeManager]
-    EventModal --> RecurrenceEditor[RecurrenceEditor]
-```
-
-### State Management Architecture
-
-[⬆️ Back to Top](#-table-of-contents)
-
----
-
-
-```mermaid
-graph LR
-    subgraph "Calendar State"
-        Events[Events Collection]
-        Calendars[Calendar List]
-        View[Current View]
-        Date[Current Date]
-    end
-    
-    subgraph "UI State"
-        Selection[Selected Events]
-        Editing[Edit Mode]
-        Filters[Active Filters]
-        Loading[Loading States]
-    end
-    
-    subgraph "User State"
-        Preferences[User Preferences]
-        Timezone[User Timezone]
-        Permissions[Calendar Permissions]
-        Notifications[Notification Settings]
-    end
-    
-    Events --> Selection
-    View --> Editing
-    Calendars --> Filters
-    Preferences --> Timezone
-    Permissions --> Events
-```
 
 ## Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Calendar Sharing and Collaboration
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -681,7 +1282,7 @@ graph TB
 
 ### Intelligent Event Suggestions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -714,16 +1315,85 @@ flowchart TD
     D --> L
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Event Management
+- `POST /api/events` - Create new calendar event with attendees and recurrence
+- `GET /api/events` - Get events with filtering by date range and calendar
+- `PUT /api/events/:id` - Update event details, time, or attendees
+- `DELETE /api/events/:id` - Delete event and notify attendees
+- `POST /api/events/:id/duplicate` - Duplicate event with modified details
+
+#### Calendar Operations
+- `GET /api/calendars` - Get user's calendars and shared calendar access
+- `POST /api/calendars` - Create new calendar with permissions and settings
+- `PUT /api/calendars/:id` - Update calendar name, color, or visibility
+- `DELETE /api/calendars/:id` - Delete calendar and all associated events
+- `POST /api/calendars/:id/share` - Share calendar with other users
+
+#### Recurrence & Series
+- `POST /api/events/:id/recurrence` - Add recurrence rule to existing event
+- `PUT /api/events/:id/series` - Update entire event series or single occurrence
+- `DELETE /api/events/:id/series` - Delete event series with options for future
+- `POST /api/events/:id/exception` - Create exception for recurring event
+- `GET /api/events/:id/occurrences` - Get all occurrences of recurring event
+
+#### Attendee Management
+- `POST /api/events/:id/attendees` - Add attendees to event with invitations
+- `PUT /api/events/:id/attendees/:userId` - Update attendee status or role
+- `DELETE /api/events/:id/attendees/:userId` - Remove attendee from event
+- `POST /api/events/:id/respond` - Respond to event invitation (accept/decline)
+- `GET /api/events/:id/attendees` - Get attendee list with response status
+
+#### Availability & Scheduling
+- `GET /api/availability/check` - Check availability for multiple users
+- `POST /api/availability/find-time` - Find optimal meeting times for attendees
+- `GET /api/availability/free-busy` - Get free/busy information for date range
+- `POST /api/scheduling/suggest` - Get AI-powered scheduling suggestions
+- `GET /api/scheduling/conflicts` - Detect scheduling conflicts for user
+
+#### Time Zone & Localization
+- `GET /api/timezones` - Get available time zones with current offsets
+- `POST /api/events/:id/timezone` - Convert event to different time zone
+- `GET /api/user/timezone` - Get user's preferred time zone setting
+- `PUT /api/user/timezone` - Update user's time zone preference
+- `GET /api/holidays/:region` - Get holidays for specific region and year
+
+#### Reminders & Notifications
+- `POST /api/events/:id/reminders` - Add reminders to event (email, push, SMS)
+- `PUT /api/reminders/:id` - Update reminder timing or delivery method
+- `DELETE /api/reminders/:id` - Remove reminder from event
+- `GET /api/notifications/pending` - Get pending notification queue for user
+- `POST /api/notifications/send` - Send immediate notification to attendees
+
+#### Integration & Sync
+- `POST /api/integration/google` - Sync with Google Calendar (import/export)
+- `POST /api/integration/outlook` - Sync with Microsoft Outlook calendar
+- `GET /api/integration/status` - Get calendar integration sync status
+- `POST /api/integration/webhook` - Configure webhook for calendar events
+- `GET /api/export/:calendarId` - Export calendar in iCal/CSV format
+
+---
+
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Efficient Date Calculations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -747,7 +1417,7 @@ DateRange = {
 
 ### Virtual Calendar Rendering
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -761,7 +1431,7 @@ DateRange = {
 
 ### Data Caching Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -778,14 +1448,14 @@ CalendarCache = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Calendar Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -821,7 +1491,7 @@ graph TB
 
 ### Event Data Security
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -835,14 +1505,14 @@ graph TB
 
 ## Accessibility Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Keyboard Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -872,7 +1542,7 @@ stateDiagram-v2
 
 ### Screen Reader Support
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -889,14 +1559,14 @@ Arrow keys to navigate."
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Unit Testing Focus Areas
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -915,7 +1585,7 @@ Arrow keys to navigate."
 
 ### Integration Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -934,7 +1604,7 @@ Arrow keys to navigate."
 
 ### End-to-End Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -947,14 +1617,14 @@ Arrow keys to navigate."
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance vs Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -965,7 +1635,7 @@ Arrow keys to navigate."
 
 ### Privacy vs Collaboration
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -976,7 +1646,7 @@ Arrow keys to navigate."
 
 ### Scalability Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

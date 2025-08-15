@@ -26,6 +26,10 @@
     - [Data Models](#data-models)
       - [Notification Schema](#notification-schema)
       - [User Preferences Schema](#user-preferences-schema)
+  - [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+    - [Core Data Interfaces](#core-data-interfaces)
+    - [Component Props Interfaces](#component-props-interfaces)
+  - [API Reference](#api-reference)
   - [Performance and Scalability](#performance-and-scalability)
     - [High-Throughput Delivery Pipeline](#high-throughput-delivery-pipeline)
       - [Scalable Processing Architecture](#scalable-processing-architecture)
@@ -67,14 +71,14 @@
 
 ## Clarify the Problem and Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Problem Understanding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -82,7 +86,7 @@ Design a comprehensive real-time notification system that delivers instant alert
 
 ### Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -97,7 +101,7 @@ Design a comprehensive real-time notification system that delivers instant alert
 
 ### Non-Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -110,7 +114,7 @@ Design a comprehensive real-time notification system that delivers instant alert
 
 ### Key Assumptions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -125,14 +129,14 @@ Design a comprehensive real-time notification system that delivers instant alert
 
 ## High-Level Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Global Notification Infrastructure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -214,75 +218,326 @@ graph TB
     RETRY_SERVICE --> CACHE_LAYER
 ```
 
-### Real-Time Delivery Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+
+### Data Models
+
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
-```mermaid
-graph TD
-    subgraph "Event Processing Pipeline"
-        EVENT_SOURCE[Event Source<br/>Application trigger]
-        EVENT_VALIDATION[Event Validation<br/>Schema & permissions]
-        USER_TARGETING[User Targeting<br/>Recipient selection]
-        PREFERENCE_CHECK[Preference Check<br/>User settings validation]
-    end
-    
-    subgraph "Content Generation"
-        TEMPLATE_SELECTION[Template Selection<br/>Dynamic template choice]
-        CONTENT_RENDERING[Content Rendering<br/>Personalized content]
-        LOCALIZATION[Localization<br/>Multi-language support]
-        A_B_TESTING[A/B Testing<br/>Content variants]
-    end
-    
-    subgraph "Delivery Orchestration"
-        CHANNEL_SELECTION[Channel Selection<br/>Optimal delivery method]
-        RATE_LIMITING[Rate Limiting<br/>User & system limits]
-        BATCH_PROCESSING[Batch Processing<br/>Bulk delivery optimization]
-        DELIVERY_SCHEDULING[Delivery Scheduling<br/>Time zone optimization]
-    end
-    
-    subgraph "Multi-Channel Delivery"
-        IMMEDIATE_DELIVERY[Immediate Delivery<br/>Real-time channels]
-        QUEUED_DELIVERY[Queued Delivery<br/>Deferred channels]
-        FALLBACK_DELIVERY[Fallback Delivery<br/>Alternative channels]
-        RETRY_MECHANISM[Retry Mechanism<br/>Failed delivery handling]
-    end
-    
-    EVENT_SOURCE --> EVENT_VALIDATION
-    EVENT_VALIDATION --> USER_TARGETING
-    USER_TARGETING --> PREFERENCE_CHECK
-    
-    PREFERENCE_CHECK --> TEMPLATE_SELECTION
-    TEMPLATE_SELECTION --> CONTENT_RENDERING
-    CONTENT_RENDERING --> LOCALIZATION
-    LOCALIZATION --> A_B_TESTING
-    
-    A_B_TESTING --> CHANNEL_SELECTION
-    CHANNEL_SELECTION --> RATE_LIMITING
-    RATE_LIMITING --> BATCH_PROCESSING
-    BATCH_PROCESSING --> DELIVERY_SCHEDULING
-    
-    DELIVERY_SCHEDULING --> IMMEDIATE_DELIVERY
-    DELIVERY_SCHEDULING --> QUEUED_DELIVERY
-    IMMEDIATE_DELIVERY --> FALLBACK_DELIVERY
-    QUEUED_DELIVERY --> RETRY_MECHANISM
+#### Notification Schema
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+```
+Notification {
+  id: UUID
+  user_id: UUID
+  type: 'info' | 'warning' | 'error' | 'success' | 'marketing'
+  category: String
+  priority: 'low' | 'normal' | 'high' | 'critical'
+  content: {
+    title: String
+    body: String
+    image_url?: String
+    icon?: String
+    badge?: String
+    actions?: [{
+      id: String
+      title: String
+      action: String
+      icon?: String
+    }]
+  }
+  metadata: {
+    created_at: DateTime
+    expires_at?: DateTime
+    deep_link?: String
+    payload?: Object
+    source_app: String
+    campaign_id?: String
+  }
+  delivery: {
+    channels: ['push', 'email', 'sms', 'websocket']
+    scheduled_at?: DateTime
+    delivered_at?: DateTime
+    read_at?: DateTime
+    clicked_at?: DateTime
+    dismissed_at?: DateTime
+  }
+  targeting: {
+    user_segments?: [String]
+    device_types?: [String]
+    geographic_filters?: Object
+    time_constraints?: Object
+  }
+}
 ```
 
+#### User Preferences Schema
+
+[⬆️ Back to Top](#--table-of-contents)
+
 ---
+
+```
+NotificationPreferences {
+  user_id: UUID
+  global_settings: {
+    enabled: Boolean
+    quiet_hours: {
+      start_time: String
+      end_time: String
+      timezone: String
+      days: [String]
+    }
+    summary_digest: {
+      enabled: Boolean
+      frequency: 'daily' | 'weekly'
+      time: String
+    }
+  }
+  channel_preferences: {
+    push: {
+      enabled: Boolean
+      sound: Boolean
+      vibration: Boolean
+      led: Boolean
+      categories: [String]
+    }
+    email: {
+      enabled: Boolean
+      categories: [String]
+      frequency: 'immediate' | 'hourly' | 'daily'
+    }
+    sms: {
+      enabled: Boolean
+      categories: [String]
+      emergency_only: Boolean
+    }
+    in_app: {
+      enabled: Boolean
+      categories: [String]
+      auto_dismiss: Boolean
+      duration: Integer
+    }
+  }
+  category_preferences: {
+    [category]: {
+      enabled: Boolean
+      channels: [String]
+      priority_override?: String
+    }
+  }
+}
+```
+
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface Notification {
+  id: string;
+  userId: string;
+  type: 'info' | 'success' | 'warning' | 'error' | 'system';
+  category: string;
+  title: string;
+  message: string;
+  data?: Record<string, any>;
+  timestamp: Date;
+  expiresAt?: Date;
+  isRead: boolean;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  channels: DeliveryChannel[];
+  actions?: NotificationAction[];
+}
+
+interface NotificationAction {
+  id: string;
+  label: string;
+  url?: string;
+  handler?: string;
+  style: 'primary' | 'secondary' | 'danger';
+  requiresConfirmation?: boolean;
+}
+
+interface DeliveryChannel {
+  type: 'push' | 'email' | 'sms' | 'in-app' | 'webhook';
+  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
+  sentAt?: Date;
+  deliveredAt?: Date;
+  error?: string;
+  metadata?: Record<string, any>;
+}
+
+interface NotificationPreferences {
+  userId: string;
+  globalSettings: {
+    enabled: boolean;
+    quietHours: QuietHours;
+    doNotDisturb: boolean;
+    batchDelivery: boolean;
+  };
+  channelSettings: Record<string, ChannelPreference>;
+  categorySettings: Record<string, CategoryPreference>;
+}
+
+interface QuietHours {
+  enabled: boolean;
+  startTime: string; // HH:mm format
+  endTime: string;
+  timezone: string;
+  exceptions: string[]; // categories that override quiet hours
+}
+
+interface PushSubscription {
+  userId: string;
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+  userAgent: string;
+  deviceId: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface NotificationCenterProps {
+  userId: string;
+  onNotificationClick: (notification: Notification) => void;
+  onNotificationDismiss: (notificationId: string) => void;
+  onMarkAllRead: () => void;
+  maxDisplayed?: number;
+  showGrouping?: boolean;
+  enableRealTime?: boolean;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+}
+
+interface NotificationToastProps {
+  notification: Notification;
+  onClose: () => void;
+  onActionClick: (action: NotificationAction) => void;
+  autoClose?: boolean;
+  autoCloseDelay?: number;
+  position?: ToastPosition;
+  showProgress?: boolean;
+  pauseOnHover?: boolean;
+}
+
+interface NotificationBellProps {
+  unreadCount: number;
+  onClick: () => void;
+  onHover?: () => void;
+  showBadge?: boolean;
+  animate?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'outline' | 'ghost';
+}
+
+interface NotificationListProps {
+  notifications: Notification[];
+  onNotificationClick: (notification: Notification) => void;
+  onMarkAsRead: (notificationId: string) => void;
+  onDelete: (notificationId: string) => void;
+  groupBy?: 'date' | 'category' | 'priority';
+  filterBy?: NotificationFilter;
+  virtualScrolling?: boolean;
+  showActions?: boolean;
+}
+
+interface NotificationPreferencesProps {
+  preferences: NotificationPreferences;
+  onPreferencesChange: (preferences: NotificationPreferences) => void;
+  availableChannels: DeliveryChannel['type'][];
+  availableCategories: string[];
+  showAdvanced?: boolean;
+  allowGlobalDisable?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Notification Management
+- `POST /api/notifications` - Create and send new notification to user or group
+- `GET /api/notifications` - Get user's notifications with filtering and pagination
+- `PUT /api/notifications/:id/read` - Mark notification as read with timestamp
+- `DELETE /api/notifications/:id` - Delete notification from user's inbox
+- `POST /api/notifications/mark-all-read` - Mark all notifications as read for user
+
+#### Real-time Delivery
+- `WS /api/notifications/connect` - WebSocket connection for real-time notifications
+- `POST /api/notifications/push` - Send push notification to subscribed devices
+- `GET /api/notifications/stream` - Server-sent events stream for live updates
+- `POST /api/notifications/broadcast` - Broadcast notification to multiple users
+- `PUT /api/notifications/retry/:id` - Retry failed notification delivery
+
+#### Subscription Management
+- `POST /api/notifications/subscribe` - Subscribe device for push notifications
+- `DELETE /api/notifications/unsubscribe` - Unsubscribe device from notifications
+- `GET /api/notifications/subscriptions` - Get user's active subscriptions
+- `PUT /api/notifications/subscription/:id` - Update subscription preferences
+- `POST /api/notifications/test` - Send test notification to verify delivery
+
+#### Preferences & Settings
+- `GET /api/notifications/preferences` - Get user's notification preferences
+- `PUT /api/notifications/preferences` - Update notification preferences and rules
+- `POST /api/notifications/quiet-hours` - Set quiet hours schedule for user
+- `GET /api/notifications/channels` - Get available delivery channels and status
+- `PUT /api/notifications/channel/:type` - Enable or disable specific channel
+
+#### Templates & Campaigns
+- `POST /api/notifications/templates` - Create reusable notification template
+- `GET /api/notifications/templates` - Get available notification templates
+- `POST /api/notifications/campaign` - Create notification campaign for user segment
+- `GET /api/notifications/campaign/:id/stats` - Get campaign delivery statistics
+- `PUT /api/notifications/template/:id` - Update notification template content
+
+#### Analytics & Tracking
+- `GET /api/notifications/analytics` - Get notification delivery and engagement metrics
+- `POST /api/notifications/event` - Track notification interaction events
+- `GET /api/notifications/performance` - Get delivery performance and failure rates
+- `POST /api/notifications/feedback` - Submit user feedback on notifications
+- `GET /api/notifications/trends` - Get notification engagement trends over time
+
+#### Administration
+- `GET /api/admin/notifications/queue` - Get notification delivery queue status
+- `POST /api/admin/notifications/purge` - Purge old notifications from system
+- `GET /api/admin/notifications/errors` - Get notification delivery error logs
+- `PUT /api/admin/notifications/throttle` - Configure rate limiting for notifications
+- `POST /api/admin/notifications/maintenance` - Perform system maintenance tasks
+
+---
+
+
 
 ## UI/UX and Component Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Frontend Notification Components
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -361,9 +616,91 @@ graph TD
     NOTIFICATION_PROVIDER --> EMAIL_TEMPLATES
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**NotificationProvider.jsx**
+
+**What this code does:**
+• **States**: `toasts`, `notifications`, `unreadCount`, `permissions`, `settings`
+• **Hooks**: `useWebSocket('/notifications')`, `useState`, `useEffect`, `useCallback`
+• **Functions**: `showToast()`, `markAsRead()`, `checkPermissions()`, `showBrowserNotification()`
+• **Renders**: React Context Provider with ToastContainer and NotificationCenter
+
+```jsx
+// Imports: React hooks, context utilities, child components, WebSocket hook
+// File Structure: ./ToastContainer, ./NotificationCenter, ./hooks/useWebSocket
+
+// States: toasts[], notifications[], unreadCount, permissions{}, settings{}
+// Custom Hooks: useWebSocket('/notifications')
+// Functions: showToast(), markAsRead(), checkPermissions(), isQuietHours(), showBrowserNotification()
+// WebSocket Events: notification, notification:read, notification:deleted
+// Browser APIs: Notification API, fetch API
+// Renders: Context Provider wrapping children + ToastContainer + NotificationCenter
+```
+
+**ToastContainer.jsx**
+
+**What this code does:**
+• **States**: None (uses context)
+• **Hooks**: `useNotifications()`
+• **Functions**: None (simple mapping component)
+• **Renders**: Portal to document.body with mapped Toast components
+
+```jsx
+// Imports: React, createPortal, custom hook, Toast component
+// File Structure: ./NotificationProvider, ./Toast
+
+// States: None (uses context data)
+// Custom Hooks: useNotifications()
+// Functions: None (simple render logic)
+// Renders: Portal to document.body containing mapped Toast components
+```
+
+**Toast.jsx**
+
+**What this code does:**
+• **States**: `isVisible`, `isExiting`
+• **Hooks**: `useNotifications()`, `useState`, `useEffect`
+• **Functions**: `handleClose()`, `getToastIcon()`
+• **Renders**: Toast div with icon, content, actions, and close button
+
+```jsx
+// Imports: React hooks, custom notification hook
+// File Structure: ./NotificationProvider
+
+// States: isVisible, isExiting
+// Custom Hooks: useNotifications()
+// Functions: handleClose(), getToastIcon()
+// Timers: Entry animation timeout, exit animation timeout
+// Renders: Toast div with icon, title, message, actions, close button
+```
+
+**NotificationBell.jsx**
+
+**What this code does:**
+• **States**: `isOpen`
+• **Hooks**: `useNotifications()`, `useState`
+• **Functions**: `handleToggle()`
+• **Renders**: Bell button with SVG icon, badge, and conditional NotificationDropdown
+
+```jsx
+// Imports: React, custom notification hook, dropdown component
+// File Structure: ./NotificationProvider, ./NotificationDropdown
+
+// States: isOpen
+// Custom Hooks: useNotifications()
+// Functions: handleToggle()
+// Renders: Bell button with SVG icon, badge count, conditional dropdown
+```
+```
+
 ### Toast Management System
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -397,7 +734,7 @@ stateDiagram-v2
 
 ### Cross-Platform Notification Rendering
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -439,21 +776,21 @@ graph LR
 
 ## Real-Time Sync, Data Modeling & APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Intelligent Delivery Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Smart Channel Selection
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -510,14 +847,14 @@ graph TD
 
 ### Real-Time Synchronization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Cross-Device State Sync
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -563,7 +900,7 @@ sequenceDiagram
 
 ### Notification Deduplication Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -578,7 +915,7 @@ graph TD
     D -->|No| F[Process Normally]
     
     E --> G{Merge Type}
-    G -->|Count| H[Update Count Badge<br/>"3 new messages"]
+    G -->|Count| H[Update Count Badge<br/>3 new messages]
     G -->|Replace| I[Replace Content<br/>Keep latest version]
     G -->|Accumulate| J[Combine Content<br/>Multiple items]
     
@@ -595,141 +932,83 @@ graph TD
     style M fill:#ccffcc
 ```
 
-### Data Models
 
-[⬆️ Back to Top](#-table-of-contents)
+### Real-Time Delivery Architecture
 
----
-
-
-#### Notification Schema
-
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
-```
-Notification {
-  id: UUID
-  user_id: UUID
-  type: 'info' | 'warning' | 'error' | 'success' | 'marketing'
-  category: String
-  priority: 'low' | 'normal' | 'high' | 'critical'
-  content: {
-    title: String
-    body: String
-    image_url?: String
-    icon?: String
-    badge?: String
-    actions?: [{
-      id: String
-      title: String
-      action: String
-      icon?: String
-    }]
-  }
-  metadata: {
-    created_at: DateTime
-    expires_at?: DateTime
-    deep_link?: String
-    payload?: Object
-    source_app: String
-    campaign_id?: String
-  }
-  delivery: {
-    channels: ['push', 'email', 'sms', 'websocket']
-    scheduled_at?: DateTime
-    delivered_at?: DateTime
-    read_at?: DateTime
-    clicked_at?: DateTime
-    dismissed_at?: DateTime
-  }
-  targeting: {
-    user_segments?: [String]
-    device_types?: [String]
-    geographic_filters?: Object
-    time_constraints?: Object
-  }
-}
-```
 
-#### User Preferences Schema
-
-[⬆️ Back to Top](#-table-of-contents)
-
----
-
-```
-NotificationPreferences {
-  user_id: UUID
-  global_settings: {
-    enabled: Boolean
-    quiet_hours: {
-      start_time: String
-      end_time: String
-      timezone: String
-      days: [String]
-    }
-    summary_digest: {
-      enabled: Boolean
-      frequency: 'daily' | 'weekly'
-      time: String
-    }
-  }
-  channel_preferences: {
-    push: {
-      enabled: Boolean
-      sound: Boolean
-      vibration: Boolean
-      led: Boolean
-      categories: [String]
-    }
-    email: {
-      enabled: Boolean
-      categories: [String]
-      frequency: 'immediate' | 'hourly' | 'daily'
-    }
-    sms: {
-      enabled: Boolean
-      categories: [String]
-      emergency_only: Boolean
-    }
-    in_app: {
-      enabled: Boolean
-      categories: [String]
-      auto_dismiss: Boolean
-      duration: Integer
-    }
-  }
-  category_preferences: {
-    [category]: {
-      enabled: Boolean
-      channels: [String]
-      priority_override?: String
-    }
-  }
-}
+```mermaid
+graph TD
+    subgraph "Event Processing Pipeline"
+        EVENT_SOURCE[Event Source<br/>Application trigger]
+        EVENT_VALIDATION[Event Validation<br/>Schema & permissions]
+        USER_TARGETING[User Targeting<br/>Recipient selection]
+        PREFERENCE_CHECK[Preference Check<br/>User settings validation]
+    end
+    
+    subgraph "Content Generation"
+        TEMPLATE_SELECTION[Template Selection<br/>Dynamic template choice]
+        CONTENT_RENDERING[Content Rendering<br/>Personalized content]
+        LOCALIZATION[Localization<br/>Multi-language support]
+        A_B_TESTING[A/B Testing<br/>Content variants]
+    end
+    
+    subgraph "Delivery Orchestration"
+        CHANNEL_SELECTION[Channel Selection<br/>Optimal delivery method]
+        RATE_LIMITING[Rate Limiting<br/>User & system limits]
+        BATCH_PROCESSING[Batch Processing<br/>Bulk delivery optimization]
+        DELIVERY_SCHEDULING[Delivery Scheduling<br/>Time zone optimization]
+    end
+    
+    subgraph "Multi-Channel Delivery"
+        IMMEDIATE_DELIVERY[Immediate Delivery<br/>Real-time channels]
+        QUEUED_DELIVERY[Queued Delivery<br/>Deferred channels]
+        FALLBACK_DELIVERY[Fallback Delivery<br/>Alternative channels]
+        RETRY_MECHANISM[Retry Mechanism<br/>Failed delivery handling]
+    end
+    
+    EVENT_SOURCE --> EVENT_VALIDATION
+    EVENT_VALIDATION --> USER_TARGETING
+    USER_TARGETING --> PREFERENCE_CHECK
+    
+    PREFERENCE_CHECK --> TEMPLATE_SELECTION
+    TEMPLATE_SELECTION --> CONTENT_RENDERING
+    CONTENT_RENDERING --> LOCALIZATION
+    LOCALIZATION --> A_B_TESTING
+    
+    A_B_TESTING --> CHANNEL_SELECTION
+    CHANNEL_SELECTION --> RATE_LIMITING
+    RATE_LIMITING --> BATCH_PROCESSING
+    BATCH_PROCESSING --> DELIVERY_SCHEDULING
+    
+    DELIVERY_SCHEDULING --> IMMEDIATE_DELIVERY
+    DELIVERY_SCHEDULING --> QUEUED_DELIVERY
+    IMMEDIATE_DELIVERY --> FALLBACK_DELIVERY
+    QUEUED_DELIVERY --> RETRY_MECHANISM
 ```
 
 ---
 
 ## Performance and Scalability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### High-Throughput Delivery Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Scalable Processing Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -784,14 +1063,14 @@ graph TD
 
 ### WebSocket Connection Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Connection Scaling Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -850,14 +1129,14 @@ graph TB
 
 ### Mobile Push Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Batch Processing for FCM/APNs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -896,21 +1175,21 @@ graph TD
 
 ## Security and Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Notification Security Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Layer Security Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -963,14 +1242,14 @@ graph TD
 
 ### Privacy-Preserving Analytics
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Anonymous Engagement Tracking
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1010,21 +1289,21 @@ sequenceDiagram
 
 ## Testing, Monitoring, and Maintainability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Comprehensive Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Platform Testing Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1077,14 +1356,14 @@ graph TD
 
 ### Real-Time Monitoring Dashboard
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Notification System KPIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1133,14 +1412,14 @@ graph TB
 
 ## Trade-offs, Deep Dives, and Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Delivery Method Trade-offs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1156,7 +1435,7 @@ graph TB
 
 ### Real-Time vs Batch Processing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1179,14 +1458,14 @@ graph LR
 
 ### Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### AI-Powered Notification Intelligence
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1227,14 +1506,14 @@ graph TD
 
 ### Future Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Next-Generation Notification Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

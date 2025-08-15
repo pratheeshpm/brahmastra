@@ -49,6 +49,9 @@ const handler = async (req: Request): Promise<Response> => {
         { id: 'gpt-4o', name: 'GPT-4o', supportsImages: true },
         { id: 'gpt-3.5-turbo', name: 'GPT-3.5', supportsImages: false },
         { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', supportsImages: true },
+        { id: "anthropic/claude-opus-4.1", name: 'Claude Opus 4.1', supportsImages: true },
+        { id: "anthropic/claude-opus-4", name: 'Claude Opus 4', supportsImages: true },
+        { id: "anthropic/claude-3.7-sonnet", name: 'Claude 3.7 Sonnet', supportsImages: true },
         { id: "anthropic/claude-3.7-sonnet:thinking", name: 'Claude 3.7 Sonnet Thinking', supportsImages: true },
         { id: "mistralai/mistral-small-3.2-24b-instruct:free", name: 'Mistral Small 3.2 24B Instruct', supportsImages: false },
         { id: "google/gemini-2.5-pro-exp-03-25", name: 'Gemini 2.5 Pro Exp 03 25', supportsImages: true },
@@ -61,6 +64,13 @@ const handler = async (req: Request): Promise<Response> => {
         { id: "openai/gpt-4o-mini", name: 'GPT-4o Mini', supportsImages: true },
         { id: "meta-llama/llama-3.2-90b-vision-instruct", name: 'Llama 3.2 90B Vision', supportsImages: true },
         { id: "x-ai/grok-beta", name: 'Grok Beta', supportsImages: false },
+        // Perplexity Models
+        { id: "perplexity/sonar", name: 'Perplexity Sonar', supportsImages: false },
+        { id: "perplexity/sonar-pro", name: 'Perplexity Sonar Pro', supportsImages: false },
+        { id: "perplexity/sonar-reasoning", name: 'Perplexity Sonar Reasoning', supportsImages: false },
+        { id: "perplexity/sonar-reasoning-pro", name: 'Perplexity Sonar Reasoning Pro', supportsImages: false },
+        { id: "perplexity/sonar-deep-research", name: 'Perplexity Sonar Deep Research', supportsImages: false },
+        { id: "perplexity/r1-1776", name: 'Perplexity R1 1776', supportsImages: false },
       ];
 
       return new Response(JSON.stringify(openRouterModels), {status: 200})

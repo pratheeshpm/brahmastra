@@ -39,9 +39,11 @@ import { MemoizedChatMessage } from './MemoizedChatMessage';
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
   prompt: string;
+  isToolsPanelVisible?: boolean;
+  onToggleToolsPanel?: () => void;
 }
 
-export const Chat = memo(({ stopConversationRef , prompt}: Props) => {
+export const Chat = memo(({ stopConversationRef , prompt, isToolsPanelVisible, onToggleToolsPanel}: Props) => {
   const { t } = useTranslation('chat');
 
   const {
@@ -459,6 +461,15 @@ export const Chat = memo(({ stopConversationRef , prompt}: Props) => {
                 <div className="sticky top-0 z-10 flex justify-center border border-b-neutral-300 bg-neutral-100 py-2 text-sm text-neutral-500 dark:border-none dark:bg-[#444654] dark:text-neutral-200">
                   {t('Model')}: {selectedConversation?.model.name} | {t('Temp')}
                   : {selectedConversation?.temperature} |
+                  {onToggleToolsPanel && (
+                    <button
+                      className="ml-2 cursor-pointer hover:opacity-50 text-cyan-400 border border-cyan-400 px-2 py-1 rounded text-xs"
+                      onClick={onToggleToolsPanel}
+                      title={isToolsPanelVisible ? 'Hide Tools Panel' : 'Show Tools Panel'}
+                    >
+                      {isToolsPanelVisible ? 'Hide Tools' : 'Show Tools'}
+                    </button>
+                  )}
                   <button
                     className="ml-2 cursor-pointer hover:opacity-50"
                     onClick={handleSettings}

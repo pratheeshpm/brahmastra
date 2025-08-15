@@ -227,7 +227,7 @@ const Home = ({
   const { getModelsError } = useErrorService();
   const [initialRender, setInitialRender] = useState<boolean>(true);
   const [fileContent, setFileContent] = useState<string>('');
-  const [selectedOption, setSelectedOption] = useState<string>('leetcode');
+  const [selectedOption, setSelectedOption] = useState<string>('plain'); // 'leetcode'
   const [messagedCopied, setMessageCopied] = useState(false);
   const [sysDesignCounter, setSysDesignCounter] = useState<any>('none');
   const [selectedSystemDesign, setSelectedSystemDesign] = useState<string>('FE');
@@ -235,6 +235,7 @@ const Home = ({
   const [fileSearch, setFileSearch] = useState<string>('');
 
   const [speechResult, setSpeechResult] = useState('');
+  const [isToolsPanelVisible, setIsToolsPanelVisible] = useState(true);
 
   const handleSpeechResult = (result: string) => {
     setSpeechResult(result);
@@ -1092,10 +1093,13 @@ const Home = ({
                 key={fileContent.length}
                 stopConversationRef={stopConversationRef}
                 prompt={fileContent}
+                isToolsPanelVisible={isToolsPanelVisible}
+                onToggleToolsPanel={() => setIsToolsPanelVisible(!isToolsPanelVisible)}
               />
             </div>
-            <div style={{width:'250px'}}>
-              <button style={{color:'yellow'}} onClick={() => openFileSelector()}>Select to auto-gen OCR </button>
+            {isToolsPanelVisible && (
+                <div style={{width:'250px'}}>
+                  <button style={{color:'yellow'}} onClick={() => openFileSelector()}>Select to auto-gen OCR </button>
               {filesContent.map((file, index) => {
                 //console.log("file-->",file)
                 return (
@@ -1484,7 +1488,10 @@ const Home = ({
                   </div>
 
               </Collapsible>
+                </div>
+              )}
             </div>
+            <div>
             <Promptbar />
           </div>
         </main>

@@ -1,0 +1,10 @@
+Problem: two_numbers_such_that_they_add_up_to_target.
+Category: JavaScript Problems
+Generated: 2025-08-01T06:11:42.468104
+Input Type: text
+==================================================
+
+
+    Given an array of integers nums and an integer target, return indices of the 
+    two numbers such that they add up to target.
+    

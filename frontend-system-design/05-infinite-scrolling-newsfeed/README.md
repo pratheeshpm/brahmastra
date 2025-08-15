@@ -57,6 +57,10 @@
       - [Machine Learning Pipeline Optimization](#machine-learning-pipeline-optimization)
     - [Future Extensions](#future-extensions)
       - [Next-Generation Feed Features](#next-generation-feed-features)
+  - [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+    - [Core Data Interfaces](#core-data-interfaces)
+    - [Component Props Interfaces](#component-props-interfaces)
+  - [API Reference](#api-reference)
 
 ---
 
@@ -74,14 +78,14 @@
 
 ## Clarify the Problem and Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Problem Understanding
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -89,7 +93,7 @@ Design an infinite scrolling newsfeed system that delivers personalized content 
 
 ### Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -104,7 +108,7 @@ Design an infinite scrolling newsfeed system that delivers personalized content 
 
 ### Non-Functional Requirements
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -117,7 +121,7 @@ Design an infinite scrolling newsfeed system that delivers personalized content 
 
 ### Key Assumptions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -132,14 +136,14 @@ Design an infinite scrolling newsfeed system that delivers personalized content 
 
 ## High-Level Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Global System Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -218,7 +222,7 @@ graph TB
 
 ### Feed Generation Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -273,14 +277,14 @@ graph TD
 
 ## UI/UX and Component Structure
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Frontend Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -373,9 +377,453 @@ graph TD
     VIRTUAL_SCROLLER --> UI_STORE
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**FeedContainer.jsx**
+```jsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { FeedProvider } from './FeedContext';
+import VirtualScroller from './VirtualScroller';
+import PostItem from './PostItem';
+import LoadingSkeleton from './LoadingSkeleton';
+import { useInfiniteQuery } from 'react-query';
+import { useIntersectionObserver } from './hooks/useIntersectionObserver';
+
+const FeedContainer = () => {
+  const [posts, setPosts] = useState([]);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const loadMoreRef = useRef(null);
+  const scrollPositionRef = useRef(0);
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage: queryHasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error
+  } = useInfiniteQuery(
+    'feed',
+    ({ pageParam = null }) => fetchFeedPage(pageParam),
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
+
+  // Intersection Observer for infinite scroll
+  useIntersectionObserver(
+    loadMoreRef,
+    () => {
+      if (queryHasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    { threshold: 0.1 }
+  );
+
+  useEffect(() => {
+    if (data) {
+      const allPosts = data.pages.flatMap(page => page.posts);
+      setPosts(allPosts);
+      setHasNextPage(queryHasNextPage);
+    }
+  }, [data, queryHasNextPage]);
+
+  const handleScroll = useCallback((scrollTop) => {
+    scrollPositionRef.current = scrollTop;
+  }, []);
+
+  const updatePost = useCallback((postId, updates) => {
+    setPosts(prev => prev.map(post => 
+      post.id === postId ? { ...post, ...updates } : post
+    ));
+  }, []);
+
+  const removePost = useCallback((postId) => {
+    setPosts(prev => prev.filter(post => post.id !== postId));
+  }, []);
+
+  if (isLoading) {
+    return <LoadingSkeleton count={5} />;
+  }
+
+  if (error) {
+    return <div className="feed-error">Failed to load feed</div>;
+  }
+
+  return (
+    <FeedProvider value={{
+      posts,
+      updatePost,
+      removePost,
+      isLoading: isFetchingNextPage
+    }}>
+      <div className="feed-container">
+        <VirtualScroller
+          items={posts}
+          itemHeight={400}
+          onScroll={handleScroll}
+          renderItem={({ item, index, style }) => (
+            <div style={style} key={item.id}>
+              <PostItem post={item} index={index} />
+            </div>
+          )}
+        />
+        
+        {/* Load more trigger */}
+        <div 
+          ref={loadMoreRef} 
+          className="load-more-trigger"
+          style={{ height: '20px', margin: '20px 0' }}
+        >
+          {isFetchingNextPage && <LoadingSkeleton count={2} />}
+          {!queryHasNextPage && posts.length > 0 && (
+            <div className="end-of-feed">You've reached the end!</div>
+          )}
+        </div>
+      </div>
+    </FeedProvider>
+  );
+};
+
+// API function
+const fetchFeedPage = async (cursor) => {
+  const response = await fetch(`/api/feed?cursor=${cursor || ''}&limit=10`);
+  return response.json();
+};
+
+export default FeedContainer;
+```
+
+**VirtualScroller.jsx**
+```jsx
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+
+const VirtualScroller = ({ 
+  items, 
+  itemHeight, 
+  containerHeight = window.innerHeight,
+  overscan = 5,
+  onScroll,
+  renderItem 
+}) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollElementRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
+
+  const { visibleRange, totalHeight } = useMemo(() => {
+    const containerTop = scrollTop;
+    const containerBottom = containerTop + containerHeight;
+
+    const startIndex = Math.max(0, Math.floor(containerTop / itemHeight) - overscan);
+    const endIndex = Math.min(
+      items.length - 1,
+      Math.ceil(containerBottom / itemHeight) + overscan
+    );
+
+    return {
+      visibleRange: { startIndex, endIndex },
+      totalHeight: items.length * itemHeight
+    };
+  }, [scrollTop, containerHeight, itemHeight, items.length, overscan]);
+
+  const visibleItems = useMemo(() => {
+    const result = [];
+    for (let i = visibleRange.startIndex; i <= visibleRange.endIndex; i++) {
+      if (items[i]) {
+        result.push({
+          index: i,
+          item: items[i],
+          style: {
+            position: 'absolute',
+            top: i * itemHeight,
+            width: '100%',
+            height: itemHeight,
+          }
+        });
+      }
+    }
+    return result;
+  }, [visibleRange, items, itemHeight]);
+
+  const handleScroll = (e) => {
+    const newScrollTop = e.currentTarget.scrollTop;
+    setScrollTop(newScrollTop);
+    setIsScrolling(true);
+    onScroll?.(newScrollTop);
+
+    // Clear previous timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Set scrolling to false after scroll ends
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 150);
+  };
+
+  return (
+    <div
+      ref={scrollElementRef}
+      className="virtual-scroller"
+      style={{
+        height: containerHeight,
+        overflow: 'auto',
+        position: 'relative'
+      }}
+      onScroll={handleScroll}
+    >
+      <div
+        className="virtual-scroller-content"
+        style={{
+          height: totalHeight,
+          position: 'relative'
+        }}
+      >
+        {visibleItems.map(({ index, item, style }) =>
+          renderItem({ item, index, style })
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default VirtualScroller;
+```
+
+**PostItem.jsx**
+```jsx
+import React, { useState, useContext, memo } from 'react';
+import { FeedContext } from './FeedContext';
+import PostHeader from './PostHeader';
+import PostContent from './PostContent';
+import PostMedia from './PostMedia';
+import PostActions from './PostActions';
+import CommentsSection from './CommentsSection';
+
+const PostItem = memo(({ post, index }) => {
+  const { updatePost } = useContext(FeedContext);
+  const [showComments, setShowComments] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleLike = async () => {
+    const newLikeStatus = !post.isLiked;
+    const newLikeCount = post.likeCount + (newLikeStatus ? 1 : -1);
+    
+    // Optimistic update
+    updatePost(post.id, {
+      isLiked: newLikeStatus,
+      likeCount: newLikeCount
+    });
+
+    try {
+      await fetch(`/api/posts/${post.id}/like`, {
+        method: newLikeStatus ? 'POST' : 'DELETE'
+      });
+    } catch (error) {
+      // Revert on error
+      updatePost(post.id, {
+        isLiked: !newLikeStatus,
+        likeCount: post.likeCount
+      });
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `Post by ${post.author.name}`,
+        url: `/posts/${post.id}`
+      });
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}/posts/${post.id}`);
+    }
+  };
+
+  const handleComment = () => {
+    setShowComments(!showComments);
+  };
+
+  return (
+    <article className="post-item" data-post-id={post.id}>
+      <PostHeader 
+        author={post.author}
+        timestamp={post.createdAt}
+        isFollowing={post.author.isFollowing}
+      />
+      
+      <PostContent 
+        content={post.content}
+        hashtags={post.hashtags}
+        mentions={post.mentions}
+      />
+      
+      {post.media && post.media.length > 0 && (
+        <PostMedia 
+          media={post.media}
+          onVisibilityChange={setIsVisible}
+        />
+      )}
+      
+      <PostActions
+        likeCount={post.likeCount}
+        commentCount={post.commentCount}
+        shareCount={post.shareCount}
+        isLiked={post.isLiked}
+        isBookmarked={post.isBookmarked}
+        onLike={handleLike}
+        onComment={handleComment}
+        onShare={handleShare}
+      />
+      
+      {showComments && (
+        <CommentsSection
+          postId={post.id}
+          comments={post.comments}
+          onCommentAdd={(comment) => {
+            updatePost(post.id, {
+              commentCount: post.commentCount + 1,
+              comments: [...(post.comments || []), comment]
+            });
+          }}
+        />
+      )}
+    </article>
+  );
+});
+
+export default PostItem;
+```
+
+**Infinite Scroll Hook**
+```jsx
+// hooks/useInfiniteScroll.js
+import { useEffect, useCallback, useRef } from 'react';
+
+export const useInfiniteScroll = ({
+  hasNextPage,
+  fetchNextPage,
+  isFetchingNextPage,
+  threshold = 300
+}) => {
+  const sentinelRef = useRef(null);
+
+  const handleIntersection = useCallback((entries) => {
+    const [entry] = entries;
+    if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(handleIntersection, {
+      rootMargin: `${threshold}px`,
+      threshold: 0.1
+    });
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.unobserve(sentinel);
+      observer.disconnect();
+    };
+  }, [handleIntersection, threshold]);
+
+  return sentinelRef;
+};
+
+// hooks/useVirtualization.js
+import { useMemo } from 'react';
+
+export const useVirtualization = ({
+  items,
+  itemHeight,
+  containerHeight,
+  scrollTop,
+  overscan = 5
+}) => {
+  return useMemo(() => {
+    const startIndex = Math.max(
+      0, 
+      Math.floor(scrollTop / itemHeight) - overscan
+    );
+    
+    const endIndex = Math.min(
+      items.length - 1,
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+    );
+
+    const visibleItems = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+      if (items[i]) {
+        visibleItems.push({
+          index: i,
+          data: items[i],
+          offsetTop: i * itemHeight
+        });
+      }
+    }
+
+    return {
+      startIndex,
+      endIndex,
+      visibleItems,
+      totalHeight: items.length * itemHeight
+    };
+  }, [items, itemHeight, containerHeight, scrollTop, overscan]);
+};
+
+// Feed Performance Optimization
+export const useFeedOptimization = () => {
+  const preloadImages = useCallback((posts) => {
+    posts.forEach(post => {
+      if (post.media) {
+        post.media.forEach(media => {
+          if (media.type === 'image') {
+            const img = new Image();
+            img.src = media.thumbnailUrl || media.url;
+          }
+        });
+      }
+    });
+  }, []);
+
+  const lazyLoadMedia = useCallback((element, mediaSrc) => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = mediaSrc;
+          img.onload = () => {
+            img.classList.add('loaded');
+          };
+          observer.unobserve(img);
+        }
+      });
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return { preloadImages, lazyLoadMedia };
+};
+```
+
 ### Virtual Scrolling Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -424,7 +872,7 @@ graph TD
 
 ### Responsive Feed Layout
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -467,21 +915,21 @@ graph LR
 
 ## Real-Time Sync, Data Modeling & APIs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Content Ranking Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### ML-Based Feed Ranking
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -538,7 +986,7 @@ graph TD
 
 #### Feed Generation Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -562,14 +1010,14 @@ graph TD
 
 ### Infinite Scroll Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Pagination Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -607,7 +1055,7 @@ stateDiagram-v2
 
 #### Scroll Performance Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -615,24 +1063,24 @@ stateDiagram-v2
 ```mermaid
 graph TD
     subgraph "Scroll Event Optimization"
-        PASSIVE_LISTENERS[Passive Event Listeners<br/>Non-blocking Scroll]
-        THROTTLE[Throttled Events<br/>16ms intervals (60fps)]
-        RAF_SCHEDULING[RAF Scheduling<br/>Optimal Frame Timing]
-        WILL_CHANGE[CSS will-change<br/>GPU Acceleration]
+        PASSIVE_LISTENERS["Passive Event Listeners<br/>Non-blocking Scroll"]
+        THROTTLE["Throttled Events<br/>16ms intervals 60fps"]
+        RAF_SCHEDULING["RAF Scheduling<br/>Optimal Frame Timing"]
+        WILL_CHANGE["CSS will-change<br/>GPU Acceleration"]
     end
     
     subgraph "Rendering Optimization"
-        VIEWPORT_CULLING[Viewport Culling<br/>Render Only Visible]
-        ITEM_RECYCLING[Item Recycling<br/>DOM Element Reuse]
-        HEIGHT_ESTIMATION[Height Estimation<br/>Pre-calculated Sizes]
-        BATCH_UPDATES[Batch Updates<br/>Minimize Reflows]
+        VIEWPORT_CULLING["Viewport Culling<br/>Render Only Visible"]
+        ITEM_RECYCLING["Item Recycling<br/>DOM Element Reuse"]
+        HEIGHT_ESTIMATION["Height Estimation<br/>Pre-calculated Sizes"]
+        BATCH_UPDATES["Batch Updates<br/>Minimize Reflows"]
     end
     
     subgraph "Memory Management"
-        ITEM_POOLING[Item Pooling<br/>Object Reuse]
-        LAZY_IMAGES[Lazy Images<br/>Intersection Observer]
-        CACHE_PRUNING[Cache Pruning<br/>Memory Cleanup]
-        GC_OPTIMIZATION[GC Optimization<br/>Reference Management]
+        ITEM_POOLING["Item Pooling<br/>Object Reuse"]
+        LAZY_IMAGES["Lazy Images<br/>Intersection Observer"]
+        CACHE_PRUNING["Cache Pruning<br/>Memory Cleanup"]
+        GC_OPTIMIZATION["GC Optimization<br/>Reference Management"]
     end
     
     PASSIVE_LISTENERS --> VIEWPORT_CULLING
@@ -646,16 +1094,1224 @@ graph TD
     BATCH_UPDATES --> GC_OPTIMIZATION
 ```
 
+#### Advanced Infinite Scroll Techniques
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+##### Bird's Eye View: How Infinite Scroll Works
+
+Before diving into implementation details, let's understand the high-level architecture and flow of modern infinite scrolling systems.
+
+**Core Concept**: Instead of loading all content at once, we dynamically load content as the user scrolls, while maintaining optimal performance through virtualization and efficient DOM management.
+
+```mermaid
+graph TB
+    subgraph "User Interaction Layer"
+        USER[👤 User Scrolls]
+        VIEWPORT[📱 Visible Viewport<br/>What user sees]
+        SCROLL_EVENT[⚡ Scroll Events<br/>Browser triggers]
+    end
+    
+    subgraph "Detection & Triggering Layer"
+        INTERSECTION_API[🔍 Intersection Observer<br/>Modern scroll detection]
+        SENTINEL_TOP[🎯 Top Sentinel<br/>Scroll position tracking]
+        SENTINEL_BOTTOM[🎯 Bottom Sentinel<br/>Load more trigger]
+        THRESHOLD_CHECK[✅ Threshold Check<br/>Distance from bottom]
+    end
+    
+    subgraph "Data Management Layer"
+        LOAD_MORE[📥 Load More Data<br/>API call triggered]
+        DATA_APPEND[➕ Append New Items<br/>Add to existing list]
+        CACHE_UPDATE[💾 Update Cache<br/>Store in memory]
+        STATE_SYNC[🔄 State Synchronization<br/>React state update]
+    end
+    
+    subgraph "Rendering Optimization Layer"
+        VIRTUALIZATION[🎨 Virtualization Engine<br/>Render only visible items]
+        DOM_POOL[♻️ DOM Element Pool<br/>Reuse existing elements]
+        LAYOUT_CALC[📐 Layout Calculation<br/>Position & sizing]
+        RENDER_CYCLE[🖼️ Render Cycle<br/>Update DOM]
+    end
+    
+    subgraph "Performance Layer"
+        MEMORY_MGMT[🧠 Memory Management<br/>Cleanup off-screen items]
+        PRELOAD[⏰ Preloading<br/>Load ahead strategy]
+        DEBOUNCE[⏱️ Event Debouncing<br/>Throttle scroll events]
+        GPU_ACCEL[🚀 GPU Acceleration<br/>CSS transforms]
+    end
+    
+    USER --> VIEWPORT
+    VIEWPORT --> SCROLL_EVENT
+    SCROLL_EVENT --> INTERSECTION_API
+    
+    INTERSECTION_API --> SENTINEL_TOP
+    INTERSECTION_API --> SENTINEL_BOTTOM
+    SENTINEL_BOTTOM --> THRESHOLD_CHECK
+    
+    THRESHOLD_CHECK --> LOAD_MORE
+    LOAD_MORE --> DATA_APPEND
+    DATA_APPEND --> CACHE_UPDATE
+    CACHE_UPDATE --> STATE_SYNC
+    
+    STATE_SYNC --> VIRTUALIZATION
+    VIRTUALIZATION --> DOM_POOL
+    DOM_POOL --> LAYOUT_CALC
+    LAYOUT_CALC --> RENDER_CYCLE
+    
+    RENDER_CYCLE --> MEMORY_MGMT
+    VIRTUALIZATION --> PRELOAD
+    SCROLL_EVENT --> DEBOUNCE
+    LAYOUT_CALC --> GPU_ACCEL
+    
+    style USER fill:#e3f2fd
+    style INTERSECTION_API fill:#fff3e0
+    style VIRTUALIZATION fill:#f3e5f5
+    style MEMORY_MGMT fill:#e8f5e8
+```
+
+##### Component Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Main Container"
+        FEED_CONTAINER[📋 FeedContainer<br/>Top-level coordinator]
+        SCROLL_CONTAINER[📜 ScrollContainer<br/>Manages scroll area]
+    end
+    
+    subgraph "Scroll Detection System"
+        INTERSECTION_HOOK[🪝 useIntersectionObserver<br/>Custom hook for detection]
+        SENTINEL_MANAGER[🎯 SentinelManager<br/>Manages trigger elements]
+        SCROLL_TRACKER[📍 ScrollTracker<br/>Position & direction tracking]
+    end
+    
+    subgraph "Virtualization Engine"
+        VIRTUAL_SCROLLER[🎨 VirtualScroller<br/>Renders visible items only]
+        ITEM_RENDERER[🖼️ ItemRenderer<br/>Individual item display]
+        VIEWPORT_CALC[📐 ViewportCalculator<br/>Visible range calculation]
+    end
+    
+    subgraph "Data Management"
+        DATA_FETCHER[📥 DataFetcher<br/>API calls & caching]
+        STATE_MANAGER[🗂️ StateManager<br/>React state/context]
+        CACHE_LAYER[💾 CacheLayer<br/>Memory & persistence]
+    end
+    
+    subgraph "Performance Optimization"
+        DOM_POOLER[♻️ DOMPooler<br/>Element reuse system]
+        MEMORY_CLEANER[🧹 MemoryCleaner<br/>Garbage collection helper]
+        PRELOADER[⏰ Preloader<br/>Ahead-of-time loading]
+    end
+    
+    subgraph "User Interface"
+        POST_ITEM[📝 PostItem<br/>Individual post component]
+        LOADING_SKELETON[⏳ LoadingSkeleton<br/>Loading placeholder]
+        END_MARKER[🏁 EndMarker<br/>End of feed indicator]
+    end
+    
+    FEED_CONTAINER --> SCROLL_CONTAINER
+    SCROLL_CONTAINER --> INTERSECTION_HOOK
+    INTERSECTION_HOOK --> SENTINEL_MANAGER
+    SENTINEL_MANAGER --> SCROLL_TRACKER
+    
+    SCROLL_CONTAINER --> VIRTUAL_SCROLLER
+    VIRTUAL_SCROLLER --> ITEM_RENDERER
+    VIRTUAL_SCROLLER --> VIEWPORT_CALC
+    
+    INTERSECTION_HOOK --> DATA_FETCHER
+    DATA_FETCHER --> STATE_MANAGER
+    STATE_MANAGER --> CACHE_LAYER
+    
+    VIRTUAL_SCROLLER --> DOM_POOLER
+    DOM_POOLER --> MEMORY_CLEANER
+    DATA_FETCHER --> PRELOADER
+    
+    ITEM_RENDERER --> POST_ITEM
+    STATE_MANAGER --> LOADING_SKELETON
+    DATA_FETCHER --> END_MARKER
+    
+    style FEED_CONTAINER fill:#e3f2fd
+    style INTERSECTION_HOOK fill:#fff3e0
+    style VIRTUAL_SCROLLER fill:#f3e5f5
+    style DOM_POOLER fill:#e8f5e8
+```
+
+##### Infinite Scroll Flow Sequence
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant SC as ScrollContainer
+    participant IO as IntersectionObserver
+    participant S as Sentinel (Bottom)
+    participant DM as DataManager
+    participant VS as VirtualScroller
+    participant DP as DOMPool
+    participant UI as UserInterface
+    
+    Note over U,UI: Initial Load
+    U->>SC: Open feed page
+    SC->>DM: Load initial data (20 items)
+    DM->>VS: Provide initial items
+    VS->>DP: Request DOM elements
+    DP->>UI: Render visible items
+    UI->>U: Display initial feed
+    
+    Note over U,UI: Setup Scroll Detection
+    SC->>IO: Create intersection observer
+    IO->>S: Observe bottom sentinel
+    S->>IO: Positioned near bottom
+    
+    Note over U,UI: User Scrolls Down
+    U->>SC: Scroll down gesture
+    SC->>VS: Update scroll position
+    VS->>DP: Recycle off-screen elements
+    VS->>UI: Update visible items
+    
+    Note over U,UI: Trigger Load More
+    VS->>S: Sentinel enters viewport
+    S->>IO: Intersection detected
+    IO->>DM: Trigger loadMore()
+    
+    alt Has More Data
+        DM->>DM: Fetch next 20 items
+        DM->>VS: Append new items
+        VS->>DP: Request more DOM elements
+        DP->>UI: Render new items
+        UI->>U: Show new content
+    else No More Data
+        DM->>UI: Show "End of feed"
+        UI->>U: Display end marker
+    end
+    
+    Note over U,UI: Performance Optimization
+    VS->>DP: Release unused elements
+    DP->>DP: Clean up memory
+    VS->>UI: Optimize rendering
+```
+
+##### Key Performance Strategies
+
+```mermaid
+mindmap
+  root((🚀 Infinite Scroll Performance))
+    (🔍 Detection)
+      Intersection Observer
+        Passive listeners
+        Configurable thresholds
+        Root margin optimization
+      Sentinel Elements
+        Strategic positioning
+        Minimal DOM footprint
+        Multiple triggers
+    (🎨 Rendering)
+      Virtualization
+        Viewport culling
+        Item recycling
+        Height estimation
+      DOM Pooling
+        Element reuse
+        Memory efficiency
+        Pool size optimization
+    (📊 Data)
+      Smart Loading
+        Batch requests
+        Preloading strategy
+        Cache optimization
+      State Management
+        Normalized state
+        Selective updates
+        Memory cleanup
+    (⚡ Optimization)
+      GPU Acceleration
+        CSS transforms
+        will-change property
+        Hardware acceleration
+      Event Handling
+        Throttling/Debouncing
+        RAF scheduling
+        Passive listeners
+```
+
+**How It All Works Together:**
+
+1. **User scrolls** → Browser fires scroll events
+2. **Intersection Observer** detects when sentinel elements enter viewport (more efficient than scroll listeners)
+3. **Sentinel elements** (invisible markers) trigger actions when they become visible
+4. **Data fetcher** loads more content when bottom sentinel is reached
+5. **Virtual scroller** only renders items currently visible in viewport
+6. **DOM pool** reuses existing elements instead of creating/destroying them
+7. **Memory manager** cleans up off-screen content to prevent memory leaks
+8. **Performance optimizations** ensure smooth 60fps scrolling experience
+
+This architecture provides:
+- ✅ **Smooth Performance**: 60fps scrolling even with thousands of items
+- ✅ **Memory Efficiency**: Constant memory usage regardless of list size  
+- ✅ **Battery Friendly**: Minimal CPU usage through optimized detection
+- ✅ **Responsive UX**: Immediate feedback and progressive loading
+- ✅ **Scalable**: Handles millions of items without performance degradation
+
+##### Intersection Observer API for Scroll Detection
+
+The **Intersection Observer API** is the modern, performant way to detect when elements enter or leave the viewport. It's essential for infinite scrolling as it eliminates the need for scroll event listeners, reducing performance overhead.
+
+**Key Benefits:**
+- **Asynchronous**: Doesn't block the main thread
+- **Efficient**: Browser-optimized for visibility detection
+- **Precise**: Configurable thresholds and root margins
+- **Battery-friendly**: Lower CPU usage compared to scroll events
+
+```mermaid
+graph TB
+    subgraph "Intersection Observer Architecture"
+        ROOT[Root Element<br/>Viewport or Container]
+        TARGET[Target Elements<br/>Sentinel/Pivot Elements]
+        OBSERVER[Intersection Observer<br/>API Instance]
+        CALLBACK[Callback Function<br/>Entry Processing]
+    end
+    
+    subgraph "Observer Configuration"
+        THRESHOLD[Threshold Values<br/>0.0 to 1.0]
+        ROOT_MARGIN[Root Margin<br/>Expand/Shrink Detection Zone]
+        OPTIONS[Observer Options<br/>Performance Tuning]
+    end
+    
+    subgraph "Callback Triggers"
+        ENTERING[Element Entering<br/>isIntersecting = true]
+        LEAVING[Element Leaving<br/>isIntersecting = false]
+        RATIO_CHANGE[Visibility Ratio Change<br/>intersectionRatio]
+    end
+    
+    ROOT --> OBSERVER
+    TARGET --> OBSERVER
+    OBSERVER --> CALLBACK
+    
+    THRESHOLD --> OPTIONS
+    ROOT_MARGIN --> OPTIONS
+    OPTIONS --> OBSERVER
+    
+    CALLBACK --> ENTERING
+    CALLBACK --> LEAVING
+    CALLBACK --> RATIO_CHANGE
+    
+    style OBSERVER fill:#e3f2fd
+    style CALLBACK fill:#fff3e0
+    style ENTERING fill:#e8f5e8
+```
+
+**React Implementation with Intersection Observer:**
+
+**What this code does:**
+• **Main Purpose**: Custom hook for Intersection Observer API integration
+• **Performance**: Efficient scroll detection without scroll event listeners
+• **Key Functions**:
+  - `useIntersectionObserver()` - Sets up observer with callback and options
+  - `threshold` configuration - Controls when callback triggers (0.0 to 1.0)
+  - `rootMargin` settings - Expands detection area for early loading
+  - Automatic cleanup on component unmount
+
+```jsx
+// hooks/useIntersectionObserver.js
+import { useEffect, useRef, useCallback } from 'react';
+
+export const useIntersectionObserver = (
+  callback,
+  options = {}
+) => {
+  const targetRef = useRef(null);
+  const observerRef = useRef(null);
+
+  const {
+    threshold = 0.1,
+    rootMargin = '100px',
+    root = null,
+    enabled = true
+  } = options;
+
+  const handleIntersection = useCallback((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        callback(entry);
+      }
+    });
+  }, [callback]);
+
+  useEffect(() => {
+    if (!enabled || !targetRef.current) return;
+
+    // Create observer with optimized settings
+    observerRef.current = new IntersectionObserver(
+      handleIntersection,
+      {
+        threshold,
+        rootMargin,
+        root
+      }
+    );
+
+    const target = targetRef.current;
+    observerRef.current.observe(target);
+
+    // Cleanup function
+    return () => {
+      if (observerRef.current && target) {
+        observerRef.current.unobserve(target);
+        observerRef.current.disconnect();
+      }
+    };
+  }, [handleIntersection, threshold, rootMargin, root, enabled]);
+
+  return targetRef;
+};
+
+// Enhanced hook for infinite scroll
+export const useInfiniteScrollObserver = ({
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+  threshold = 0.1,
+  rootMargin = '200px'
+}) => {
+  const loadMoreCallback = useCallback((entry) => {
+    // Only trigger if we have more data and aren't already loading
+    if (hasNextPage && !isFetchingNextPage) {
+      console.log('Loading more content...', {
+        intersectionRatio: entry.intersectionRatio,
+        boundingRect: entry.boundingClientRect
+      });
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const sentinelRef = useIntersectionObserver(
+    loadMoreCallback,
+    { threshold, rootMargin }
+  );
+
+  return sentinelRef;
+};
+```
+
+##### Pivot Elements (Sentinel/Trigger/Anchor Elements)
+
+**Pivot elements**, also known as **sentinel elements**, **trigger elements**, **scroll anchors**, or **waypoint elements**, are invisible or minimal DOM elements strategically placed to detect scroll boundaries and trigger actions.
+
+**Common Names and Use Cases:**
+- **Sentinel Elements**: Guard elements that watch for boundary crossings
+- **Trigger Elements**: Elements that trigger loading actions
+- **Scroll Anchors**: Elements that anchor scroll position calculations
+- **Waypoint Elements**: Navigation milestone elements
+- **Load More Triggers**: Specific to pagination/infinite scroll
+- **Intersection Targets**: Elements targeted by Intersection Observer
+
+##### ❓ Sentinel Element Positioning: Fixed vs Dynamic
+
+**Key Question**: Are sentinel elements reattached to the last element when new content is added?
+
+**Answer**: **No, they remain in fixed positions!** Here's why and how:
+
+```mermaid
+graph TB
+    subgraph "❌ WRONG: Dynamic Reattachment"
+        WRONG_CONTAINER[Container]
+        WRONG_ITEM1[Item 1]
+        WRONG_ITEM2[Item 2]
+        WRONG_ITEM3[Item 3]
+        WRONG_SENTINEL["🎯 Bottom Sentinel<br/>Moves with last item<br/>❌ PROBLEMATIC"]
+        
+        WRONG_CONTAINER --> WRONG_ITEM1
+        WRONG_ITEM1 --> WRONG_ITEM2
+        WRONG_ITEM2 --> WRONG_ITEM3
+        WRONG_ITEM3 --> WRONG_SENTINEL
+    end
+    
+    subgraph "✅ CORRECT: Fixed Position"
+        CORRECT_CONTAINER[Container]
+        CORRECT_ITEMS[Items 1-N<br/>Dynamic content]
+        CORRECT_SENTINEL["🎯 Bottom Sentinel<br/>Fixed at container end<br/>✅ STAYS PUT"]
+        
+        CORRECT_CONTAINER --> CORRECT_ITEMS
+        CORRECT_CONTAINER --> CORRECT_SENTINEL
+    end
+    
+    style WRONG_SENTINEL fill:#ffebee
+    style CORRECT_SENTINEL fill:#e8f5e8
+```
+
+**Why Fixed Position is Better:**
+
+1. **Performance**: No DOM manipulation when adding items
+2. **Reliability**: Sentinel is always detectable by Intersection Observer
+3. **Simplicity**: No complex reattachment logic needed
+4. **Consistency**: Trigger behavior remains predictable
+
+```jsx
+// ❌ WRONG: Moving sentinel approach (problematic)
+const WrongSentinelApproach = ({ items, loadMore }) => {
+  return (
+    <div className="container">
+      {items.map((item, index) => (
+        <div key={item.id}>
+          {/* Regular item */}
+          <PostItem item={item} />
+          
+          {/* ❌ Sentinel attached to last item - PROBLEMATIC */}
+          {index === items.length - 1 && (
+            <div ref={sentinelRef} className="bottom-sentinel" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ✅ CORRECT: Fixed sentinel approach
+const CorrectSentinelApproach = ({ items, loadMore, hasMore, isLoading }) => {
+  const bottomSentinelRef = useInfiniteScrollObserver({
+    hasNextPage: hasMore,
+    isFetchingNextPage: isLoading,
+    fetchNextPage: loadMore,
+    rootMargin: '200px'
+  });
+
+  return (
+    <div className="container">
+      {/* Dynamic content area */}
+      <div className="items-container">
+        {items.map((item) => (
+          <PostItem key={item.id} item={item} />
+        ))}
+      </div>
+      
+      {/* ✅ Fixed sentinel at container bottom */}
+      <div 
+        ref={bottomSentinelRef} 
+        className="bottom-sentinel"
+        style={{ 
+          height: '20px',
+          visibility: hasMore ? 'visible' : 'hidden'
+        }}
+      >
+        {isLoading && <LoadingSpinner />}
+      </div>
+    </div>
+  );
+};
+```
+
+##### Sentinel Positioning Strategies
+
+```mermaid
+graph TB
+    subgraph "🎯 Multiple Sentinel Strategy"
+        TOP_SENTINEL[Top Sentinel<br/>Scroll position tracking]
+        CONTENT_AREA[Content Area<br/>Dynamic items]
+        LOAD_ZONE[Loading Zone<br/>300px before bottom]
+        BOTTOM_SENTINEL[Bottom Sentinel<br/>End detection]
+        END_MARKER[End Marker<br/>No more content]
+        
+        TOP_SENTINEL --> CONTENT_AREA
+        CONTENT_AREA --> LOAD_ZONE
+        LOAD_ZONE --> BOTTOM_SENTINEL
+        BOTTOM_SENTINEL --> END_MARKER
+    end
+    
+    subgraph "📏 Distance-Based Triggering"
+        VIEWPORT[Current Viewport]
+        TRIGGER_DISTANCE[Trigger Distance<br/>rootMargin: '300px']
+        ACTUAL_BOTTOM[Actual Bottom<br/>Of content]
+        
+        VIEWPORT -.->|300px ahead| TRIGGER_DISTANCE
+        TRIGGER_DISTANCE -.->|Intersection| ACTUAL_BOTTOM
+    end
+    
+    style LOAD_ZONE fill:#fff3e0
+    style TRIGGER_DISTANCE fill:#e3f2fd
+```
+
+**Advanced Implementation with Multiple Sentinels:**
+
+```jsx
+// Enhanced implementation with multiple fixed sentinels
+const AdvancedInfiniteScroll = ({ 
+  items, 
+  loadMore, 
+  hasMore, 
+  isLoading,
+  onScrollTop 
+}) => {
+  // Top sentinel for "scroll to top" detection
+  const topSentinelRef = useIntersectionObserver(
+    (entry) => {
+      if (entry.isIntersecting) {
+        onScrollTop?.(); // User scrolled back to top
+      }
+    },
+    { threshold: 1.0 }
+  );
+
+  // Bottom sentinel for loading more content
+  const bottomSentinelRef = useInfiniteScrollObserver({
+    hasNextPage: hasMore,
+    isFetchingNextPage: isLoading,
+    fetchNextPage: loadMore,
+    threshold: 0.1,
+    rootMargin: '300px' // Start loading 300px before reaching sentinel
+  });
+
+  // Middle sentinel for analytics/tracking
+  const midSentinelRef = useIntersectionObserver(
+    (entry) => {
+      // Track user engagement - they've scrolled halfway
+      analytics.track('feed_midpoint_reached', {
+        itemCount: items.length,
+        timestamp: Date.now()
+      });
+    },
+    { threshold: 0.5 }
+  );
+
+  return (
+    <div className="infinite-scroll-container">
+      {/* Fixed top sentinel */}
+      <div 
+        ref={topSentinelRef}
+        className="top-sentinel"
+        style={{ height: '1px', position: 'absolute', top: 0 }}
+        data-testid="top-sentinel"
+      />
+
+      {/* Dynamic content */}
+      <div className="content-area">
+        {items.map((item, index) => (
+          <div key={item.id}>
+            <PostItem item={item} />
+            
+            {/* Mid-point tracking sentinel (appears once) */}
+            {index === Math.floor(items.length / 2) && (
+              <div 
+                ref={midSentinelRef}
+                className="mid-sentinel"
+                style={{ height: '1px' }}
+                data-testid="mid-sentinel"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Fixed bottom sentinel - NEVER moves */}
+      <div 
+        ref={bottomSentinelRef}
+        className="bottom-sentinel"
+        style={{
+          height: '50px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '20px 0'
+        }}
+        data-testid="bottom-sentinel"
+      >
+        {isLoading && (
+          <div className="loading-state">
+            <LoadingSpinner />
+            <span>Loading more posts...</span>
+          </div>
+        )}
+        
+        {!hasMore && items.length > 0 && (
+          <div className="end-state">
+            🎉 You've reached the end!
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+##### Real-World Sentinel Management
+
+```jsx
+// Production-ready sentinel management
+const useSentinelManager = () => {
+  const sentinelsRef = useRef(new Map());
+  
+  const createSentinel = useCallback((id, config) => {
+    const {
+      position = 'bottom',
+      rootMargin = '100px',
+      threshold = 0.1,
+      callback
+    } = config;
+
+    const sentinelElement = document.createElement('div');
+    sentinelElement.className = `sentinel-${position}`;
+    sentinelElement.style.cssText = `
+      height: 1px;
+      pointer-events: none;
+      ${position === 'top' ? 'position: absolute; top: 0;' : ''}
+    `;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            callback(entry);
+          }
+        });
+      },
+      { rootMargin, threshold }
+    );
+
+    observer.observe(sentinelElement);
+
+    sentinelsRef.current.set(id, {
+      element: sentinelElement,
+      observer,
+      config
+    });
+
+    return sentinelElement;
+  }, []);
+
+  const removeSentinel = useCallback((id) => {
+    const sentinel = sentinelsRef.current.get(id);
+    if (sentinel) {
+      sentinel.observer.disconnect();
+      if (sentinel.element.parentNode) {
+        sentinel.element.parentNode.removeChild(sentinel.element);
+      }
+      sentinelsRef.current.delete(id);
+    }
+  }, []);
+
+  const updateSentinel = useCallback((id, newConfig) => {
+    removeSentinel(id);
+    return createSentinel(id, newConfig);
+  }, [createSentinel, removeSentinel]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      sentinelsRef.current.forEach((sentinel) => {
+        sentinel.observer.disconnect();
+      });
+      sentinelsRef.current.clear();
+    };
+  }, []);
+
+  return {
+    createSentinel,
+    removeSentinel,
+    updateSentinel,
+    getSentinelCount: () => sentinelsRef.current.size
+  };
+};
+```
+
+**Key Takeaways:**
+
+1. **Sentinels Stay Fixed** - They don't move when content updates
+2. **Container-Relative** - Positioned relative to the scroll container, not content
+3. **Performance Benefit** - No DOM manipulation overhead when adding items
+4. **Predictable Behavior** - Always triggers at the same relative position
+5. **Multiple Sentinels** - Can have top, middle, and bottom sentinels for different purposes
+
+This approach ensures consistent, performant infinite scrolling behavior that scales well with large datasets.
+
+```jsx
+**InfiniteScrollContainer.jsx**
+
+**What this code does:**
+• **Main Purpose**: Infinite scroll container with virtualization and sentinel elements
+• **Multiple Sentinels**: Uses bottom and top sentinels for different purposes
+• **Key Functions**:
+  - `useInfiniteScrollObserver()` - Hooks into intersection events for loading
+  - `useVirtualization()` - Optimizes rendering for large datasets
+  - `handleScroll()` - Tracks scroll position with throttling
+  - `visibleItems` calculation - Renders only items in viewport
+  - Sentinel elements positioned for early loading trigger
+
+// InfiniteScrollContainer.jsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { useInfiniteScrollObserver } from '../hooks/useIntersectionObserver';
+import { useVirtualization } from '../hooks/useVirtualization';
+
+const InfiniteScrollContainer = ({ 
+  items = [],
+  loadMore,
+  hasMore = true,
+  isLoading = false,
+  renderItem,
+  estimatedItemHeight = 200,
+  overscan = 5
+}) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
+  
+  // Multiple sentinel elements for different purposes
+  const bottomSentinelRef = useInfiniteScrollObserver({
+    hasNextPage: hasMore,
+    isFetchingNextPage: isLoading,
+    fetchNextPage: loadMore,
+    threshold: 0.1,
+    rootMargin: '300px' // Start loading 300px before reaching the element
+  });
+
+  const topSentinelRef = useInfiniteScrollObserver({
+    hasNextPage: false, // Used for scroll position tracking, not loading
+    isFetchingNextPage: false,
+    fetchNextPage: () => {},
+    threshold: 1.0,
+    rootMargin: '0px'
+  });
+
+  // Virtualization for performance
+  const { visibleItems, totalHeight, startIndex, endIndex } = useVirtualization({
+    items,
+    itemHeight: estimatedItemHeight,
+    containerHeight,
+    scrollTop,
+    overscan
+  });
+
+  const handleScroll = useCallback((e) => {
+    const newScrollTop = e.target.scrollTop;
+    setScrollTop(newScrollTop);
+    
+    // Optional: Throttle for better performance
+    requestAnimationFrame(() => {
+      // Additional scroll handling logic
+    });
+  }, []);
+
+  useEffect(() => {
+    // Set up container height observer
+    const resizeObserver = new ResizeObserver(entries => {
+      const [entry] = entries;
+      setContainerHeight(entry.contentRect.height);
+    });
+
+    const container = document.getElementById('scroll-container');
+    if (container) {
+      resizeObserver.observe(container);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  return (
+    <div 
+      id="scroll-container"
+      className="infinite-scroll-container"
+      style={{ 
+        height: '100vh', 
+        overflow: 'auto',
+        position: 'relative'
+      }}
+      onScroll={handleScroll}
+    >
+      {/* Top Sentinel - for scroll position tracking */}
+      <div 
+        ref={topSentinelRef}
+        className="sentinel-top"
+        style={{ 
+          height: '1px', 
+          position: 'absolute',
+          top: 0,
+          width: '100%',
+          pointerEvents: 'none'
+        }}
+        data-testid="top-sentinel"
+      />
+
+      {/* Virtualized content container */}
+      <div 
+        className="content-container"
+        style={{ 
+          height: totalHeight,
+          position: 'relative'
+        }}
+      >
+        {visibleItems.map(({ index, data, offsetTop }) => (
+          <div
+            key={data.id || index}
+            style={{
+              position: 'absolute',
+              top: offsetTop,
+              width: '100%',
+              height: estimatedItemHeight
+            }}
+          >
+            {renderItem({ item: data, index })}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Sentinel - for loading more content */}
+      <div 
+        ref={bottomSentinelRef}
+        className="sentinel-bottom"
+        style={{ 
+          height: '20px',
+          marginTop: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          visibility: hasMore ? 'visible' : 'hidden'
+        }}
+        data-testid="bottom-sentinel"
+      >
+        {isLoading && (
+          <div className="loading-indicator">
+            <span>Loading more content...</span>
+          </div>
+        )}
+      </div>
+
+      {/* End of content marker */}
+      {!hasMore && items.length > 0 && (
+        <div className="end-of-content" style={{ 
+          padding: '20px',
+          textAlign: 'center',
+          color: '#666'
+        }}>
+          You've reached the end!
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default InfiniteScrollContainer;
+```
+
+##### DOM Element Reuse and Object Pooling
+
+DOM element reuse is crucial for performance in infinite scroll. Instead of creating/destroying DOM nodes constantly, we maintain a pool of elements and reuse them.
+
+```jsx
+// hooks/useElementPool.js
+import { useRef, useCallback } from 'react';
+
+export const useElementPool = (initialSize = 10) => {
+  const poolRef = useRef({
+    available: [],
+    inUse: new Map(),
+    total: 0
+  });
+
+  const createElement = useCallback((type = 'div', className = '') => {
+    const element = document.createElement(type);
+    if (className) element.className = className;
+    return element;
+  }, []);
+
+  const getElement = useCallback((id, type = 'div', className = '') => {
+    const pool = poolRef.current;
+    
+    // Return existing element if already in use
+    if (pool.inUse.has(id)) {
+      return pool.inUse.get(id);
+    }
+
+    let element;
+    
+    // Reuse from pool if available
+    if (pool.available.length > 0) {
+      element = pool.available.pop();
+      // Reset element properties
+      element.className = className;
+      element.innerHTML = '';
+      element.style.cssText = '';
+    } else {
+      // Create new element if pool is empty
+      element = createElement(type, className);
+      pool.total++;
+    }
+
+    pool.inUse.set(id, element);
+    return element;
+  }, [createElement]);
+
+  const releaseElement = useCallback((id) => {
+    const pool = poolRef.current;
+    const element = pool.inUse.get(id);
+    
+    if (element) {
+      pool.inUse.delete(id);
+      
+      // Clean up element before returning to pool
+      element.innerHTML = '';
+      element.className = '';
+      element.style.cssText = '';
+      
+      // Add back to available pool
+      pool.available.push(element);
+    }
+  }, []);
+
+  const getPoolStats = useCallback(() => {
+    const pool = poolRef.current;
+    return {
+      total: pool.total,
+      inUse: pool.inUse.size,
+      available: pool.available.length
+    };
+  }, []);
+
+  return {
+    getElement,
+    releaseElement,
+    getPoolStats
+  };
+};
+
+// VirtualizedList.jsx - Advanced implementation with element pooling
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useElementPool } from '../hooks/useElementPool';
+
+const VirtualizedList = ({
+  items,
+  itemHeight,
+  containerHeight,
+  renderItem,
+  overscan = 3
+}) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  const containerRef = useRef(null);
+  const { getElement, releaseElement, getPoolStats } = useElementPool();
+  const renderedItemsRef = useRef(new Map());
+
+  // Calculate visible range
+  const getVisibleRange = useCallback(() => {
+    const startIndex = Math.floor(scrollTop / itemHeight);
+    const endIndex = Math.min(
+      Math.ceil((scrollTop + containerHeight) / itemHeight),
+      items.length - 1
+    );
+
+    return {
+      start: Math.max(0, startIndex - overscan),
+      end: Math.min(items.length - 1, endIndex + overscan)
+    };
+  }, [scrollTop, itemHeight, containerHeight, items.length, overscan]);
+
+  const renderVisibleItems = useCallback(() => {
+    const { start, end } = getVisibleRange();
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Track which items should be visible
+    const shouldBeVisible = new Set();
+    for (let i = start; i <= end; i++) {
+      shouldBeVisible.add(i);
+    }
+
+    // Remove items that are no longer visible
+    for (const [index, element] of renderedItemsRef.current) {
+      if (!shouldBeVisible.has(index)) {
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+        releaseElement(index);
+        renderedItemsRef.current.delete(index);
+      }
+    }
+
+    // Add/update visible items
+    for (let i = start; i <= end; i++) {
+      if (!renderedItemsRef.current.has(i)) {
+        const element = getElement(i, 'div', 'list-item');
+        
+        // Set position and size
+        element.style.position = 'absolute';
+        element.style.top = `${i * itemHeight}px`;
+        element.style.width = '100%';
+        element.style.height = `${itemHeight}px`;
+        
+        // Render content
+        const itemData = items[i];
+        if (itemData) {
+          element.innerHTML = renderItem(itemData, i);
+        }
+        
+        container.appendChild(element);
+        renderedItemsRef.current.set(i, element);
+      }
+    }
+
+    // Debug: Log pool stats occasionally
+    if (Math.random() < 0.01) { // 1% chance
+      console.log('Element Pool Stats:', getPoolStats());
+    }
+  }, [getVisibleRange, getElement, releaseElement, getPoolStats, items, itemHeight, renderItem]);
+
+  const handleScroll = useCallback((e) => {
+    const newScrollTop = e.target.scrollTop;
+    setScrollTop(newScrollTop);
+  }, []);
+
+  // Update rendered items when scroll position or data changes
+  useEffect(() => {
+    renderVisibleItems();
+  }, [renderVisibleItems]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Release all elements back to pool
+      for (const [index] of renderedItemsRef.current) {
+        releaseElement(index);
+      }
+      renderedItemsRef.current.clear();
+    };
+  }, [releaseElement]);
+
+  const totalHeight = items.length * itemHeight;
+
+  return (
+    <div
+      ref={containerRef}
+      className="virtualized-list"
+      style={{
+        height: containerHeight,
+        overflow: 'auto',
+        position: 'relative'
+      }}
+      onScroll={handleScroll}
+    >
+      <div
+        style={{
+          height: totalHeight,
+          position: 'relative'
+        }}
+      />
+    </div>
+  );
+};
+
+export default VirtualizedList;
+```
+
+##### Advanced Scroll Position Management
+
+```jsx
+// hooks/useScrollPosition.js
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+export const useScrollPosition = (elementRef) => {
+  const [scrollPosition, setScrollPosition] = useState({
+    x: 0,
+    y: 0,
+    direction: null,
+    isScrolling: false
+  });
+  
+  const lastScrollTop = useRef(0);
+  const scrollTimeoutRef = useRef(null);
+
+  const handleScroll = useCallback(() => {
+    if (!elementRef.current) return;
+
+    const element = elementRef.current;
+    const currentScrollTop = element.scrollTop;
+    const currentScrollLeft = element.scrollLeft;
+
+    // Determine scroll direction
+    let direction = null;
+    if (currentScrollTop > lastScrollTop.current) {
+      direction = 'down';
+    } else if (currentScrollTop < lastScrollTop.current) {
+      direction = 'up';
+    }
+
+    setScrollPosition({
+      x: currentScrollLeft,
+      y: currentScrollTop,
+      direction,
+      isScrolling: true
+    });
+
+    lastScrollTop.current = currentScrollTop;
+
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Set scrolling to false after scroll ends
+    scrollTimeoutRef.current = setTimeout(() => {
+      setScrollPosition(prev => ({
+        ...prev,
+        isScrolling: false
+      }));
+    }, 150);
+  }, [elementRef]);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) return;
+
+    // Use passive listener for better performance
+    element.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      element.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [handleScroll]);
+
+  return scrollPosition;
+};
+
+// Component usage example
+const OptimizedInfiniteScroll = () => {
+  const containerRef = useRef(null);
+  const scrollPosition = useScrollPosition(containerRef);
+  
+  const sentinelRef = useInfiniteScrollObserver({
+    hasNextPage: true,
+    isFetchingNextPage: false,
+    fetchNextPage: () => console.log('Loading more...'),
+    // Adjust behavior based on scroll direction
+    rootMargin: scrollPosition.direction === 'down' ? '300px' : '100px'
+  });
+
+  return (
+    <div ref={containerRef} className="scroll-container">
+      {/* Content */}
+      <div ref={sentinelRef} className="load-more-sentinel" />
+    </div>
+  );
+};
+```
+
+This implementation provides:
+
+1. **Efficient Intersection Observer**: Modern, performant scroll detection
+2. **Multiple Sentinel Elements**: Strategic placement for different purposes  
+3. **DOM Element Reuse**: Memory-efficient element pooling
+4. **Scroll Position Tracking**: Direction-aware loading and optimization
+5. **Performance Monitoring**: Built-in stats and debugging capabilities
+
+The key insight is that modern infinite scroll combines **Intersection Observer** for efficient scroll detection, **sentinel/pivot elements** for precise triggering, and **DOM element pooling** for memory efficiency, creating a smooth, performant user experience even with thousands of items.
+
 ### Data Models
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Post Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -695,7 +2351,7 @@ Post {
 
 #### Feed Item Schema
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -719,14 +2375,14 @@ FeedItem {
 
 ### API Design
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### GraphQL Feed API
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -772,7 +2428,7 @@ sequenceDiagram
 
 #### Real-time Feed Updates
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -811,21 +2467,21 @@ sequenceDiagram
 
 ## Performance and Scalability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Feed Caching Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Multi-Level Caching Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -870,14 +2526,14 @@ graph LR
 
 ### Database Scaling Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Horizontal Partitioning
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -924,14 +2580,14 @@ graph TB
 
 ### Content Delivery Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Progressive Loading Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -966,7 +2622,7 @@ graph TD
 
 #### Image Optimization Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1015,21 +2671,21 @@ graph LR
 
 ## Security and Privacy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Content Security Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Content Moderation Pipeline
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1085,14 +2741,14 @@ graph TD
 
 ### Privacy Protection Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Data Privacy Controls
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1147,21 +2803,21 @@ graph TD
 
 ## Testing, Monitoring, and Maintainability
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Load Testing Framework
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1202,14 +2858,14 @@ graph TD
 
 ### Real-time Monitoring Dashboard
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Key Performance Indicators
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1254,14 +2910,14 @@ graph TB
 
 ## Trade-offs, Deep Dives, and Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Infinite Scroll vs Pagination Trade-offs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1278,14 +2934,14 @@ graph TB
 
 ### Feed Algorithm Trade-offs
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Chronological vs Algorithmic Feed
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1308,14 +2964,14 @@ graph LR
 
 ### Advanced Optimization Strategies
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Edge Computing for Feed Generation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1352,7 +3008,7 @@ graph TD
 
 #### Machine Learning Pipeline Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1388,14 +3044,14 @@ graph TD
 
 ### Future Extensions
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 #### Next-Generation Feed Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -1425,3 +3081,160 @@ graph TD
    - Virtual try-on features
 
 This comprehensive design provides a robust foundation for building a high-performance, scalable infinite scrolling newsfeed system that can handle millions of users while delivering personalized, engaging content experiences. 
+
+---
+
+## TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface FeedPost {
+  id: string;
+  authorId: string;
+  content: PostContent;
+  engagement: EngagementMetrics;
+  timestamp: Date;
+  visibility: 'public' | 'friends' | 'private';
+  rankingScore: number;
+  type: 'text' | 'image' | 'video' | 'link' | 'poll';
+}
+
+interface PostContent {
+  text?: string;
+  media?: MediaItem[];
+  link?: LinkPreview;
+  poll?: PollData;
+  location?: GeoLocation;
+  mentions?: string[];
+  hashtags?: string[];
+}
+
+interface EngagementMetrics {
+  likes: number;
+  comments: number;
+  shares: number;
+  views: number;
+  engagementRate: number;
+  recentActivity: number;
+}
+
+interface FeedItem {
+  id: string;
+  post: FeedPost;
+  author: UserProfile;
+  userInteraction?: UserInteraction;
+  rankingReason: 'following' | 'trending' | 'recommended' | 'sponsored';
+  insertedAt: Date;
+}
+
+interface UserProfile {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+  isVerified: boolean;
+  followerCount: number;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface InfiniteFeedProps {
+  userId: string;
+  feedType: 'home' | 'trending' | 'following' | 'discover';
+  onPostInteraction: (postId: string, action: string) => void;
+  onLoadMore: () => void;
+  refreshTrigger?: number;
+  enableVirtualization?: boolean;
+  itemHeight?: number;
+}
+
+interface FeedItemProps {
+  feedItem: FeedItem;
+  onLike: (postId: string) => void;
+  onComment: (postId: string) => void;
+  onShare: (postId: string) => void;
+  onUserClick: (userId: string) => void;
+  showEngagement?: boolean;
+  density: 'compact' | 'comfortable' | 'spacious';
+}
+
+interface PostComposerProps {
+  onPostCreate: (content: PostContent) => void;
+  onDraftSave: (draft: PostDraft) => void;
+  characterLimit?: number;
+  allowedMediaTypes?: string[];
+  enablePolls?: boolean;
+  enableLocation?: boolean;
+}
+
+interface FeedControlsProps {
+  currentFilter: FeedFilter;
+  onFilterChange: (filter: FeedFilter) => void;
+  onRefresh: () => void;
+  onSort: (sortBy: SortOption) => void;
+  unreadCount?: number;
+  isLoading?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Feed Management
+- `GET /api/feed` - Get personalized feed with infinite scroll pagination
+- `GET /api/feed/trending` - Get trending posts with viral content detection
+- `GET /api/feed/following` - Get chronological feed from followed users only
+- `POST /api/feed/refresh` - Trigger feed refresh with new content check
+- `GET /api/feed/discover` - Get discovery feed with recommended content
+
+#### Post Operations
+- `POST /api/posts` - Create new post with media upload and processing
+- `GET /api/posts/:id` - Get specific post with full engagement data
+- `PUT /api/posts/:id` - Edit post content (within edit time window)
+- `DELETE /api/posts/:id` - Delete post and remove from all feeds
+- `POST /api/posts/:id/boost` - Boost post visibility in algorithm
+
+#### Engagement & Interactions
+- `POST /api/posts/:id/like` - Like or unlike post with engagement tracking
+- `POST /api/posts/:id/comments` - Add comment with mention and hashtag support
+- `GET /api/posts/:id/comments` - Get paginated comments with nested replies
+- `POST /api/posts/:id/share` - Share post with optional commentary
+- `POST /api/posts/:id/save` - Save post to user's saved collection
+
+#### Content Discovery
+- `GET /api/explore/hashtags` - Get trending hashtags with usage metrics
+- `GET /api/explore/topics` - Get trending topics and categories
+- `GET /api/explore/users` - Get suggested users to follow
+- `GET /api/search/posts` - Search posts with full-text and filter support
+- `GET /api/recommendations` - Get ML-powered content recommendations
+
+#### Real-time Updates
+- `WS /api/feed/connect` - Establish WebSocket for real-time feed updates
+- `WS FEED_UPDATE` - Receive new posts and engagement updates
+- `WS POST_INTERACTION` - Broadcast post interactions to interested users
+- `WS TRENDING_UPDATE` - Get real-time trending content notifications
+- `WS USER_ACTIVITY` - Receive follower activity and mentions
+
+#### Analytics & Insights
+- `POST /api/analytics/view` - Track post view for algorithm training
+- `POST /api/analytics/engagement` - Record engagement events with context
+- `GET /api/analytics/insights` - Get content performance insights
+- `POST /api/analytics/feedback` - Submit content relevance feedback
+- `GET /api/analytics/trends` - Get content trend analysis
+
+#### Feed Customization
+- `GET /api/feed/preferences` - Get user's feed algorithm preferences
+- `PUT /api/feed/preferences` - Update feed ranking and filtering preferences
+- `POST /api/feed/hide` - Hide specific posts or content types
+- `GET /api/feed/filters` - Get active content filters and blocked users
+- `POST /api/feed/report` - Report inappropriate content for moderation

@@ -4,6 +4,12 @@
 ## 📋 Table of Contents
 
 - [Pinterest-Style Grid Layout System](#pinterest-style-grid-layout-system)
+  - [Table of Contents](#table-of-contents)
+  - [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+    - [Problem Understanding](#problem-understanding)
+    - [Functional Requirements](#functional-requirements)
+    - [Non-Functional Requirements](#non-functional-requirements)
+    - [Key Assumptions](#key-assumptions)
   - [High-Level Design (HLD)](#high-level-design-hld)
     - [System Architecture Overview](#system-architecture-overview)
     - [Content Data Model](#content-data-model)
@@ -44,16 +50,94 @@
 
 ---
 
+## Table of Contents
+1. [Clarify the Problem and Requirements](#clarify-the-problem-and-requirements)
+2. [High-Level Design (HLD)](#high-level-design-hld)
+3. [Low-Level Design (LLD)](#low-level-design-lld)
+4. [Core Algorithms](#core-algorithms)
+5. [Component Architecture](#component-architecture)
+6. [Advanced Features](#advanced-features)
+7. [TypeScript Interfaces & Component Props](#typescript-interfaces--component-props)
+8. [API Reference](#api-reference)
+9. [Performance Optimizations](#performance-optimizations)
+10. [Security Considerations](#security-considerations)
+11. [Accessibility Implementation](#accessibility-implementation)
+12. [Testing Strategy](#testing-strategy)
+13. [Trade-offs and Considerations](#trade-offs-and-considerations)
+
+---
+
+## Clarify the Problem and Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+### Problem Understanding
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+Design a Pinterest-style masonry grid layout system that efficiently displays content of varying dimensions in an aesthetically pleasing and performant manner. The system must handle dynamic content loading, responsive design, and smooth user interactions while maintaining optimal visual organization similar to Pinterest, Masonry.js, or Tumblr layouts.
+
+### Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Masonry Layout**: Dynamic grid with variable height items, optimal space utilization
+- **Infinite Scroll**: Seamless content loading as user scrolls, pagination management
+- **Responsive Design**: Adaptive column count based on screen size and content
+- **Image Optimization**: Lazy loading, progressive enhancement, multiple resolutions
+- **Content Interaction**: Hover effects, click handling, modal overlays
+- **Search & Filtering**: Real-time content filtering, category-based organization
+- **Performance Optimization**: Virtual scrolling for large datasets, efficient rendering
+- **Customization**: Configurable gap sizes, column widths, animation preferences
+
+### Non-Functional Requirements
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- **Performance**: <16ms layout calculations, 60fps scrolling, <200ms image load
+- **Scalability**: Handle 10K+ items efficiently, smooth infinite scroll
+- **Memory Management**: Optimal memory usage, garbage collection, DOM cleanup
+- **Cross-browser**: Consistent experience across modern browsers
+- **Mobile Optimization**: Touch-friendly interactions, optimized for mobile networks
+- **Accessibility**: WCAG 2.1 AA compliance, keyboard navigation, screen reader support
+- **Bundle Size**: Lightweight component, minimal dependencies, tree-shakeable
+- **SEO Friendly**: Server-side rendering support, proper semantic markup
+
+### Key Assumptions
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+- Content variety: Mixed aspect ratios, heights ranging from 200px to 800px
+- Item count: 100-10,000 items per grid, potentially unlimited with infinite scroll
+- Image sizes: 100KB-1MB per image, various formats (JPEG, PNG, WebP)
+- User behavior: Browse-heavy with occasional interaction, scroll-focused navigation
+- Screen sizes: 320px to 4K displays, responsive breakpoints
+- Network conditions: 3G to high-speed connections, progressive enhancement
+- Content updates: Dynamic content addition, real-time updates
+- Device types: Desktop, tablet, mobile with varying performance capabilities
+
+---
+
 ## High-Level Design (HLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### System Architecture Overview
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -98,7 +182,7 @@ graph TB
 
 ### Content Data Model
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -139,14 +223,14 @@ graph LR
 
 ## Low-Level Design (LLD)
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Masonry Layout Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -170,7 +254,7 @@ graph TD
 
 ### Virtual Scrolling Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -200,7 +284,7 @@ flowchart TD
 
 ### Image Loading State Machine
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -225,14 +309,14 @@ stateDiagram-v2
 
 ## Core Algorithms
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### 1. Optimized Masonry Layout Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -329,7 +413,7 @@ function balanceColumns(items, positions, columnHeights):
 
 ### 2. Intelligent Virtual Scrolling
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -390,7 +474,7 @@ function predictScrollDirection(scrollHistory):
 
 ### 3. Progressive Image Loading Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -448,7 +532,7 @@ function manageImageLoadingQueue(visibleItems, networkCondition):
 
 ### 4. Responsive Layout Adaptation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -501,7 +585,7 @@ function calculateOptimalColumns(containerWidth, minColumnWidth, gutter):
 
 ### 5. Smooth Infinite Scroll Algorithm
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -556,14 +640,14 @@ function manageContentFetching(threshold, currentItems, loadingState):
 
 ## Component Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Pinterest-Style Grid Component Hierarchy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -596,7 +680,7 @@ graph TD
 
 ### State Management Architecture
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -632,16 +716,216 @@ graph LR
     Search --> Filters
 ```
 
+#### React Component Implementation
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+**PinterestGrid.jsx**
+
+**What this code does:**
+• **Main Purpose**: Pinterest-style masonry grid layout with infinite scroll and search
+• **Dynamic Layout**: Calculates optimal item positioning for masonry layout
+• **Key Functions**:
+  - `calculateLayout()` - Computes item positions for masonry grid
+  - `getColumnCount()` - Determines number of columns based on viewport width
+  - `useInfiniteScroll()` - Loads more items as user scrolls
+  - `handleItemClick()` - Opens item details in modal overlay
+  - `handleSearch()` - Filters grid items based on search query
+  - Responsive column adjustment and viewport tracking
+
+```jsx
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { PinterestProvider } from './PinterestContext';
+import MasonryLayout from './MasonryLayout';
+import SearchOverlay from './SearchOverlay';
+import { useInfiniteScroll } from './hooks/useInfiniteScroll';
+import { useMasonryLayout } from './hooks/useMasonryLayout';
+
+const PinterestGrid = ({ 
+  columns = 'auto',
+  gap = 16,
+  itemMinWidth = 200,
+  enableSearch = true,
+  enableFilters = true,
+  apiEndpoint = '/api/pins'
+}) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({});
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [viewport, setViewport] = useState({
+    width: 0,
+    height: 0,
+    scrollTop: 0
+  });
+  
+  const containerRef = useRef(null);
+  
+  const { 
+    calculateLayout, 
+    getColumnCount 
+  } = useMasonryLayout({
+    containerWidth: viewport.width,
+    itemMinWidth,
+    gap,
+    columns: columns === 'auto' ? null : columns
+  });
+
+  const { 
+    loadMore, 
+    isLoadingMore 
+  } = useInfiniteScroll({
+    apiEndpoint,
+    searchQuery,
+    filters,
+    onDataReceived: (newItems, hasMoreData) => {
+      setItems(prev => [...prev, ...newItems]);
+      setHasMore(hasMoreData);
+    }
+  });
+
+  const columnCount = useMemo(() => {
+    return getColumnCount();
+  }, [viewport.width, getColumnCount]);
+
+  const itemPositions = useMemo(() => {
+    return calculateLayout(items);
+  }, [items, calculateLayout]);
+
+  const handleItemClick = useCallback((item) => {
+    setSelectedItem(item);
+  }, []);
+
+  const handleSearch = useCallback((query) => {
+    setSearchQuery(query);
+  }, []);
+
+  const value = {
+    items,
+    itemPositions,
+    columnCount,
+    gap,
+    loading,
+    viewport,
+    selectedItem,
+    searchQuery,
+    filters,
+    onItemClick: handleItemClick,
+    onSearch: handleSearch,
+    setSelectedItem
+  };
+
+  return (
+    <PinterestProvider value={value}>
+      <div className="pinterest-grid-container">
+        {enableSearch && <SearchOverlay showFilters={enableFilters} />}
+        
+        <div 
+          ref={containerRef}
+          className="pinterest-grid"
+          style={{ height: '100vh', overflow: 'auto' }}
+        >
+          {loading ? (
+            <div className="loading-state">
+              <div className="skeleton-grid">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <div key={index} className="skeleton-item" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <MasonryLayout />
+          )}
+        </div>
+      </div>
+    </PinterestProvider>
+  );
+};
+
+export default PinterestGrid;
+```
+
+**MasonryLayout.jsx**
+```jsx
+import React, { useContext, useMemo } from 'react';
+import { PinterestContext } from './PinterestContext';
+import GridItem from './GridItem';
+
+const MasonryLayout = () => {
+  const { 
+    items, 
+    itemPositions, 
+    viewport, 
+    gap,
+    onItemClick 
+  } = useContext(PinterestContext);
+
+  const totalHeight = useMemo(() => {
+    if (itemPositions.length === 0) return 0;
+    return Math.max(...itemPositions.map(pos => pos.y + pos.height)) + gap;
+  }, [itemPositions, gap]);
+
+  const visibleItems = useMemo(() => {
+    const buffer = viewport.height;
+    const viewportTop = viewport.scrollTop - buffer;
+    const viewportBottom = viewport.scrollTop + viewport.height + buffer;
+
+    return items.filter((item, index) => {
+      const position = itemPositions[index];
+      if (!position) return false;
+      
+      const itemTop = position.y;
+      const itemBottom = position.y + position.height;
+      
+      return itemBottom >= viewportTop && itemTop <= viewportBottom;
+    });
+  }, [items, itemPositions, viewport]);
+
+  return (
+    <div 
+      className="masonry-layout"
+      style={{
+        position: 'relative',
+        height: totalHeight,
+        width: '100%'
+      }}
+    >
+      {visibleItems.map((item, index) => {
+        const originalIndex = items.indexOf(item);
+        const position = itemPositions[originalIndex];
+        
+        if (!position) return null;
+
+        return (
+          <GridItem
+            key={item.id || originalIndex}
+            item={item}
+            position={position}
+            onClick={() => onItemClick(item)}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+export default MasonryLayout;
+```
+
 ## Advanced Features
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Smart Image Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -684,7 +968,7 @@ graph TB
 
 ### Intelligent Content Curation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -714,16 +998,200 @@ flowchart TD
     C --> M
 ```
 
+### TypeScript Interfaces & Component Props
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Core Data Interfaces
+
+```typescript
+interface GridItem {
+  id: string;
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  aspectRatio: number;
+  title?: string;
+  description?: string;
+  author?: Author;
+  tags?: string[];
+  category?: string;
+  dominantColor?: string;
+  blurDataURL?: string;
+  metadata?: ItemMetadata;
+}
+
+interface GridColumn {
+  id: string;
+  items: GridItem[];
+  height: number;
+  width: number;
+  index: number;
+}
+
+interface LayoutConfig {
+  columnCount: number;
+  columnWidth: number;
+  gap: number;
+  containerWidth: number;
+  maxColumns: number;
+  minColumnWidth: number;
+  responsiveBreakpoints: ResponsiveBreakpoint[];
+}
+
+interface ResponsiveBreakpoint {
+  minWidth: number;
+  columnCount: number;
+  columnWidth: number;
+  gap: number;
+}
+
+interface VirtualWindow {
+  startIndex: number;
+  endIndex: number;
+  offsetY: number;
+  viewportHeight: number;
+  totalHeight: number;
+  visibleItems: GridItem[];
+}
+
+interface LoadingState {
+  isLoading: boolean;
+  hasMore: boolean;
+  error?: string;
+  page: number;
+  itemsPerPage: number;
+  totalItems?: number;
+}
+```
+
+#### Component Props Interfaces
+
+```typescript
+interface MasonryGridProps {
+  items: GridItem[];
+  onItemClick?: (item: GridItem, index: number) => void;
+  onItemLoad?: (item: GridItem) => void;
+  onItemError?: (item: GridItem, error: Error) => void;
+  onLoadMore?: () => void;
+  columnCount?: number;
+  gap?: number;
+  enableVirtualization?: boolean;
+  enableLazyLoading?: boolean;
+  renderItem?: (item: GridItem) => React.ReactNode;
+}
+
+interface GridItemProps {
+  item: GridItem;
+  onClick?: (item: GridItem) => void;
+  onLoad?: (item: GridItem) => void;
+  onError?: (item: GridItem, error: Error) => void;
+  showOverlay?: boolean;
+  showMetadata?: boolean;
+  lazyLoad?: boolean;
+  placeholder?: React.ReactNode;
+  className?: string;
+}
+
+interface InfiniteScrollProps {
+  onLoadMore: () => void;
+  hasMore: boolean;
+  isLoading: boolean;
+  threshold?: number;
+  loader?: React.ReactNode;
+  endMessage?: React.ReactNode;
+  scrollableTarget?: string;
+  debounceMs?: number;
+}
+
+interface ResponsiveLayoutProps {
+  breakpoints: ResponsiveBreakpoint[];
+  onLayoutChange?: (layout: LayoutConfig) => void;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+interface FilterBarProps {
+  categories: Category[];
+  selectedCategory?: string;
+  onCategoryChange: (category: string) => void;
+  onSearch?: (query: string) => void;
+  onSortChange?: (sort: SortOption) => void;
+  showSearch?: boolean;
+  showSort?: boolean;
+}
+```
+
+### API Reference
+
+[⬆️ Back to Top](#--table-of-contents)
+
+---
+
+#### Grid Content Management
+- `GET /api/grid/items` - Get grid items with pagination and infinite scroll support
+- `GET /api/grid/items/:id` - Get detailed item information with metadata
+- `POST /api/grid/items` - Upload new item to grid with image processing
+- `PUT /api/grid/items/:id` - Update item metadata, title, or description
+- `DELETE /api/grid/items/:id` - Remove item from grid and delete associated media
+
+#### Image Processing & Optimization
+- `POST /api/images/upload` - Upload and process images with thumbnail generation
+- `GET /api/images/:id/sizes` - Get available image sizes and optimized URLs
+- `POST /api/images/:id/process` - Trigger image reprocessing and optimization
+- `GET /api/images/:id/metadata` - Extract image metadata and dominant colors
+- `POST /api/images/batch-process` - Process multiple images in batch operation
+
+#### Layout & Positioning
+- `GET /api/layout/calculate` - Calculate optimal grid layout for items
+- `POST /api/layout/optimize` - Optimize layout for better visual balance
+- `GET /api/layout/breakpoints` - Get responsive breakpoint configurations
+- `PUT /api/layout/settings` - Update layout settings and column preferences
+- `POST /api/layout/reflow` - Trigger layout reflow for updated content
+
+#### Search & Filtering
+- `GET /api/search/items` - Search grid items with text and visual similarity
+- `GET /api/search/suggestions` - Get search suggestions and autocomplete
+- `POST /api/search/visual` - Search for visually similar items using AI
+- `GET /api/categories` - Get available categories and tag suggestions
+- `POST /api/filters/apply` - Apply multiple filters to grid content
+
+#### Performance & Caching
+- `GET /api/performance/metrics` - Get grid performance metrics and timing
+- `POST /api/cache/preload` - Preload grid items for faster loading
+- `DELETE /api/cache/clear` - Clear cached grid data and images
+- `GET /api/cache/status` - Get cache hit rates and performance stats
+- `POST /api/optimization/analyze` - Analyze grid performance and suggest improvements
+
+#### User Interactions
+- `POST /api/items/:id/like` - Like or unlike grid item
+- `POST /api/items/:id/save` - Save item to user's collection or board
+- `GET /api/items/:id/related` - Get related items based on similarity
+- `POST /api/items/:id/report` - Report inappropriate content or issues
+- `GET /api/items/:id/analytics` - Get item view and interaction analytics
+
+#### Responsive & Mobile
+- `GET /api/mobile/layout` - Get mobile-optimized layout configuration
+- `POST /api/mobile/gestures` - Handle mobile gesture interactions
+- `GET /api/mobile/performance` - Get mobile-specific performance metrics
+- `PUT /api/mobile/settings` - Update mobile display preferences
+- `GET /api/responsive/test` - Test layout across different screen sizes
+
+---
+
 ## Performance Optimizations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Memory Management
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -747,7 +1215,7 @@ ItemPool = {
 
 ### Rendering Performance
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -772,7 +1240,7 @@ PerformanceMetrics = {
 
 ### Network Optimization
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -786,14 +1254,14 @@ PerformanceMetrics = {
 
 ## Security Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Content Security
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -836,7 +1304,7 @@ graph TB
 
 ### Data Protection
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -850,14 +1318,14 @@ graph TB
 
 ## Accessibility Implementation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Keyboard Navigation
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -887,7 +1355,7 @@ stateDiagram-v2
 
 ### Screen Reader Support
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -903,14 +1371,14 @@ Arrow keys to navigate."
 
 ## Testing Strategy
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Unit Testing Focus Areas
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -929,7 +1397,7 @@ Arrow keys to navigate."
 
 ### Integration Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -948,7 +1416,7 @@ Arrow keys to navigate."
 
 ### End-to-End Testing
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -961,14 +1429,14 @@ Arrow keys to navigate."
 
 ## Trade-offs and Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
 
 ### Performance vs Visual Quality
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -979,7 +1447,7 @@ Arrow keys to navigate."
 
 ### User Experience vs Technical Constraints
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 
@@ -990,7 +1458,7 @@ Arrow keys to navigate."
 
 ### Scalability Considerations
 
-[⬆️ Back to Top](#-table-of-contents)
+[⬆️ Back to Top](#--table-of-contents)
 
 ---
 

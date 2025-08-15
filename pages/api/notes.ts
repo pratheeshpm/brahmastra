@@ -17,6 +17,7 @@ interface Note {
 const notesDirectory = path.join(process.cwd(), 'notes');
 const backendSystemDesignDirectory = path.join(process.cwd(), 'backend-system-design');
 const frontendSystemDesignDirectory = path.join(process.cwd(), 'frontend-system-design');
+const javascriptFrontendDirectory = path.join(process.cwd(), 'companies', 'microsoft', 'javascript-frontend');
 
 // Ensure notes directory exists
 if (!fs.existsSync(notesDirectory)) {
@@ -96,6 +97,43 @@ function loadSystemDesignNotes(): Note[] {
           systemDesignNotes.push(note);
         } catch (error) {
           console.error(`Error reading frontend system design file ${folder}:`, error);
+        }
+      }
+    }
+  }
+
+  // Load JavaScript & Frontend interview notes
+  if (fs.existsSync(javascriptFrontendDirectory)) {
+    const jsFiles = fs.readdirSync(javascriptFrontendDirectory);
+    
+    for (const file of jsFiles) {
+      const filePath = path.join(javascriptFrontendDirectory, file);
+      
+      // Only process .md files that aren't README.md
+      if (file.endsWith('.md') && file !== 'README.md' && fs.statSync(filePath).isFile()) {
+        try {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const stats = fs.statSync(filePath);
+          
+          // Generate a readable topic from filename
+          const topic = file.replace('.md', '').replace(/-/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase());
+          
+          const note: Note = {
+            id: `js-frontend-${file.replace('.md', '')}`,
+            topic: `JS/Frontend: ${topic}`,
+            content,
+            createdAt: stats.birthtime.toISOString(),
+            updatedAt: stats.mtime.toISOString(),
+            isSystemDesign: true,
+            designType: 'frontend',
+            folderName: file.replace('.md', ''),
+            keywords: ['javascript', 'frontend', 'microsoft', 'interview', ...extractKeywordsFromContent(content, `js-frontend-${file.replace('.md', '')}`)]
+          };
+          
+          systemDesignNotes.push(note);
+        } catch (error) {
+          console.error(`Error reading JavaScript frontend file ${file}:`, error);
         }
       }
     }
@@ -271,13 +309,13 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   if (id) {
     const idStr = Array.isArray(id) ? id[0] : id;
     
-    // Check if it's a system design note
-    if (idStr.startsWith('backend-') || idStr.startsWith('frontend-')) {
+    // Check if it's a system design note or JavaScript frontend note
+    if (idStr.startsWith('backend-') || idStr.startsWith('frontend-') || idStr.startsWith('js-frontend-')) {
       const systemDesignNotes = loadSystemDesignNotes();
       const note = systemDesignNotes.find(note => note.id === idStr);
       
       if (!note) {
-        return res.status(404).json({ error: 'System design note not found' });
+        return res.status(404).json({ error: 'System design note or JavaScript/Frontend note not found' });
       }
       
       return res.status(200).json({ data: note });
@@ -360,15 +398,27 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const idStr = Array.isArray(id) ? id[0] : id;
   
   // Handle system design notes
-  if (idStr.startsWith('backend-') || idStr.startsWith('frontend-')) {
-    const designType = idStr.startsWith('backend-') ? 'backend' : 'frontend';
-    const folderName = idStr.replace(`${designType}-`, '');
+  if (idStr.startsWith('backend-') || idStr.startsWith('frontend-') || idStr.startsWith('js-frontend-')) {
+    let designType: 'backend' | 'frontend';
+    let folderName: string;
+    let filePath: string;
     
-    const systemDesignDir = designType === 'backend' 
-      ? backendSystemDesignDirectory 
-      : frontendSystemDesignDirectory;
+    if (idStr.startsWith('js-frontend-')) {
+      designType = 'frontend';
+      folderName = idStr.replace('js-frontend-', '');
+      filePath = path.join(javascriptFrontendDirectory, `${folderName}.md`);
+    } else {
+      designType = idStr.startsWith('backend-') ? 'backend' : 'frontend';
+      folderName = idStr.replace(`${designType}-`, '');
+      
+      const systemDesignDir = designType === 'backend' 
+        ? backendSystemDesignDirectory 
+        : frontendSystemDesignDirectory;
+      
+      filePath = path.join(systemDesignDir, folderName, 'README.md');
+    }
     
-    const readmePath = path.join(systemDesignDir, folderName, 'README.md');
+    const readmePath = filePath;
     
     if (!fs.existsSync(readmePath)) {
       return res.status(404).json({ error: 'System design note not found' });
@@ -387,16 +437,27 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       const readableTopic = folderName.replace(/^\d+-/, '').replace(/-/g, ' ')
         .replace(/\b\w/g, l => l.toUpperCase());
       
+      let topicPrefix: string;
+      let defaultKeywords: string[];
+      
+      if (idStr.startsWith('js-frontend-')) {
+        topicPrefix = 'JS/Frontend';
+        defaultKeywords = ['javascript', 'frontend', 'microsoft', 'interview'];
+      } else {
+        topicPrefix = designType === 'backend' ? 'Backend' : 'Frontend';
+        defaultKeywords = ['system-design', designType];
+      }
+      
       const updatedNote: Note = {
         id: idStr,
-        topic: topic || `${designType === 'backend' ? 'Backend' : 'Frontend'}: ${readableTopic}`,
+        topic: topic || `${topicPrefix}: ${readableTopic}`,
         content: updatedContent,
         createdAt: stats.birthtime.toISOString(),
         updatedAt: new Date().toISOString(),
         isSystemDesign: true,
         designType,
         folderName,
-        keywords: keywords || ['system-design', designType, ...extractKeywordsFromContent(updatedContent)]
+        keywords: keywords || [...defaultKeywords, ...extractKeywordsFromContent(updatedContent)]
       };
       
       return res.status(200).json({ data: updatedNote });
@@ -441,9 +502,9 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
 
   const idStr = Array.isArray(id) ? id[0] : id;
   
-  // Prevent deleting system design notes (only regular notes can be deleted)
-  if (idStr.startsWith('backend-') || idStr.startsWith('frontend-')) {
-    return res.status(403).json({ error: 'System design notes cannot be deleted' });
+  // Prevent deleting system design notes and JavaScript frontend notes (only regular notes can be deleted)
+  if (idStr.startsWith('backend-') || idStr.startsWith('frontend-') || idStr.startsWith('js-frontend-')) {
+    return res.status(403).json({ error: 'System design notes and JavaScript/Frontend notes cannot be deleted' });
   }
   
   const files = fs.readdirSync(notesDirectory).filter(file => 
