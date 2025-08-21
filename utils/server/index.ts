@@ -133,7 +133,7 @@ export const OpenAIStream = async (
     url = `https://openrouter.ai/api/v1/chat/completions`;
     
     // Check if model requires max_completion_tokens instead of max_tokens
-    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1');
+    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1') || model.id.startsWith('gpt-5');
     const tokenParam = requiresMaxCompletionTokens ? 'max_completion_tokens' : 'max_tokens';
     
     const requestBody = {
@@ -177,7 +177,7 @@ export const OpenAIStream = async (
     }
 
     // Check if model requires max_completion_tokens instead of max_tokens
-    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1');
+    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1') || model.id.startsWith('gpt-5');
     const tokenParam = requiresMaxCompletionTokens ? 'max_completion_tokens' : 'max_tokens';
     
     const requestBody = {

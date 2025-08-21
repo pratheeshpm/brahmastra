@@ -65,10 +65,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<GenerateRespons
 
     console.log(`🤖 Generating response with OpenAI ${model_id}, format: ${response_format}`);
 
+    // Check if model requires max_completion_tokens instead of max_tokens
+    const requiresMaxCompletionTokens = model.id.startsWith('o3') || model.id.startsWith('o1') || model.id.startsWith('gpt-5');
+    const tokenParam = requiresMaxCompletionTokens ? 'max_completion_tokens' : 'max_tokens';
+
     const requestBody: any = {
       model: model.id,
       messages,
-      max_tokens,
+      [tokenParam]: max_tokens,
       temperature,
     };
 
