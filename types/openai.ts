@@ -22,6 +22,8 @@ export enum OpenAIModelID {
   GPT_4_5_PREVIEW = 'gpt-4.5-preview',
   GPT_4_5 = 'gpt-4.5',
   GPT_5 = 'gpt-5',
+  GPT_5_MINI = 'gpt-5-mini',
+  GPT_5_NANO = 'gpt-5-nano',
   O1 = 'o1',
   O1_MINI = 'o1-mini',
   O1_PREVIEW = 'o1-preview',
@@ -219,6 +221,20 @@ export const OpenAIModels: Record<OpenAIModelID, OpenAIModel> = {
     id: OpenAIModelID.GPT_5,
     name: 'GPT-5',
     maxLength: 3000000, // 1M tokens mentioned in research
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GPT_5_MINI]: {
+    id: OpenAIModelID.GPT_5_MINI,
+    name: 'GPT-5 Mini',
+    maxLength: 3000000, // Same context window as GPT-5
+    tokenLimit: 1000000,
+    supportsImages: true,
+  },
+  [OpenAIModelID.GPT_5_NANO]: {
+    id: OpenAIModelID.GPT_5_NANO,
+    name: 'GPT-5 Nano',
+    maxLength: 3000000, // Same context window as GPT-5
     tokenLimit: 1000000,
     supportsImages: true,
   },
