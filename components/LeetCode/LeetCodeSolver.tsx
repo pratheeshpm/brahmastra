@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { LeetCodeSolutionRenderer } from './LeetCodeSolutionRenderer';
 import CodeExecutor from './CodeExecutor';
 import EditableCodeExecutor from './EditableCodeExecutor';
+import { LeetCodeSolutionRenderer } from './LeetCodeSolutionRenderer';
 
 interface LeetCodeSolution {
   success: boolean;

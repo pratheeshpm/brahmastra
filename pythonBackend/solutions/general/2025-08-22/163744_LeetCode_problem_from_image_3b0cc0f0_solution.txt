@@ -1,0 +1,25 @@
+function findMaxSubarraySum(nums) {
+    // Kadane's Algorithm to find the maximum subarray sum
+    // Initialize variables to track the current and maximum sums
+    let currentSum = 0; // Current subarray sum
+    let maxSum = -Infinity; // Maximum subarray sum found so far
+    
+    // Iterate through each number in the array
+    for (let i = 0; i < nums.length; i++) {
+        // Update the current sum by adding the current number
+        currentSum += nums[i];
+        
+        // If the current sum is greater than the maximum sum, update maxSum
+        if (currentSum > maxSum) {
+            maxSum = currentSum; // Update maxSum to the new maximum
+        }
+        
+        // If the current sum becomes negative, reset it to zero
+        if (currentSum < 0) {
+            currentSum = 0; // Reset currentSum to start a new subarray
+        }
+    }
+    
+    // Return the maximum subarray sum found
+    return maxSum;
+}

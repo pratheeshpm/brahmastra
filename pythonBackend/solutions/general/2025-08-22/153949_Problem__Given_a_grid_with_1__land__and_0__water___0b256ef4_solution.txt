@@ -1,0 +1,28 @@
+function calculateIslandPerimeter(grid) {
+    // Initialize perimeter to 0
+    let perimeter = 0;
+    
+    // Iterate over each cell in the grid
+    for (let i = 0; i < grid.length; i++) {
+        for (let j = 0; j < grid[i].length; j++) {
+            // Check if the current cell is land
+            if (grid[i][j] === 1) {
+                // Add 4 for the current land cell
+                perimeter += 4;
+                
+                // Check for adjacent land cells to subtract shared edges
+                // Check the cell above
+                if (i > 0 && grid[i - 1][j] === 1) {
+                    perimeter -= 2; // Subtract 2 for the shared edge
+                }
+                // Check the cell to the left
+                if (j > 0 && grid[i][j - 1] === 1) {
+                    perimeter -= 2; // Subtract 2 for the shared edge
+                }
+            }
+        }
+    }
+    
+    // Return the calculated perimeter of the island
+    return perimeter;
+}

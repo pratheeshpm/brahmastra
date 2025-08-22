@@ -1,0 +1,29 @@
+function partitionList(head, x) {
+    // Initialize two dummy nodes to start the less and greater lists
+    const lessHead = new ListNode(0); // Dummy node for less than x
+    const greaterHead = new ListNode(0); // Dummy node for greater than or equal to x
+    
+    // Pointers to build the two lists
+    let less = lessHead;
+    let greater = greaterHead;
+    
+    // Traverse the original list
+    while (head !== null) {
+        // If the current node's value is less than x
+        if (head.val < x) {
+            less.next = head; // Append to the less list
+            less = less.next; // Move the less pointer
+        } else {
+            greater.next = head; // Append to the greater list
+            greater = greater.next; // Move the greater pointer
+        }
+        head = head.next; // Move to the next node in the original list
+    }
+    
+    // Connect the less list with the greater list
+    greater.next = null; // End the greater list
+    less.next = greaterHead.next; // Connect less list to the start of greater list
+    
+    // Return the head of the new partitioned list
+    return lessHead.next;
+}

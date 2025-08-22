@@ -1,0 +1,8 @@
+Problem: Key_Idea__Track_gaps_between_numbers_and_handle_ed
+Category: General Programming
+Generated: 2025-08-22T16:13:59.311370
+Input Type: text
+==================================================
+
+Problem: Given a sorted array of integers and a range [lower, upper], return missing ranges.
+Key Idea: Track gaps between numbers and handle edge cases.

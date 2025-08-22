@@ -1,0 +1,7 @@
+Problem: LeetCode_problem_from_image
+Category: General Programming
+Generated: 2025-08-22T16:30:41.500153
+Input Type: text
+==================================================
+
+LeetCode problem from image

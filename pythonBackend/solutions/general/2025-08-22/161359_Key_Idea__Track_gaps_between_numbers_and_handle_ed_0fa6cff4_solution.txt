@@ -1,0 +1,28 @@
+function findMissingRanges(nums, lower, upper) {
+    // Initialize an array to store the missing ranges
+    const missingRanges = [];
+    // Start with the previous number as one less than the lower bound
+    let prev = lower - 1;
+    
+    // Iterate over the numbers in the array, including an extra iteration for the upper bound
+    for (let i = 0; i <= nums.length; i++) {
+        // Determine the current number, using upper + 1 when i is out of bounds
+        const curr = (i < nums.length) ? nums[i] : upper + 1;
+        
+        // If there is a gap between prev and curr, add the missing range
+        if (prev + 1 <= curr - 1) {
+            // If the gap is exactly one number, add that number
+            if (prev + 1 === curr - 1) {
+                missingRanges.push((prev + 1).toString());
+            } else {
+                // Otherwise, add the range in the format 'start->end'
+                missingRanges.push((prev + 1) + '->' + (curr - 1));
+            }
+        }
+        // Update prev to the current number
+        prev = curr;
+    }
+    
+    // Return the list of missing ranges
+    return missingRanges;
+}

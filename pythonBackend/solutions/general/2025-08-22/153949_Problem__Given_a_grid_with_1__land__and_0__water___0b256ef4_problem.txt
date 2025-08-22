@@ -1,0 +1,8 @@
+Problem: Problem__Given_a_grid_with_1__land__and_0__water__
+Category: General Programming
+Generated: 2025-08-22T15:39:49.914779
+Input Type: text
+==================================================
+
+Problem: Given a grid with 1 (land) and 0 (water), return the perimeter of the island.
+Key Idea: For each land cell, add 4 and subtract 1 for each shared edge.

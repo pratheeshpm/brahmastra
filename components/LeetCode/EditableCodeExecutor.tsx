@@ -20,6 +20,7 @@ const EditableCodeExecutor: React.FC<EditableCodeExecutorProps> = ({ initialCode
   const [isExecuting, setIsExecuting] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Calculate adaptive height based on code length
@@ -41,9 +42,72 @@ const EditableCodeExecutor: React.FC<EditableCodeExecutorProps> = ({ initialCode
     return functionMatch ? functionMatch[1] : 'unknownFunction';
   };
 
+  const parseComplexTestCase = (testCase: string): string[] => {
+    // Handle complex test cases with nested structures
+    const params: string[] = [];
+    let currentParam = '';
+    let bracketCount = 0;
+    let parenCount = 0;
+    let inQuotes = false;
+    let quoteChar = '';
+    
+    for (let i = 0; i < testCase.length; i++) {
+      const char = testCase[i];
+      const prevChar = i > 0 ? testCase[i - 1] : '';
+      
+      // Handle escaped quotes
+      if ((char === '"' || char === "'") && prevChar !== '\\' && !inQuotes) {
+        inQuotes = true;
+        quoteChar = char;
+        currentParam += char;
+      } else if (char === quoteChar && prevChar !== '\\' && inQuotes) {
+        inQuotes = false;
+        quoteChar = '';
+        currentParam += char;
+      } else if (!inQuotes && (char === '[' || char === '{')) {
+        bracketCount++;
+        currentParam += char;
+      } else if (!inQuotes && (char === ']' || char === '}')) {
+        bracketCount--;
+        currentParam += char;
+      } else if (!inQuotes && char === '(') {
+        parenCount++;
+        currentParam += char;
+      } else if (!inQuotes && char === ')') {
+        parenCount--;
+        currentParam += char;
+      } else if (!inQuotes && char === ',' && bracketCount === 0 && parenCount === 0) {
+        if (currentParam.trim()) {
+          params.push(currentParam.trim());
+        }
+        currentParam = '';
+      } else {
+        currentParam += char;
+      }
+    }
+    
+    if (currentParam.trim()) {
+      params.push(currentParam.trim());
+    }
+    
+    console.log(`Parsed test case "${testCase}" into parameters:`, params);
+    return params;
+  };
+
   const executeTestCase = (testCase: string, code: string): any => {
     try {
       const functionName = extractFunctionName(code);
+      
+      /*
+       * Supported test case formats:
+       * 1. Direct function calls: "functionName(arg1, arg2, arg3)"
+       * 2. Parameter assignment: "param1 = value1, param2 = value2, expected = result"
+       * 3. 2D arrays: "[[1,2],[3,4]]"
+       * 4. Multiple arguments: "[1,2,3], 5, 'hello'"
+       * 5. Complex nested: "[[\"1\",\"0\"],[\"0\",\"1\"]], 2"
+       * 6. Mixed types: "\"string\", 42, [1,2,3], true"
+       * 7. Single parameter: "abcabcbb"
+       */
       
       // Function call format (preferred): functionName(args...)
       if (testCase.includes('(') && testCase.includes(')')) {
@@ -58,21 +122,44 @@ const EditableCodeExecutor: React.FC<EditableCodeExecutorProps> = ({ initialCode
         let convertedTestCase: string;
         
         if (testCase.includes('=')) {
-          // Format: "s = \"abcabcbb\", expected = 3"
-          const parts = testCase.split(',').map(part => part.trim());
+          // Format: "matrix = [[\"1\",\"0\",\"1\"],[\"0\",\"1\",\"0\"]], expected = 1"
+          // Use complex parsing to handle nested structures properly
+          const parts = parseComplexTestCase(testCase);
           const params: string[] = [];
           
           for (const part of parts) {
             if (part.includes('expected')) break; // Skip expected results
             const valueMatch = part.match(/=\s*(.+)/);
             if (valueMatch) {
-              params.push(valueMatch[1].trim());
+              let param = valueMatch[1].trim();
+              params.push(param);
             }
           }
           convertedTestCase = `${functionName}(${params.join(', ')})`;
-        } else if (testCase.includes(',') && !testCase.startsWith('"') && !testCase.startsWith("'")) {
-          // Format: "[2,7,11,15], 9" 
+        } else if (testCase.startsWith('[[') || (testCase.includes(',') && testCase.includes('['))) {
+          // Handle 2D arrays or complex array structures
+          // Format: "[[\"1\",\"0\"],[\"0\",\"1\"]]" or similar
           convertedTestCase = `${functionName}(${testCase})`;
+        } else if (testCase.includes(',')) {
+          // Handle multiple arguments - use complex parsing to properly split
+          const params = parseComplexTestCase(testCase);
+          
+          // Process each parameter to ensure proper formatting
+          const processedParams = params.map(param => {
+            param = param.trim();
+            
+            // If it's already a properly formatted array or object, keep as is
+            if (param.startsWith('[') || param.startsWith('{') || 
+                param.startsWith('"') || param.startsWith("'") ||
+                /^\d+(\.\d+)?$/.test(param) || param === 'true' || param === 'false' || param === 'null') {
+              return param;
+            }
+            
+            // If it looks like a string without quotes, add quotes
+            return `"${param}"`;
+          });
+          
+          convertedTestCase = `${functionName}(${processedParams.join(', ')})`;
         } else {
           // Single parameter: "abcabcbb" -> lengthOfLongestSubstring('abcabcbb')
           const quotedParam = testCase.startsWith('"') || testCase.startsWith("'") 
@@ -82,13 +169,57 @@ const EditableCodeExecutor: React.FC<EditableCodeExecutorProps> = ({ initialCode
         }
         
         console.log(`Converting test case: "${testCase}" -> "${convertedTestCase}"`);
+        console.log(`Function name extracted: "${functionName}"`);
         
-        // Execute the converted function call
-        const safeEval = new Function('', `
-          ${code}
-          return ${convertedTestCase};
-        `);
-        return safeEval();
+        // Log parameter count for debugging
+        const paramCount = (convertedTestCase.match(/,/g) || []).length + 1;
+        console.log(`Parameter count: ${paramCount}`);
+        
+        // Execute the converted function call with better error handling
+        try {
+          const safeEval = new Function('', `
+            ${code}
+            return ${convertedTestCase};
+          `);
+          return safeEval();
+        } catch (evalError) {
+          // If direct evaluation fails, try to parse and fix common issues
+          console.error(`Direct evaluation failed for: ${convertedTestCase}`, evalError);
+          console.error(`Original test case was: ${testCase}`);
+          
+          // Try alternative parsing for complex cases
+          if (testCase.includes('[[') || testCase.includes(']]')) {
+            console.log('Attempting JSON parsing approach for 2D array...');
+            // For 2D arrays, try direct JSON parsing approach
+            try {
+              const safeEval2 = new Function('matrix', `
+                ${code}
+                return ${functionName}(matrix);
+              `);
+              const parsedMatrix = JSON.parse(testCase.replace(/'/g, '"'));
+              console.log('Successfully parsed matrix:', parsedMatrix);
+              return safeEval2(parsedMatrix);
+            } catch (jsonError) {
+              console.error('JSON parsing also failed:', jsonError);
+              
+              // Try one more approach: direct parameter passing
+              try {
+                console.log('Attempting direct parameter evaluation...');
+                const safeEval3 = new Function('testCase', 'functionName', 'code', `
+                  ${code}
+                  // Try to evaluate the test case as a direct parameter
+                  const param = eval('(' + testCase + ')');
+                  return eval(functionName + '(param)');
+                `);
+                return safeEval3(testCase, functionName, code);
+              } catch (directError) {
+                console.error('Direct parameter evaluation also failed:', directError);
+                throw evalError; // Throw original error
+              }
+            }
+          }
+          throw evalError;
+        }
       }
     } catch (error) {
       throw error;
@@ -170,11 +301,41 @@ const EditableCodeExecutor: React.FC<EditableCodeExecutorProps> = ({ initialCode
     setExecutionResults([]);
   };
 
+  const copyCodeToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy code: ', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = code;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="mt-6 border rounded-lg bg-gray-50 p-6">
       <div className="flex items-center justify-between mb-6">
         <h4 className="text-xl font-semibold text-gray-800">Interactive Code Editor</h4>
         <div className="flex space-x-2">
+          <button
+            onClick={copyCodeToClipboard}
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              isCopied 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title="Copy code to clipboard"
+          >
+            {isCopied ? '✅ Copied!' : '📋 Copy'}
+          </button>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${

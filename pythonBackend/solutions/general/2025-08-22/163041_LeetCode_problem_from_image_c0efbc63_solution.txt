@@ -1,0 +1,56 @@
+function maximalRectangle(matrix) {
+    // Check if the matrix is empty
+    if (matrix.length === 0) return 0;
+    
+    // Initialize variables to store the number of columns and the maximum area found
+    const cols = matrix[0].length;
+    let maxArea = 0;
+    
+    // Initialize arrays to store the height, left, and right boundaries
+    const height = Array(cols).fill(0);
+    const left = Array(cols).fill(0);
+    const right = Array(cols).fill(cols);
+    
+    // Iterate over each row in the matrix
+    for (let i = 0; i < matrix.length; i++) {
+        let currentLeft = 0, currentRight = cols;
+        
+        // Update height array
+        for (let j = 0; j < cols; j++) {
+            // If the current cell is '1', increment the height
+            if (matrix[i][j] === '1') {
+                height[j]++;
+            } else {
+                height[j] = 0; // Reset height if the cell is '0'
+            }
+        }
+        
+        // Update left array
+        for (let j = 0; j < cols; j++) {
+            if (matrix[i][j] === '1') {
+                left[j] = Math.max(left[j], currentLeft);
+            } else {
+                left[j] = 0; // Reset left boundary
+                currentLeft = j + 1;
+            }
+        }
+        
+        // Update right array
+        for (let j = cols - 1; j >= 0; j--) {
+            if (matrix[i][j] === '1') {
+                right[j] = Math.min(right[j], currentRight);
+            } else {
+                right[j] = cols; // Reset right boundary
+                currentRight = j;
+            }
+        }
+        
+        // Calculate the area for each column and update maxArea
+        for (let j = 0; j < cols; j++) {
+            maxArea = Math.max(maxArea, (right[j] - left[j]) * height[j]);
+        }
+    }
+    
+    // Return the maximum area found
+    return maxArea;
+}

@@ -1,0 +1,35 @@
+{
+  "problem_title": "Problem__Given_a_grid_with_1__land__and_0__water__",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T15:39:49.914811",
+  "input_type": "text",
+  "solution_hash": "0b256ef4",
+  "success": true,
+  "processing_time": 12.714528,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/153949_Problem__Given_a_grid_with_1__land__and_0__water___0b256ef4_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/153949_Problem__Given_a_grid_with_1__land__and_0__water___0b256ef4_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/153949_Problem__Given_a_grid_with_1__land__and_0__water___0b256ef4_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Traverse each cell in the grid to calculate the perimeter of the island.\n• **Key Insight**: Each land cell contributes 4 to the perimeter, but shared edges between adjacent land cells reduce the perimeter by 2 per shared edge.\n• **Steps**:\n  1. Initialize the perimeter to 0.\n  2. Iterate over each cell in the grid.\n  3. For each land cell, add 4 to the perimeter and subtract 2 for each shared edge with adjacent land cells.\n\n### Dry Run Example\n\n**Input**: [[0,1,0,0],[1,1,1,0],[0,1,0,0],[1,1,0,0]]\n**Process**:\n- Step 1: Start with perimeter = 0.\n- Step 2: First land cell at (0,1), perimeter += 4.\n- Step 3: Land cell at (1,0), perimeter += 4.\n- Step 4: Land cell at (1,1), perimeter += 4, shared edge with (0,1), perimeter -= 2.\n- Step 5: Continue for all land cells, adjusting for shared edges.\n**Output**: 16",
+    "complexity_analysis": "**Time Complexity**: O(n * m) - We traverse each cell in the grid once, where n is the number of rows and m is the number of columns.\n**Space Complexity**: O(1) - We use a constant amount of extra space for the perimeter variable.",
+    "brute_force_approach": "A brute force approach would involve checking each cell and its neighbors individually without optimizing for shared edges, resulting in a higher time complexity due to redundant checks.",
+    "test_cases_covered": [
+      "[[0,1,0,0],[1,1,1,0],[0,1,0,0],[1,1,0,0]]",
+      "[[1]]",
+      "[[1,0]]"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: calculateIslandPerimeter\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => 0\nTest 2: Array [1,2,3,4,5] => 0\nTest 3: String 'hello' => 0\nTest 4: Number 42 => 0\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}
