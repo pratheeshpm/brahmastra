@@ -1,0 +1,31 @@
+{
+  "problem_title": "Given_an_array_of_integers_nums_and_an_integer_tar",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T12:32:51.779179",
+  "input_type": "text",
+  "solution_hash": "9c02a822",
+  "success": true,
+  "processing_time": 5.83143,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/123251_Given_an_array_of_integers_nums_and_an_integer_tar_9c02a822_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/123251_Given_an_array_of_integers_nums_and_an_integer_tar_9c02a822_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/123251_Given_an_array_of_integers_nums_and_an_integer_tar_9c02a822_metadata.json"
+  },
+  "analysis": {
+    "explanation": "We use a hash map to store the numbers we have seen so far and their indices. As we iterate through the array, for each number, we calculate its complement (target - current number). If the complement is already in the map, it means we have found the two numbers that add up to the target, and we return their indices. For example, with nums = [2,7,11,15] and target = 9, we start with an empty map. At index 0, nums[0] = 2, complement = 9 - 2 = 7, map is empty, so we add 2 to the map with index 0. At index 1, nums[1] = 7, complement = 9 - 7 = 2, map has 2, so we return [0, 1].",
+    "complexity_analysis": "Time: O(n), Space: O(n) because we traverse the list once and store each element in the map. The space complexity is O(n) due to the storage of elements in the map.",
+    "brute_force_approach": "A brute force approach would involve two nested loops, checking each pair of numbers to see if they add up to the target. This would have a time complexity of O(n^2) and is less efficient.",
+    "test_cases_covered": "['twoSum([2,7,11,15], 9)', 'twoSum([3,2,4], 6)', 'twoSum([3,3], 6)']"
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: twoSum\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Two Sum [2,7,11,15], target=9 => [0,1]\nTest 2: Array [1,2,3,4,5] => undefined\nTest 3: String 'hello' => undefined\nTest 4: Number 42 => undefined\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

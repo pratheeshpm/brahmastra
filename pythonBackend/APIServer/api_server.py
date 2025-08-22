@@ -11,9 +11,14 @@ import asyncio
 import tempfile
 import traceback
 import time
+import logging
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pathlib import Path
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # FastAPI and server imports
 from fastapi import FastAPI, HTTPException, UploadFile, File, status
@@ -22,15 +27,44 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
-# Import our solver
+# Disable ALL Python caching and force fresh imports
 import sys
+import os
+import importlib
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))  # Add parent directory to path
 
+# Force Python to not write bytecode files
+sys.dont_write_bytecode = True
+os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+
+# Add parent directory to path
+sys.path.append(str(Path(__file__).parent.parent))
+
+# Force reload function to clear module cache
+def force_reload_module(module_name):
+    """Force reload a module by removing it from sys.modules"""
+    if module_name in sys.modules:
+        print(f"🔄 Force reloading module: {module_name}")
+        del sys.modules[module_name]
+    # Also try variations of the module name
+    for key in list(sys.modules.keys()):
+        if module_name in key:
+            print(f"🔄 Force reloading cached module: {key}")
+            del sys.modules[key]
+
+# Clear any cached modules related to our solver
+force_reload_module('LeetCodeSolver.latest.enhanced_leetcode_solver')
+force_reload_module('enhanced_leetcode_solver')
+force_reload_module('LeetCodeSolver.olderTriedCode.simplified_leetcode_solver')
+force_reload_module('LeetCodeSolver.latest.universal_solution_manager')
+
+# Import our solver AFTER clearing cache
 from LeetCodeSolver.olderTriedCode.simplified_leetcode_solver import SimplifiedLeetCodeSolver, EnvironmentManager
 from LeetCodeSolver.latest.enhanced_leetcode_solver import EnhancedLeetCodeSolver
 from LeetCodeSolver.latest.universal_solution_manager import UniversalSolutionManager
 from WebResearchEngine.web_research_engine import WebResearchEngine
+
+print("✅ All solver modules imported with cache clearing")
 
 # =====================
 # Pydantic Models
@@ -101,7 +135,7 @@ class EnhancedSolutionResponse(BaseModel):
     explanation: Optional[str] = Field(None, description="Detailed step-by-step explanation with sample walkthrough")
     complexity_analysis: Optional[str] = Field(None, description="Time and space complexity analysis")
     brute_force_approach: Optional[str] = Field(None, description="Brute force approach explanation and complexities")
-    test_cases_covered: Optional[str] = Field(None, description="Test case types and edge cases handled")
+    test_cases_covered: Optional[List[str]] = Field(None, description="Test case types and edge cases handled")
     execution_result: Optional[Dict[str, Any]] = Field(None, description="JavaScript execution results")
     agent_response: Optional[str] = Field(None, description="Raw AI agent response")
     input_type: Optional[str] = Field(None, description="Type of input (text/image)")
@@ -212,10 +246,10 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    global solver, storage_manager
+    global solver, universal_storage_manager
     print("🛑 Shutting down LeetCode Solver API Server")
     solver = None
-    storage_manager = None
+    universal_storage_manager = None
 
 # =====================
 # Helper Functions
@@ -224,13 +258,13 @@ async def shutdown_event():
 def store_solution_if_enabled(problem_text: str, solution_data: Dict[str, Any], 
                              input_type: str = "text", store_enabled: bool = True) -> Optional[Dict[str, str]]:
     """Store solution if storage is enabled and available"""
-    global storage_manager
+    global universal_storage_manager
     
-    if not store_enabled or not storage_manager or not storage_manager.enabled:
+    if not store_enabled or not universal_storage_manager or not universal_storage_manager.enabled:
         return None
     
     try:
-        return storage_manager.store_solution(problem_text, solution_data, input_type)
+        return universal_storage_manager.store_solution(problem_text, solution_data, input_type)
     except Exception as e:
         print(f"⚠️ Failed to store solution: {e}")
         return None
@@ -599,6 +633,13 @@ async def solve_enhanced_text(request: ProblemRequest):
     try:
         logger.info(f"Enhanced solve request: {len(request.problem_text)} chars, max_corrections={request.max_corrections}, store={request.store_solution}")
         
+        # Force reload the enhanced solver module to avoid any caching issues
+        force_reload_module('LeetCodeSolver.latest.enhanced_leetcode_solver')
+        importlib.invalidate_caches()
+        
+        # Re-import after cache clear
+        from LeetCodeSolver.latest.enhanced_leetcode_solver import EnhancedLeetCodeSolver
+        
         # Use enhanced solver for comprehensive analysis
         enhanced_solver = EnhancedLeetCodeSolver()
         
@@ -634,7 +675,12 @@ async def solve_enhanced_text(request: ProblemRequest):
         )
 
 @app.post("/solve/enhanced-image", response_model=EnhancedSolutionResponse)
-async def solve_enhanced_image(file: UploadFile = File(...)):
+async def solve_enhanced_image(
+    file: UploadFile = File(...),
+    max_corrections: int = 3,
+    store_solution: bool = True,
+    additional_context: str = ""
+):
     """Solve LeetCode problem from image with comprehensive analysis"""
     try:
         # Validate file type
@@ -654,12 +700,34 @@ async def solve_enhanced_image(file: UploadFile = File(...)):
             tmp_file_path = tmp_file.name
         
         try:
+            # Force reload the enhanced solver module to avoid any caching issues
+            force_reload_module('LeetCodeSolver.latest.enhanced_leetcode_solver')
+            importlib.invalidate_caches()
+            
+            # Re-import after cache clear
+            from LeetCodeSolver.latest.enhanced_leetcode_solver import EnhancedLeetCodeSolver
+            
             # Use enhanced solver for comprehensive analysis
             enhanced_solver = EnhancedLeetCodeSolver()
             
             result = await solve_problem_async(
-                lambda: enhanced_solver.solve_from_image(tmp_file_path, 3)
+                lambda: enhanced_solver.solve_from_image(tmp_file_path, max_corrections)
             )
+            
+            # Store solution if enabled and successful
+            storage_paths = None
+            if result.get('success') and store_solution:
+                # Use additional_context as problem text if provided, otherwise use a default
+                problem_text = additional_context if additional_context.strip() else "LeetCode problem from image"
+                storage_paths = store_solution_if_enabled(
+                    problem_text, 
+                    result, 
+                    input_type="image",
+                    store_enabled=store_solution
+                )
+            
+            # Add storage information to result
+            result['storage'] = create_storage_info(storage_paths)
             
             # Clean up
             enhanced_solver.cleanup()
@@ -739,13 +807,13 @@ async def get_enhanced_two_sum_example():
 @app.get("/storage/stats")
 async def get_storage_stats():
     """Get storage statistics"""
-    global storage_manager
+    global universal_storage_manager
     
-    if not storage_manager:
+    if not universal_storage_manager:
         return {"enabled": False, "error": "Storage manager not initialized"}
     
     try:
-        stats = storage_manager.get_storage_stats()
+        stats = universal_storage_manager.get_storage_stats()
         return stats
     except Exception as e:
         return {"enabled": False, "error": str(e)}
@@ -753,9 +821,9 @@ async def get_storage_stats():
 @app.get("/storage/solutions/{date}")
 async def list_solutions_by_date(date: str):
     """List solutions for a specific date (YYYY-MM-DD format)"""
-    global storage_manager
+    global universal_storage_manager
     
-    if not storage_manager:
+    if not universal_storage_manager:
         return {"error": "Storage manager not initialized", "solutions": []}
     
     try:
@@ -763,7 +831,7 @@ async def list_solutions_by_date(date: str):
         from datetime import datetime
         datetime.strptime(date, "%Y-%m-%d")
         
-        solutions = storage_manager.list_solutions_by_date(date)
+        solutions = universal_storage_manager.list_solutions_by_date(date)
         return {
             "date": date,
             "count": len(solutions),
@@ -777,13 +845,13 @@ async def list_solutions_by_date(date: str):
 @app.get("/storage/solutions")
 async def list_todays_solutions():
     """List today's solutions"""
-    global storage_manager
+    global universal_storage_manager
     
-    if not storage_manager:
+    if not universal_storage_manager:
         return {"error": "Storage manager not initialized", "solutions": []}
     
     try:
-        solutions = storage_manager.list_solutions_by_date()  # Default to today
+        solutions = universal_storage_manager.list_solutions_by_date()  # Default to today
         today = datetime.now().strftime("%Y-%m-%d")
         return {
             "date": today,
@@ -796,13 +864,13 @@ async def list_todays_solutions():
 @app.get("/storage/dates")
 async def get_available_dates():
     """Get list of dates with stored solutions"""
-    global storage_manager
+    global universal_storage_manager
     
-    if not storage_manager:
+    if not universal_storage_manager:
         return {"error": "Storage manager not initialized", "dates": []}
     
     try:
-        dates = storage_manager.get_available_dates()
+        dates = universal_storage_manager.get_available_dates()
         return {
             "available_dates": dates,
             "count": len(dates)
@@ -1012,16 +1080,16 @@ async def global_exception_handler(request, exc):
 if __name__ == "__main__":
     print("🚀 Starting LeetCode Solver API Server")
     print("=" * 50)
-    print("📍 API Documentation: http://localhost:8000/docs")
-    print("🔍 API Explorer: http://localhost:8000/redoc")
-    print("💚 Health Check: http://localhost:8000/health")
+    print("📍 API Documentation: http://localhost:8001/docs")
+    print("🔍 API Explorer: http://localhost:8001/redoc")
+    print("💚 Health Check: http://localhost:8001/health")
     print("=" * 50)
     
     # Run with uvicorn
     uvicorn.run(
         "api_server:app",
         host="0.0.0.0",
-        port=8000,
+        port=8001,
         reload=True,
         reload_dirs=["pythonBackend"],
         log_level="info"

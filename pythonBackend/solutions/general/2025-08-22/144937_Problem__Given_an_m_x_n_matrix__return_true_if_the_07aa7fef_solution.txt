@@ -1,0 +1,20 @@
+function isToeplitzMatrix(matrix) {
+    // Check if the given matrix is a Toeplitz matrix
+    // A Toeplitz matrix has the same elements along each diagonal
+    const rows = matrix.length; // Number of rows in the matrix
+    const cols = matrix[0].length; // Number of columns in the matrix
+    
+    // Iterate over each element starting from the second row and second column
+    for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+            // Check if the current element is equal to the top-left diagonal element
+            if (matrix[i][j] !== matrix[i - 1][j - 1]) {
+                // If any element does not match, the matrix is not Toeplitz
+                return false;
+            }
+        }
+    }
+    
+    // If all diagonals have the same elements, return true
+    return true;
+}

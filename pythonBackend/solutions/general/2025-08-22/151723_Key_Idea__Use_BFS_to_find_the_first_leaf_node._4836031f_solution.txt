@@ -1,0 +1,29 @@
+function minDepth(root) {
+    // Use Breadth-First Search (BFS) to find the minimum depth of the binary tree
+    if (!root) return 0; // If the tree is empty, the depth is 0
+    
+    const queue = [{ node: root, depth: 1 }]; // Initialize queue with root node and depth 1
+    
+    // Perform BFS
+    while (queue.length > 0) {
+        const { node, depth } = queue.shift(); // Dequeue the front node
+        
+        // Check if the current node is a leaf node
+        if (!node.left && !node.right) {
+            return depth; // Return the depth when a leaf node is found
+        }
+        
+        // Enqueue left child if it exists
+        if (node.left) {
+            queue.push({ node: node.left, depth: depth + 1 });
+        }
+        
+        // Enqueue right child if it exists
+        if (node.right) {
+            queue.push({ node: node.right, depth: depth + 1 });
+        }
+    }
+    
+    // This line is never reached because we return upon finding a leaf
+    return 0;
+}

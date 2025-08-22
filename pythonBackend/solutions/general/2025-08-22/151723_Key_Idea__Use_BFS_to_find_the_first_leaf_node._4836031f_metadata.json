@@ -1,0 +1,35 @@
+{
+  "problem_title": "Key_Idea__Use_BFS_to_find_the_first_leaf_node.",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T15:17:23.458722",
+  "input_type": "text",
+  "solution_hash": "4836031f",
+  "success": true,
+  "processing_time": 9.367339,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/151723_Key_Idea__Use_BFS_to_find_the_first_leaf_node._4836031f_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/151723_Key_Idea__Use_BFS_to_find_the_first_leaf_node._4836031f_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/151723_Key_Idea__Use_BFS_to_find_the_first_leaf_node._4836031f_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Use Breadth-First Search (BFS) to traverse the tree level by level.\n• **Key Insight**: The first leaf node encountered in BFS gives the minimum depth.\n• **Steps**:\n  1. Initialize a queue with the root node and depth 1.\n  2. Dequeue nodes one by one, checking if they are leaf nodes.\n  3. If a leaf node is found, return its depth. Otherwise, enqueue its children with incremented depth.\n\n### Dry Run Example\n\n**Input**: [3,9,20,null,null,15,7]\n**Process**:\n- Step 1: Start with root node (3) at depth 1.\n- Step 2: Enqueue children (9, 20) at depth 2.\n- Step 3: Dequeue node 9, check for leaf (it is a leaf), return depth 2.\n**Output**: 2",
+    "complexity_analysis": "**Time Complexity**: O(n) - We visit each node exactly once in the worst case.\n**Space Complexity**: O(n) - In the worst case, the queue can hold all nodes at the deepest level.",
+    "brute_force_approach": "Use Depth-First Search (DFS) to explore all paths from root to leaves, keeping track of the minimum depth encountered. This approach has a time complexity of O(n) and space complexity of O(h), where h is the height of the tree.",
+    "test_cases_covered": [
+      "Test with a single node tree: [1]",
+      "Test with a complete binary tree: [1,2,3,4,5,6,7]",
+      "Test with an unbalanced tree: [1,2,null,3,null,4,null,5]"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: minDepth\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => 1\nTest 2: Array [1,2,3,4,5] => 1\nTest 3: String 'hello' => 1\nTest 4: Number 42 => 1\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

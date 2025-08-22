@@ -1,0 +1,30 @@
+function maxConsecutiveOnes(nums, k) {
+    // Initialize variables to track the window's start and the maximum length of consecutive 1's
+    let left = 0; // Start of the window
+    let maxLength = 0; // Maximum length of consecutive 1's found
+    let zeroCount = 0; // Count of zeros in the current window
+    
+    // Iterate over the array with the right pointer
+    for (let right = 0; right < nums.length; right++) {
+        // If the current element is 0, increment the zero count
+        if (nums[right] === 0) {
+            zeroCount++;
+        }
+        
+        // If the zero count exceeds k, shrink the window from the left
+        while (zeroCount > k) {
+            // If the element at the left is 0, decrement the zero count
+            if (nums[left] === 0) {
+                zeroCount--;
+            }
+            // Move the left pointer to the right
+            left++;
+        }
+        
+        // Calculate the maximum length of 1's found so far
+        maxLength = Math.max(maxLength, right - left + 1);
+    }
+    
+    // Return the maximum length of consecutive 1's
+    return maxLength;
+}

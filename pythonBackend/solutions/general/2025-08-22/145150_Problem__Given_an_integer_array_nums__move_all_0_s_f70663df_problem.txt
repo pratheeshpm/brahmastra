@@ -1,0 +1,8 @@
+Problem: Problem__Given_an_integer_array_nums__move_all_0_s
+Category: General Programming
+Generated: 2025-08-22T14:51:50.272765
+Input Type: text
+==================================================
+
+Problem: Given an integer array nums, move all 0's to the end of it while maintaining the relative order of the non-zero elements. Do it in-place.
+Key Idea: Use two pointers: one for iteration and one for placing non-zero values.

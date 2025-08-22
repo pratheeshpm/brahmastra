@@ -1,0 +1,19 @@
+function removeAdjacentDuplicates(s) {
+    // Use a stack to efficiently remove adjacent duplicates
+    const stack = []; // Stack to keep track of characters
+    
+    // Iterate over each character in the string
+    for (let i = 0; i < s.length; i++) {
+        // If the stack is not empty and the top of the stack is the same as the current character
+        if (stack.length > 0 && stack[stack.length - 1] === s[i]) {
+            // Pop the top of the stack to remove the duplicate
+            stack.pop(); // Remove the last character as it's a duplicate
+        } else {
+            // Otherwise, push the current character onto the stack
+            stack.push(s[i]); // Add current character to stack
+        }
+    }
+    
+    // Join the stack to form the resultant string without adjacent duplicates
+    return stack.join(''); // Convert stack back to string
+}

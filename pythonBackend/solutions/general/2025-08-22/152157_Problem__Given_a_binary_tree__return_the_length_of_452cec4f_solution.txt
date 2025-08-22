@@ -1,0 +1,28 @@
+function diameterOfBinaryTree(root) {
+    // This function calculates the diameter of a binary tree
+    // Initialize a variable to keep track of the maximum diameter found
+    let maxDiameter = 0; // Stores the longest path found
+    
+    // Helper function to perform DFS and calculate depth
+    function depth(node) {
+        // Base case: if the node is null, return 0
+        if (!node) return 0;
+        
+        // Recursively find the depth of the left subtree
+        const leftDepth = depth(node.left); // Depth of left subtree
+        // Recursively find the depth of the right subtree
+        const rightDepth = depth(node.right); // Depth of right subtree
+        
+        // Update the maximum diameter if the current path is longer
+        maxDiameter = Math.max(maxDiameter, leftDepth + rightDepth); // Update max diameter
+        
+        // Return the depth of the current node
+        return Math.max(leftDepth, rightDepth) + 1; // Depth of current node
+    }
+    
+    // Start DFS from the root
+    depth(root);
+    
+    // Return the maximum diameter found
+    return maxDiameter; // Final result
+}

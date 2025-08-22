@@ -1,0 +1,8 @@
+Problem: Problem__Given_a_string__repeatedly_remove_adjacen
+Category: General Programming
+Generated: 2025-08-22T15:15:37.676891
+Input Type: text
+==================================================
+
+Problem: Given a string, repeatedly remove adjacent duplicate characters until no more duplicates remain.
+Key Idea: Use a stack to process characters and remove duplicates efficiently.

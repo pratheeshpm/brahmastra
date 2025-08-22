@@ -1,0 +1,8 @@
+Problem: Problem__Given_an_m_x_n_matrix__return_true_if_the
+Category: General Programming
+Generated: 2025-08-22T14:49:37.173288
+Input Type: text
+==================================================
+
+Problem: Given an m x n matrix, return true if the matrix is a Toeplitz matrix. A matrix is Toeplitz if every diagonal from top-left to bottom-right has the same element.
+Key Idea: Check if matrix[i][j] == matrix[i-1][j-1] for all valid i, j.

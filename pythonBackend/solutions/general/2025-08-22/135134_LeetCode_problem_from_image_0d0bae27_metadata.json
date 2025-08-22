@@ -1,0 +1,35 @@
+{
+  "problem_title": "LeetCode_problem_from_image",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T13:51:34.090070",
+  "input_type": "text",
+  "solution_hash": "0d0bae27",
+  "success": true,
+  "processing_time": 21.252234,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/135134_LeetCode_problem_from_image_0d0bae27_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/135134_LeetCode_problem_from_image_0d0bae27_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/135134_LeetCode_problem_from_image_0d0bae27_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Use a sliding window technique with a hash map to track the last seen index of each character.\n• **Key Insight**: By maintaining the start of the current substring and updating it when a duplicate character is found, we can efficiently find the longest substring without repeating characters.\n• **Steps**:\n  1. Initialize a map to store the last index of each character.\n  2. Iterate over the string, updating the start of the substring when a duplicate is found.\n  3. Calculate the length of the current substring and update the maximum length found.\n\n### Dry Run Example\n\n**Input**: \"abcabcbb\"\n**Process**:\n- Step 1: Initialize start = 0, maxLength = 0, charIndexMap = {}\n- Step 2: Iterate over 'a', update map, maxLength = 1\n- Step 3: Iterate over 'b', update map, maxLength = 2\n- Step 4: Iterate over 'c', update map, maxLength = 3\n- Step 5: 'a' found again, update start to 1, continue\n- Step 6: Continue updating map and maxLength as needed\n**Output**: 3",
+    "complexity_analysis": "**Time Complexity**: O(n) - We traverse the string once, and each character is processed at most twice (once when added and once when the start is moved).\n**Space Complexity**: O(min(n, m)) - where n is the length of the string and m is the size of the character set, due to the hash map storing characters.",
+    "brute_force_approach": "The brute force approach involves checking all possible substrings and verifying if they contain all unique characters. This would involve two nested loops, resulting in a time complexity of O(n^2). For each substring, we would need to check if all characters are unique, which can be done in O(n) time using a set, leading to an overall complexity of O(n^3).",
+    "test_cases_covered": [
+      "abcabcbb",
+      "bbbbb",
+      "pwwkew"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: lengthOfLongestSubstring\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => 4\nTest 2: Array [1,2,3,4,5] => 5\nTest 3: String 'hello' => 3\nTest 4: Number 42 => 0\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

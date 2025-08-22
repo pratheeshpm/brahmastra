@@ -1,0 +1,35 @@
+{
+  "problem_title": "Problem__Given_a_string__repeatedly_remove_adjacen",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T15:15:37.676929",
+  "input_type": "text",
+  "solution_hash": "1754d5ea",
+  "success": true,
+  "processing_time": 10.428607,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/151537_Problem__Given_a_string__repeatedly_remove_adjacen_1754d5ea_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/151537_Problem__Given_a_string__repeatedly_remove_adjacen_1754d5ea_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/151537_Problem__Given_a_string__repeatedly_remove_adjacen_1754d5ea_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Use a stack to track characters and remove adjacent duplicates efficiently.\n• **Key Insight**: The stack allows us to easily compare the current character with the last added character, facilitating duplicate removal.\n• **Steps**:\n  1. Initialize an empty stack.\n  2. Iterate through each character of the string.\n  3. If the stack's top is the same as the current character, pop the stack; otherwise, push the character onto the stack.\n\n### Dry Run Example\n\n**Input**: 'abbaca'\n**Process**:\n- Step 1: 'a' -> stack: ['a']\n- Step 2: 'b' -> stack: ['a', 'b']\n- Step 3: 'b' -> stack: ['a'] (pop 'b')\n- Step 4: 'a' -> stack: [] (pop 'a')\n- Step 5: 'c' -> stack: ['c']\n- Step 6: 'a' -> stack: ['c', 'a']\n**Output**: 'ca'",
+    "complexity_analysis": "**Time Complexity**: O(n) - We traverse the string once, performing constant time operations for each character.\n**Space Complexity**: O(n) - In the worst case, the stack could store all characters if no duplicates are adjacent.",
+    "brute_force_approach": "A brute force approach would involve repeatedly scanning the string for adjacent duplicates and removing them, which would require multiple passes over the string. This approach would have a time complexity of O(n^2) due to repeated scanning and removal operations.",
+    "test_cases_covered": [
+      "abbaca",
+      "azxxzy",
+      "aabbccddeeff"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: removeAdjacentDuplicates\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => \"271115\"\nTest 2: Array [1,2,3,4,5] => \"12345\"\nTest 3: String 'hello' => \"heo\"\nTest 4: Number 42 => \"\"\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

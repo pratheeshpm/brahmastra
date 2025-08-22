@@ -1,0 +1,8 @@
+Problem: Problem__Given_a_binary_tree__return_the_length_of
+Category: General Programming
+Generated: 2025-08-22T15:21:57.710596
+Input Type: text
+==================================================
+
+Problem: Given a binary tree, return the length of the diameter (longest path between two nodes).
+Key Idea: Use DFS to calculate depth of left and right subtrees, track max sum.

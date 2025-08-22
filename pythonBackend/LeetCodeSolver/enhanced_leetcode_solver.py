@@ -15,13 +15,8 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 from datetime import datetime
 
-# Import PraisonAI components
-try:
-    from praisonaiagents import Agent
-    print("✅ PraisonAI imported successfully")
-except ImportError as e:
-    print(f"❌ Failed to import PraisonAI: {e}")
-    sys.exit(1)
+# Note: Removed PraisonAI import - using direct OpenAI API calls instead for better reliability
+# This eliminates potential caching issues from PraisonAI agent system
 
 # Import OpenAI for vision processing
 try:
@@ -134,51 +129,102 @@ try {{
     console.log("Available functions:", functionNames);
     const mainFunc = this[functionNames[0]];
     
-    // Basic test with common patterns
-    console.log("\\n=== BASIC TESTS ===");
+    // Smart test detection based on function name and signature  
+    console.log("\\n=== SMART FUNCTION TESTING v3.0 ===");
     try {{
-        // Common test cases for different problem types
         let testResults = [];
         
-        // Two Sum pattern test
-        try {{
-            let result1 = mainFunc([2,7,11,15], 9);
-            testResults.push({{test: "Two Sum [2,7,11,15], target=9", result: result1}});
-        }} catch (e) {{
-            console.log("Two Sum test not applicable");
+        // Analyze function name to determine likely input types
+        const funcName = functionName.toLowerCase();
+        
+        // Extract parameter names from function signature
+        const paramMatch = codeText.match(/function\\s+\\w+\\s*\\(([^)]*)\\)/);
+        const params = paramMatch ? paramMatch[1].split(',').map(p => p.trim()).filter(p => p) : [];
+        
+        console.log(`Function: ${{functionName}}, Parameters: ${{params.length}} [${{params.join(', ')}}]`);
+        
+        // Determine function category and run appropriate tests
+        if (funcName.includes('string') || funcName.includes('substring') || funcName.includes('palindrome') || funcName.includes('anagram')) {{
+            // String-based functions
+            console.log("🔤 Detected string-based function");
+            try {{
+                let result1 = mainFunc("abcabcbb");
+                testResults.push({{test: "String 'abcabcbb'", result: result1}});
+            }} catch (e) {{ console.log("String test 1 failed:", e.message); }}
+            
+            try {{
+                let result2 = mainFunc("hello");
+                testResults.push({{test: "String 'hello'", result: result2}});
+            }} catch (e) {{ console.log("String test 2 failed:", e.message); }}
+            
+            try {{
+                let result3 = mainFunc("abc");
+                testResults.push({{test: "String 'abc'", result: result3}});
+            }} catch (e) {{ console.log("String test 3 failed:", e.message); }}
+            
+        }} else if (funcName.includes('sum') || funcName.includes('target') || params.length >= 2) {{
+            // Two Sum or similar functions with target
+            console.log("🎯 Detected array + target function");
+            try {{
+                let result1 = mainFunc([2,7,11,15], 9);
+                testResults.push({{test: "Array [2,7,11,15], target 9", result: result1}});
+            }} catch (e) {{ console.log("Two-param test 1 failed:", e.message); }}
+            
+            try {{
+                let result2 = mainFunc([3,2,4], 6);
+                testResults.push({{test: "Array [3,2,4], target 6", result: result2}});
+            }} catch (e) {{ console.log("Two-param test 2 failed:", e.message); }}
+            
+        }} else if (funcName.includes('max') || funcName.includes('min') || funcName.includes('find') || params.length === 1) {{
+            // Single array functions
+            console.log("📊 Detected single array function");
+            try {{
+                let result1 = mainFunc([1,5,3,9,2]);
+                testResults.push({{test: "Array [1,5,3,9,2]", result: result1}});
+            }} catch (e) {{ console.log("Array test 1 failed:", e.message); }}
+            
+            try {{
+                let result2 = mainFunc([1,2,3,4,5]);
+                testResults.push({{test: "Array [1,2,3,4,5]", result: result2}});
+            }} catch (e) {{ console.log("Array test 2 failed:", e.message); }}
+            
+            try {{
+                let result3 = mainFunc([42]);
+                testResults.push({{test: "Array [42]", result: result3}});
+            }} catch (e) {{ console.log("Array test 3 failed:", e.message); }}
+            
+        }} else {{
+            // Generic fallback tests
+            console.log("🔧 Running generic tests");
+            
+            // Try string first
+            try {{
+                let result1 = mainFunc("test");
+                testResults.push({{test: "String 'test'", result: result1}});
+            }} catch (e) {{
+                // Try array
+                try {{
+                    let result2 = mainFunc([1,2,3]);
+                    testResults.push({{test: "Array [1,2,3]", result: result2}});
+                }} catch (e2) {{
+                    // Try number
+                    try {{
+                        let result3 = mainFunc(42);
+                        testResults.push({{test: "Number 42", result: result3}});
+                    }} catch (e3) {{
+                        console.log("No successful generic tests");
+                    }}
+                }}
+            }}
         }}
         
-        // Single array test
-        try {{
-            let result2 = mainFunc([1,2,3,4,5]);
-            testResults.push({{test: "Array [1,2,3,4,5]", result: result2}});
-        }} catch (e) {{
-            console.log("Array test not applicable");
-        }}
-        
-        // String test
-        try {{
-            let result3 = mainFunc("hello");
-            testResults.push({{test: "String 'hello'", result: result3}});
-        }} catch (e) {{
-            console.log("String test not applicable");
-        }}
-        
-        // Number test
-        try {{
-            let result4 = mainFunc(42);
-            testResults.push({{test: "Number 42", result: result4}});
-        }} catch (e) {{
-            console.log("Number test not applicable");
-        }}
-        
-        console.log("\\nTest Results:");
-        testResults.forEach((test, index) => {{
-            console.log(`Test ${{index + 1}}: ${{test.test}} => ${{JSON.stringify(test.result)}}`);
-        }});
-        
-        if (testResults.length === 0) {{
-            console.log("⚠️  No test patterns matched, but function executed without syntax errors");
+        console.log("\\n📋 Test Results:");
+        if (testResults.length > 0) {{
+            testResults.forEach((test, index) => {{
+                console.log(`✅ Test ${{index + 1}}: ${{test.test}} => ${{JSON.stringify(test.result)}}`);
+            }});
+        }} else {{
+            console.log("⚠️  No tests produced results, but function compiled successfully");
         }}
         
     }} catch (testError) {{
@@ -296,63 +342,9 @@ class EnhancedLeetCodeSolver:
         self.js_executor = JavaScriptExecutor()
         print("✅ JavaScript executor ready")
         
-        # Initialize PraisonAI agent for comprehensive analysis
-        self.agent = Agent(
-            role="Expert JavaScript LeetCode Algorithm Specialist",
-            goal="Generate ONLY JavaScript solutions with comprehensive algorithmic analysis",
-            backstory="You are a world-class JavaScript algorithm expert and competitive programmer specializing in LeetCode problems. You ONLY write JavaScript code, never Python or any other language.",
-            instructions="""You are an expert JavaScript LeetCode problem solver. Your task is to provide COMPREHENSIVE analysis with JAVASCRIPT-ONLY solutions:
-
-🚨 CRITICAL REQUIREMENT: ALL CODE MUST BE JAVASCRIPT - NEVER PYTHON OR OTHER LANGUAGES! 🚨
-
-1. **OPTIMIZED SOLUTION**: Generate the most efficient JAVASCRIPT solution with optimal time/space complexity
-2. **DETAILED EXPLANATION**: Provide step-by-step walkthrough with a sample test case
-3. **COMPLEXITY ANALYSIS**: Detailed time and space complexity analysis
-4. **BRUTE FORCE APPROACH**: Explain the brute force approach and its complexities
-5. **TEST CASE ANALYSIS**: Explain what test cases are covered
-
-RESPONSE FORMAT (MUST FOLLOW EXACTLY):
-```
-OPTIMIZED_SOLUTION:
-function solutionName(params) {
-    // Your JavaScript code here
-    // Use const, let, arrow functions, modern ES6+ syntax
-    // NO Python syntax like def, : after function names, etc.
-}
-
-EXPLANATION:
-[Detailed step-by-step explanation with sample walkthrough]
-
-COMPLEXITY_ANALYSIS:
-Time Complexity: [Analysis]
-Space Complexity: [Analysis]
-
-BRUTE_FORCE_APPROACH:
-Approach: [Explanation of brute force in JavaScript]
-Time Complexity: [Analysis]
-Space Complexity: [Analysis]
-
-TEST_CASES_COVERED:
-[List of test case types and edge cases handled]
-```
-
-MANDATORY JavaScript Guidelines:
-- ALWAYS write JavaScript functions using 'function' keyword or arrow syntax
-- Use { } for function bodies, NOT Python's : and indentation
-- Use const/let for variables, NOT Python variable declarations
-- Use // for comments, NOT Python # comments
-- Use camelCase naming (twoSum, not two_sum)
-- Include semicolons where appropriate
-- Use JavaScript array/object methods (.map, .filter, etc.)
-- Example: function twoSum(nums, target) { return [0, 1]; }
-- NEVER write: def twoSum(nums, target): or any Python syntax
-
-If you accidentally write Python code, IMMEDIATELY correct it to JavaScript!""",
-            
-            llm="gpt-4o",  # Best model for comprehensive analysis
-            verbose=True
-        )
-        print("✅ Enhanced PraisonAI agent initialized")
+        # Note: Removed PraisonAI agent initialization - using direct OpenAI API calls instead
+        # This eliminates potential caching issues from PraisonAI agent system
+        print("✅ Enhanced solver initialized (no PraisonAI agent - using direct OpenAI API)")
     
     def solve_from_text(self, problem_text: str, max_corrections: int = 3) -> Dict[str, Any]:
         """Solve LeetCode problem from text with comprehensive analysis"""

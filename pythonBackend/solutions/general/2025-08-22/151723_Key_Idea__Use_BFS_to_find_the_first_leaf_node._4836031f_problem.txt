@@ -1,0 +1,8 @@
+Problem: Key_Idea__Use_BFS_to_find_the_first_leaf_node.
+Category: General Programming
+Generated: 2025-08-22T15:17:23.458681
+Input Type: text
+==================================================
+
+Problem: Given the root of a binary tree, return its minimum depth (shortest path from root to a leaf).
+Key Idea: Use BFS to find the first leaf node.

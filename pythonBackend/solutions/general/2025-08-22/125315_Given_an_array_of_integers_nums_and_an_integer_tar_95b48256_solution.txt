@@ -1,0 +1,22 @@
+function twoSum(nums, target) {
+    // Use a hash map to store the difference needed to reach the target
+    const numMap = {}; // Maps number to its index
+    
+    // Iterate over the array to find the two numbers
+    for (let i = 0; i < nums.length; i++) {
+        // Calculate the complement of the current number
+        const complement = target - nums[i]; // The number needed to reach the target
+        
+        // Check if the complement is already in the map
+        if (numMap.hasOwnProperty(complement)) {
+            // If found, return the indices of the two numbers
+            return [numMap[complement], i]; // Return indices of the two numbers
+        }
+        
+        // Otherwise, add the current number and its index to the map
+        numMap[nums[i]] = i; // Store index of the current number
+    }
+    
+    // If no solution is found, return an empty array (though problem guarantees a solution)
+    return [];
+}

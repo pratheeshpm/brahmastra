@@ -1,0 +1,35 @@
+{
+  "problem_title": "LeetCode_problem_from_image",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T13:24:16.891987",
+  "input_type": "text",
+  "solution_hash": "cb519f07",
+  "success": true,
+  "processing_time": 34.711905,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/132416_LeetCode_problem_from_image_cb519f07_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/132416_LeetCode_problem_from_image_cb519f07_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/132416_LeetCode_problem_from_image_cb519f07_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Use a sliding window technique with a hash map to track the last seen index of each character.\n• **Key Insight**: By maintaining a map of character indices, we can efficiently skip over duplicate characters and adjust the window.\n• **Steps**:\n  1. Initialize a map to store the last index of each character and variables for max length and start of the window.\n  2. Iterate through the string, updating the start of the window when a duplicate character is found within the current window.\n  3. Update the maximum length of the substring as we iterate.\n\n### Dry Run Example\n\n**Input**: s = \"abcabcbb\"\n**Process**:\n- Step 1: Initialize map, maxLength = 0, start = 0\n- Step 2: Iterate over 'a', map = {'a': 0}, maxLength = 1\n- Step 3: Iterate over 'b', map = {'a': 0, 'b': 1}, maxLength = 2\n- Step 4: Iterate over 'c', map = {'a': 0, 'b': 1, 'c': 2}, maxLength = 3\n- Step 5: Iterate over 'a', start = 1, map = {'a': 3, 'b': 1, 'c': 2}, maxLength = 3\n- Continue similarly for remaining characters\n**Output**: 3",
+    "complexity_analysis": "**Time Complexity**: O(n) - We traverse the string once, and each character is processed at most twice (once added and once removed).\n**Space Complexity**: O(min(n, m)) - where n is the length of the string and m is the size of the character set. We store each character in the map.",
+    "brute_force_approach": "A brute force approach would involve checking all possible substrings and verifying if they contain all unique characters. This would involve two nested loops, leading to a time complexity of O(n^2) and a space complexity of O(min(n, m)) for storing unique characters in a set.",
+    "test_cases_covered": [
+      "s = \"abcabcbb\"; // Expected output: 3",
+      "s = \"bbbbb\"; // Expected output: 1",
+      "s = \"pwwkew\"; // Expected output: 3"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: lengthOfLongestSubstring\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => 4\nTest 2: Array [1,2,3,4,5] => 5\nTest 3: String 'hello' => 3\nTest 4: Number 42 => 0\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

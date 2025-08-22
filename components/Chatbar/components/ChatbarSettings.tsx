@@ -1,4 +1,4 @@
-import { IconFileExport, IconSettings, IconVideo } from '@tabler/icons-react';
+import { IconFileExport, IconSettings, IconVideo, IconCode } from '@tabler/icons-react';
 import { useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -62,6 +62,18 @@ export const ChatbarSettings = () => {
         text="YouTube Search"
         icon={<IconVideo size={18} />}
         onClick={() => router.push('/youtube-search')}
+      />
+
+      <SidebarButton
+        text="LeetCode Solver"
+        icon={<IconCode size={18} />}
+        onClick={() => router.push('/leetcode')}
+      />
+
+      <SidebarButton
+        text="Notes"
+        icon={<IconFileExport size={18} />}
+        onClick={() => router.push('/notes')}
       />
 
       {!serverSideApiKeyIsSet ? (

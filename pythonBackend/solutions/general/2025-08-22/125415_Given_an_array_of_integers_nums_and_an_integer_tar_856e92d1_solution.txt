@@ -1,0 +1,21 @@
+function twoSum(nums, target) {
+    // Use a hash map to store the difference needed to reach the target
+    const numMap = {}; // Key: number needed, Value: index of the number
+    
+    // Iterate through the array to find the two numbers
+    for (let i = 0; i < nums.length; i++) {
+        // Calculate the difference needed to reach the target
+        const complement = target - nums[i]; // The number needed to add up to target
+        
+        // Check if the complement is already in the map
+        if (numMap.hasOwnProperty(complement)) {
+            // If found, return the indices of the two numbers
+            return [numMap[complement], i]; // Return indices of the two numbers
+        }
+        
+        // Otherwise, store the current number and its index in the map
+        numMap[nums[i]] = i; // Store index of the current number
+    }
+    
+    // The problem guarantees that there is exactly one solution, so no need for a return here
+}

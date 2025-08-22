@@ -1,0 +1,35 @@
+{
+  "problem_title": "Problem__Given_a_binary_tree__return_the_length_of",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T15:21:57.710637",
+  "input_type": "text",
+  "solution_hash": "452cec4f",
+  "success": true,
+  "processing_time": 20.889777,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/152157_Problem__Given_a_binary_tree__return_the_length_of_452cec4f_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/152157_Problem__Given_a_binary_tree__return_the_length_of_452cec4f_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/152157_Problem__Given_a_binary_tree__return_the_length_of_452cec4f_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Use Depth-First Search (DFS) to calculate the depth of each subtree and track the maximum diameter.\n• **Key Insight**: The diameter of a tree is the longest path between any two nodes, which can be found by summing the depths of left and right subtrees at each node.\n• **Steps**:\n  1. Initialize a variable to track the maximum diameter.\n  2. Use a helper function to perform DFS and calculate the depth of each subtree.\n  3. Update the maximum diameter at each node by summing the depths of its left and right subtrees.\n\n### Dry Run Example\n\n**Input**: [1,2,3,4,5]\n**Process**:\n- Step 1: Start DFS from root (1), calculate depth of left (2) and right (3) subtrees.\n- Step 2: For node 2, calculate depth of left (4) and right (5) subtrees.\n- Step 3: Update maxDiameter at each node, return the maximum found.\n**Output**: 3",
+    "complexity_analysis": "**Time Complexity**: O(n) - We visit each node once during the DFS traversal.\n**Space Complexity**: O(h) - The space complexity is determined by the recursion stack, where h is the height of the tree.",
+    "brute_force_approach": "A brute force approach would involve calculating the path length between every pair of nodes, which would be inefficient with a time complexity of O(n^2).",
+    "test_cases_covered": [
+      "[1,2,3,4,5]",
+      "[1,2]",
+      "[1]"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: diameterOfBinaryTree\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => 0\nTest 2: Array [1,2,3,4,5] => 0\nTest 3: String 'hello' => 0\nTest 4: Number 42 => 0\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

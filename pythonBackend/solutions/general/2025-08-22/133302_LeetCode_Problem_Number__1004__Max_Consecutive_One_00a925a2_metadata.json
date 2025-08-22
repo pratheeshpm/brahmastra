@@ -1,0 +1,35 @@
+{
+  "problem_title": "LeetCode_Problem_Number__1004__Max_Consecutive_One",
+  "category": "general",
+  "category_name": "General Programming",
+  "generated_at": "2025-08-22T13:33:02.306366",
+  "input_type": "text",
+  "solution_hash": "00a925a2",
+  "success": true,
+  "processing_time": 14.772952,
+  "iterations": 1,
+  "self_corrected": false,
+  "file_paths": {
+    "solution": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/133302_LeetCode_Problem_Number__1004__Max_Consecutive_One_00a925a2_solution.txt",
+    "problem": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/133302_LeetCode_Problem_Number__1004__Max_Consecutive_One_00a925a2_problem.txt",
+    "metadata": "/Users/pratheeshpm/Documents/codebase/aiProjects/brahmastra/pythonBackend/solutions/general/2025-08-22/133302_LeetCode_Problem_Number__1004__Max_Consecutive_One_00a925a2_metadata.json"
+  },
+  "analysis": {
+    "explanation": "## Algorithm Explanation\n\n• **Approach**: Use a sliding window technique to find the longest subarray of 1's by flipping at most k 0's.\n• **Key Insight**: Maintain a window that contains at most k zeros and expand it as much as possible.\n• **Steps**:\n  1. Initialize two pointers, left and right, to represent the window's boundaries.\n  2. Traverse the array with the right pointer, counting zeros within the window.\n  3. If the zero count exceeds k, move the left pointer to reduce the zero count.\n  4. Track the maximum window size encountered.\n\n### Dry Run Example\n\n**Input**: [1,1,1,0,0,0,1,1,1,1,0], k = 2\n**Process**:\n- Step 1: Start with left=0, right=0, zeroCount=0\n- Step 2: Expand right, zeroCount becomes 1 at right=3\n- Step 3: Expand right, zeroCount becomes 2 at right=4\n- Step 4: Expand right, zeroCount becomes 3 at right=5, move left to reduce zeroCount\n- Step 5: Continue expanding and adjusting left, maxLength updated\n**Output**: 6",
+    "complexity_analysis": "**Time Complexity**: O(n) - We traverse the array with two pointers, each moving at most n times.\n**Space Complexity**: O(1) - We use a constant amount of extra space for variables.",
+    "brute_force_approach": "A brute force approach would involve checking every subarray and counting the number of zeros, flipping them if within the limit, and calculating the length of 1's. This would result in a time complexity of O(n^2) due to the nested loops required to check each subarray.",
+    "test_cases_covered": [
+      "[1,1,1,0,0,0,1,1,1,1,0], k = 2",
+      "[0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], k = 3",
+      "[1,0,1,0,1,0,1,0,1,0,1], k = 5"
+    ]
+  },
+  "execution_result": {
+    "success": true,
+    "output": "=== CODE EXECUTION TEST ===\nFound function: maxConsecutiveOnes\nFunction is callable: true\n\n=== BASIC TESTS ===\n\nTest Results:\nTest 1: Array [2,7,11,15] with target 9 => 4\nTest 2: Array [1,2,3,4,5] => 5\nTest 3: String 'hello' => 5\nTest 4: Number 42 => 0\n\n✅ Code execution completed successfully\n",
+    "error": null,
+    "return_code": 0,
+    "execution_time": "< 15s"
+  },
+  "correction_history": null
+}

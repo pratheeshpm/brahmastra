@@ -30,7 +30,7 @@ export const getOpenAIApiHost = (provider?: 'openai' | 'openrouter' | 'azure' | 
   const apiProvider = provider || getApiProvider();
   
   if (apiProvider === 'azure') {
-    return "https://dh-prod-openai.openai.azure.com";
+    return ""; //like https://dh-prod-openai.openai.azure.com
   } else if (apiProvider === 'openrouter') {
     return "https://openrouter.ai/api/v1";
   } else if (apiProvider === 'gemini') {
@@ -86,8 +86,8 @@ export const OPENAI_ORGANIZATION =
 
 export const AZURE_DEPLOYMENT_ID = process.env.AZURE_DEPLOYMENT_ID || 'GPT4' || 'gpt-4-pwa';
 
-export const AZURE_GPT4_KEY = process.env.AZURE_GPT4_KEY || '8778e5ede6014d8a83b385c908149b12';  
-export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY// || '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'
+export const AZURE_GPT4_KEY = process.env.AZURE_GPT4_KEY
+export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 export const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 export const RECEIVER_IP =  'http://localhost:3000'
